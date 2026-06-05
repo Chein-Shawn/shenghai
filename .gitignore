@@ -1,0 +1,20 @@
+.DS_Store
+*.log
+*.tmp
+*.swp
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Xcode / Swift
+DerivedData/
+*.xcuserstate
+xcuserdata/
+.build/
+
+# Generated research outputs that may become large
+samples/audio/*.wav
+samples/audio/*.aac
+

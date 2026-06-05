@@ -1,0 +1,113 @@
+{
+  "schema_version": "0.1",
+  "source_format": "MusicXML",
+  "divisions": 1,
+  "ticks_per_quarter": 480,
+  "tempo_bpm": 96,
+  "parts": [
+    {
+      "id": "P1",
+      "name": "Voice",
+      "measures": [
+        {
+          "number": "1",
+          "notes": [
+            {
+              "step": "C",
+              "alter": 0,
+              "octave": 4,
+              "duration": 1,
+              "note_type": "quarter",
+              "rest": false,
+              "midi": 60,
+              "start_tick": 0,
+              "duration_tick": 480
+            },
+            {
+              "step": "C",
+              "alter": 0,
+              "octave": 4,
+              "duration": 1,
+              "note_type": "quarter",
+              "rest": false,
+              "midi": 60,
+              "start_tick": 480,
+              "duration_tick": 480
+            },
+            {
+              "step": "G",
+              "alter": 0,
+              "octave": 4,
+              "duration": 1,
+              "note_type": "quarter",
+              "rest": false,
+              "midi": 67,
+              "start_tick": 960,
+              "duration_tick": 480
+            },
+            {
+              "step": "G",
+              "alter": 0,
+              "octave": 4,
+              "duration": 1,
+              "note_type": "quarter",
+              "rest": false,
+              "midi": 67,
+              "start_tick": 1440,
+              "duration_tick": 480
+            }
+          ]
+        },
+        {
+          "number": "2",
+          "notes": [
+            {
+              "step": "A",
+              "alter": 0,
+              "octave": 4,
+              "duration": 1,
+              "note_type": "quarter",
+              "rest": false,
+              "midi": 69,
+              "start_tick": 1920,
+              "duration_tick": 480
+            },
+            {
+              "step": "A",
+              "alter": 0,
+              "octave": 4,
+              "duration": 1,
+              "note_type": "quarter",
+              "rest": false,
+              "midi": 69,
+              "start_tick": 2400,
+              "duration_tick": 480
+            },
+            {
+              "step": "G",
+              "alter": 0,
+              "octave": 4,
+              "duration": 2,
+              "note_type": "half",
+              "rest": false,
+              "midi": 67,
+              "start_tick": 2880,
+              "duration_tick": 960
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "expanded_measure_order": [
+    {
+      "part_id": "P1",
+      "measure_number": "1"
+    },
+    {
+      "part_id": "P1",
+      "measure_number": "2"
+    }
+  ],
+  "corrections": []
+}
