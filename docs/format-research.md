@@ -61,6 +61,31 @@ ScoreDocument -> MIDI-like timeline -> AVAudioEngine / AVAudioUnitSampler
 
 For command-line demos, MuseScore or FluidSynth can export audio once installed.
 
+## OMR Toolchain Findings
+
+Current local status as of 2026-06-05:
+
+- Java 11 was originally installed.
+- OpenJDK 21 was installed for Gradle/Audiveris experimentation.
+- Tesseract 5.5.1 is installed locally.
+- Audiveris is not available via Homebrew search.
+- Audiveris `development` branch can be cloned and its Gradle task list can run.
+- Audiveris `development` branch currently requires Java source release 25 for compilation, so OpenJDK 21 cannot compile it.
+
+Practical next step:
+
+Use a stable Audiveris release/master branch that ships installers or supports a lower Java level, or install JDK 25 if continuing with the development branch. The baseline command to preserve is:
+
+```bash
+audiveris -batch -transcribe -export -output samples/musicxml/audiveris-baseline samples/scores/audiveris-baseline/chula.png
+```
+
+When using the source checkout through Gradle:
+
+```bash
+research/omr/run_audiveris_baseline.sh
+```
+
 ## Sources
 
 - W3C Music Notation Community Group: https://www.w3.org/groups/cg/music-notation/
@@ -68,4 +93,3 @@ For command-line demos, MuseScore or FluidSynth can export audio once installed.
 - Audiveris Handbook: https://audiveris.github.io/audiveris/_pages/handbook/
 - MuseScore file export: https://handbook.musescore.org/en_gb/file-management/file-export
 - FluidSynth documentation: https://www.fluidsynth.org/documentation/
-
