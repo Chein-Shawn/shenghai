@@ -40,6 +40,23 @@ shenghai/
 └── ios-app/
 ```
 
+## Xcode Development
+
+Open the shared Apple-platform core in Xcode:
+
+```bash
+open ios-app/ShenghaiCore/Package.swift
+```
+
+`ShenghaiCore` is the first app-facing implementation layer. It currently includes:
+
+- `ScoreDocument` models for the internal Shenghai wrapper.
+- `MusicXMLImporter` for MusicXML to ScoreDocument parsing.
+- `MIDIWriter` for MIDI event timeline and `.mid` data generation.
+- Swift tests covering the Twinkle sample import and MIDI output path.
+
+The package targets iOS 17+ and macOS 14+, so the same core code can later be embedded in iPhone, iPad, and macOS app targets.
+
 ## Prototype
 
 Run the current MusicXML to ScoreDocument/MIDI prototype:
@@ -54,3 +71,10 @@ This does not perform OMR yet. It proves the downstream pipeline after MusicXML:
 MusicXML -> ScoreDocument JSON -> MIDI
 ```
 
+## Current OMR Status
+
+Audiveris remains the preferred OMR baseline, but the local source build currently needs either a stable Audiveris release or JDK 25. Until that is installed, Shenghai supports this fallback MVP path:
+
+```text
+Manual MusicXML import from MuseScore / Audiveris / other OMR tool -> ScoreDocument -> MIDI playback
+```

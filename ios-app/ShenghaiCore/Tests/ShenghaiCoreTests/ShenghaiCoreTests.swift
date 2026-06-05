@@ -1,0 +1,80 @@
+import Foundation
+import Testing
+@testable import ShenghaiCore
+
+struct ShenghaiCoreTests {
+    @Test func importsSimpleMusicXML() throws {
+        let score = try MusicXMLImporter().importDocument(data: Data(Self.twinkleMusicXML.utf8))
+
+        #expect(score.parts.count == 1)
+        #expect(score.parts[0].name == "Voice")
+        #expect(score.parts[0].measures.count == 2)
+        #expect(score.parts[0].measures[0].notes.count == 4)
+        #expect(score.parts[0].measures[0].notes[0].midi == 60)
+        #expect(score.parts[0].measures[1].notes[2].durationTick == 960)
+    }
+
+    @Test func createsPlaybackEventsAndMIDIData() throws {
+        let score = try MusicXMLImporter().importDocument(data: Data(Self.twinkleMusicXML.utf8))
+        let events = MIDIWriter.playbackEvents(for: score)
+        let midiData = MIDIWriter.makeMIDIData(score: score)
+
+        #expect(events.count == 14)
+        #expect(events.first?.tick == 0)
+        #expect(events.first?.midi == 60)
+        #expect(String(data: midiData.prefix(4), encoding: .ascii) == "MThd")
+        #expect(midiData.count > 40)
+    }
+
+    private static let twinkleMusicXML = """
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <score-partwise version="4.0">
+      <part-list>
+        <score-part id="P1">
+          <part-name>Voice</part-name>
+        </score-part>
+      </part-list>
+      <part id="P1">
+        <measure number="1">
+          <attributes>
+            <divisions>1</divisions>
+            <time>
+              <beats>4</beats>
+              <beat-type>4</beat-type>
+            </time>
+          </attributes>
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+          <note>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+          <note>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+        </measure>
+        <measure number="2">
+          <note>
+            <pitch><step>A</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+          <note>
+            <pitch><step>A</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+          <note>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>2</duration><type>half</type>
+          </note>
+        </measure>
+      </part>
+    </score-partwise>
+    """
+}
