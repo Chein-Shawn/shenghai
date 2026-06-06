@@ -13,8 +13,9 @@ struct ResearchStatusView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     SectionTitle("Product Algorithms")
                     ResearchRow(topic: "OMR", decision: "Use Audiveris and MusicXML as the baseline path.")
+                    ResearchRow(topic: "OMR Pipeline", decision: "Track capture, preprocessing, recognition, MusicXML export, correction, and playback validation as explicit stages.")
                     ResearchRow(topic: "Internal Format", decision: "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.")
-                    ResearchRow(topic: "Pitch Feedback", decision: "Use confidence-aware pitch deviation, smoothing, and replaceable trackers before showing red marks.")
+                    ResearchRow(topic: "Pitch Feedback", decision: "Use a YIN baseline for live monophonic pitch, smooth contours, and keep CREPE/pYIN as replaceable higher-accuracy trackers.")
                     ResearchRow(topic: "Playback", decision: "Generate MIDI events first; move to AVAudioEngine sampler when richer practice controls are needed.")
                     ResearchRow(topic: "Source Separation", decision: "Treat Moises-like stem controls as post-MVP research unless a simple API/prototype is available.")
                 }

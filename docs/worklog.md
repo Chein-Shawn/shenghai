@@ -84,3 +84,15 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Validated macOS app build with `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
 - Installed the missing iOS 26.5 simulator platform with `xcodebuild -downloadPlatform iOS`.
 - Validated iPhone/iPad simulator build with `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform='iOS Simulator' -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
+
+### OMR and Live Pitch Research Update
+
+- Researched PlayScore 2, Newzik LiveScores, StaveWave, Singscope, Audiveris, OMR survey work, Linearized MusicXML, CREPE, pYIN, singing pitch comparison, and Smart-Median smoothing.
+- Created Notion page `OMR 與 Live Pitch Tracking 研究筆記｜聲海計畫`.
+- Added local research note `docs/omr-live-pitch-research-2026-06-06.md`.
+- Added `OMRPipeline.swift` with explicit OMR stages and an Audiveris command planner.
+- Added `YINPitchTracker.swift` as the first live monophonic pitch baseline.
+- Added `LivePitchCaptureService.swift` using `AVAudioEngine` microphone taps and the YIN tracker.
+- Updated Practice UI with a live microphone prototype panel.
+- Added tests for synthetic A4 pitch detection and Audiveris command generation.
+- Validated `swift test`, macOS Xcode build, and iOS simulator Xcode build.

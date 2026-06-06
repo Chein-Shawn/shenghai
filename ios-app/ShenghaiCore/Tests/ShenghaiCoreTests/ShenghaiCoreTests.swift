@@ -46,6 +46,39 @@ struct ShenghaiCoreTests {
         #expect(deviations[2].quality == .lowConfidence)
     }
 
+    @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
+        let sampleRate = 44_100.0
+        let frequency = 440.0
+        let samples = (0..<4096).map { index in
+            Float(sin(2 * Double.pi * frequency * Double(index) / sampleRate))
+        }
+
+        let tracker = YINPitchTracker(frameSize: 2048, hopSize: 1024, minimumFrequency: 80, maximumFrequency: 900)
+        let tracked = try await tracker.trackPitch(samples: samples, sampleRate: sampleRate)
+        let detected = tracked.compactMap(\.frequencyHz).first ?? 0
+
+        #expect(abs(detected - frequency) < 3)
+        #expect((tracked.first?.confidence ?? 0) > 0.7)
+    }
+
+    @Test func createsAudiverisCommandPlan() {
+        let plan = AudiverisCommandPlan(
+            inputPath: "/tmp/score sample.pdf",
+            outputDirectory: "/tmp/musicxml"
+        )
+
+        #expect(plan.arguments == [
+            "-batch",
+            "-transcribe",
+            "-export",
+            "-output",
+            "/tmp/musicxml",
+            "/tmp/score sample.pdf"
+        ])
+        #expect(plan.shellPreview.contains("-transcribe"))
+        #expect(OMRPipelinePlan.mvpBaseline(inputKind: .pdf).stages.count == OMRPipelineStage.allCases.count)
+    }
+
     private static let twinkleMusicXML = """
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <score-partwise version="4.0">

@@ -5,6 +5,7 @@ import ShenghaiCore
 
 struct PracticeView: View {
     @Bindable var workspace: ShenghaiWorkspace
+    @State private var livePitchCapture = LivePitchCaptureService()
 
     private let analyzer = PitchDeviationAnalyzer()
 
@@ -30,6 +31,8 @@ struct PracticeView: View {
 
                 StatusStrip(workspace: workspace)
 
+                LivePitchPanel(livePitchCapture: livePitchCapture)
+
                 VStack(alignment: .leading, spacing: 12) {
                     SectionTitle("Pitch Feedback States")
                     ForEach(Array(mockDeviations.enumerated()), id: \.offset) { _, deviation in
@@ -48,6 +51,54 @@ struct PracticeView: View {
             .padding()
             .frame(maxWidth: 980, alignment: .leading)
         }
+    }
+}
+
+private struct LivePitchPanel: View {
+    @Bindable var livePitchCapture: LivePitchCaptureService
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                SectionTitle("Live Microphone Prototype")
+                Spacer()
+                Button {
+                    if livePitchCapture.isRunning {
+                        livePitchCapture.stop()
+                    } else {
+                        livePitchCapture.start()
+                    }
+                } label: {
+                    Label(livePitchCapture.isRunning ? "Stop" : "Start", systemImage: livePitchCapture.isRunning ? "stop.fill" : "mic.fill")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+
+            if let latestSample = livePitchCapture.latestSample {
+                HStack(spacing: 12) {
+                    MetricTile(
+                        title: "Frequency",
+                        value: latestSample.frequencyHz.map { String(format: "%.1f Hz", $0) } ?? "No pitch",
+                        systemImage: "waveform"
+                    )
+                    MetricTile(
+                        title: "Confidence",
+                        value: String(format: "%.2f", latestSample.confidence),
+                        systemImage: "checkmark.seal"
+                    )
+                }
+            } else {
+                Text("Start the microphone to collect YIN-based pitch samples. The current prototype is monophonic and intended for solo singing tests.")
+                    .foregroundStyle(.secondary)
+            }
+
+            if let errorMessage = livePitchCapture.errorMessage {
+                Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.red)
+            }
+        }
+        .padding(12)
+        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

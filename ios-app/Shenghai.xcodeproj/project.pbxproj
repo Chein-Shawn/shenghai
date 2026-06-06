@@ -24,6 +24,9 @@
 		10100000000000000000000F /* MusicXMLImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10200000000000000000000F /* MusicXMLImporter.swift */; };
 		101000000000000000000010 /* PitchAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000010 /* PitchAnalysis.swift */; };
 		101000000000000000000011 /* ScoreDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000011 /* ScoreDocument.swift */; };
+		101000000000000000000012 /* OMRPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000013 /* OMRPipeline.swift */; };
+		101000000000000000000013 /* YINPitchTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000014 /* YINPitchTracker.swift */; };
+		101000000000000000000014 /* LivePitchCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000015 /* LivePitchCaptureService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +48,9 @@
 		102000000000000000000010 /* PitchAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PitchAnalysis.swift; sourceTree = "<group>"; };
 		102000000000000000000011 /* ScoreDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreDocument.swift; sourceTree = "<group>"; };
 		102000000000000000000012 /* Shenghai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Shenghai.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		102000000000000000000013 /* OMRPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMRPipeline.swift; sourceTree = "<group>"; };
+		102000000000000000000014 /* YINPitchTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YINPitchTracker.swift; sourceTree = "<group>"; };
+		102000000000000000000015 /* LivePitchCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePitchCaptureService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				102000000000000000000003 /* MIDIPlaybackService.swift */,
+				102000000000000000000015 /* LivePitchCaptureService.swift */,
 			);
 			name = Services;
 			path = ShenghaiCore/Sources/ShenghaiApp/Services;
@@ -146,8 +153,10 @@
 			children = (
 				10200000000000000000000E /* MIDIWriter.swift */,
 				10200000000000000000000F /* MusicXMLImporter.swift */,
+				102000000000000000000013 /* OMRPipeline.swift */,
 				102000000000000000000010 /* PitchAnalysis.swift */,
 				102000000000000000000011 /* ScoreDocument.swift */,
+				102000000000000000000014 /* YINPitchTracker.swift */,
 			);
 			name = ShenghaiCore;
 			path = ShenghaiCore/Sources/ShenghaiCore;
@@ -246,8 +255,11 @@
 				10100000000000000000000D /* SidebarView.swift in Sources */,
 				10100000000000000000000E /* MIDIWriter.swift in Sources */,
 				10100000000000000000000F /* MusicXMLImporter.swift in Sources */,
+				101000000000000000000012 /* OMRPipeline.swift in Sources */,
 				101000000000000000000010 /* PitchAnalysis.swift in Sources */,
 				101000000000000000000011 /* ScoreDocument.swift in Sources */,
+				101000000000000000000013 /* YINPitchTracker.swift in Sources */,
+				101000000000000000000014 /* LivePitchCaptureService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
