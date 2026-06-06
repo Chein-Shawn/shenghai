@@ -135,6 +135,56 @@ For a ten-year Juilliard-style goal, the app should support musicality, not only
 - Add accessibility pass: Dynamic Type, high contrast, non-color-only feedback, VoiceOver labels.
 - Add screenshot/demo script for competition and awards pages.
 
+## Goals Table Integration
+
+Original Notion database: https://app.notion.com/p/377e40b960af802cb61af6d2c9a61cb4
+
+This section folds the user's newly created Goals table into Shenghai's awards and portfolio strategy.
+
+### 1. 大專校院資訊應用服務創新競賽
+
+- Notion row: https://app.notion.com/p/377e40b960af80e6ae8cc08207054e2a
+- Application Period: 8月3日開放報名10月5日
+- Status: Not started
+- Shenghai positioning: this is the direct summer MVP target. Present Shenghai as an AI / information service for music education and personal training, not just a technical demo.
+- Evidence to prepare: working app, OMR/MusicXML import, part selection, MIDI/audio playback, live pitch tracking, practice logs, and 3-5 choir-member beta feedback notes.
+- Suggested story: Shenghai lowers the barrier for choir self-practice by making intonation, memorization, and part practice measurable.
+
+### 2. Apple's Swift Student Challenge
+
+- Notion row: https://app.notion.com/p/377e40b960af811288fdfae24930d3fd
+- Application Period: annually during a three-week window in February
+- Status: Not started
+- Type: Assumption
+- Shenghai positioning: create a polished Shenghai Playground / Swift micro-demo around one complete interaction: load a short score, play the target pitch, sing, and see sharp/flat feedback.
+- Evidence to prepare: Apple-native SwiftUI interaction, explainable pitch tracking, clear educational purpose, and no dependency on large backend systems or copyrighted score data.
+- Suggested scope: do not submit the whole app. Cut one polished micro-experience that communicates the core breakthrough within minutes.
+
+### 3. App Store Editor's Choice / Featuring
+
+- Notion row: https://app.notion.com/p/377e40b960af80da8c6ffb39cf19f145
+- Reference: https://developer.apple.com/help/app-store-connect/manage-featuring-nominations/nominate-your-app-for-featuring/
+- Status: Not started
+- Shenghai positioning: this is not a normal competition. After launch, use App Store Connect nomination to pitch Shenghai for featuring.
+- Evidence to prepare: App Store product page, demo video, high-quality screenshots, accessibility story, privacy story, and beta data from music learners.
+- Suggested story: a practice studio for singers and choir members: import a score, choose your voice part, sing, and see where your intonation drifts.
+
+### 4. Red Dot Award: Brands & Communication Design
+
+- Notion row: https://app.notion.com/p/377e40b960af80afbe1bf2c3dc5682d0
+- Application Period: earlybird: January-February; regular: February-April; latecomer: April-May
+- Status: Not started
+- Shenghai positioning: a pure app may fit brand/communication design, but Red Dot becomes stronger if Shenghai evolves into a complete app + hardware / practice kit product system.
+- Evidence to prepare: brand identity, UI system, motion/demo, education scenario, hardware or service blueprint, user journey, and a coherent audio-visual feedback language.
+- Suggested story: Shenghai turns abstract vocal training into a visible, reviewable, cumulative practice system.
+
+### Roadmap Impact
+
+- 2026 summer: prioritize 大專校院資訊應用服務創新競賽 with a beta-ready MVP.
+- Before February 2027: prepare a Swift Student Challenge micro-demo, not the entire app.
+- After App Store launch: prepare App Store featuring nomination with screenshots, story, beta data, accessibility, and privacy.
+- Around spring 2027: for Red Dot / iF, add brand system and hardware/service concept before submitting.
+
 ## Sources
 
 - Apple Newsroom, 2026 Apple Design Awards: https://www.apple.com/newsroom/2026/06/apple-reveals-winners-of-the-2026-apple-design-awards/
