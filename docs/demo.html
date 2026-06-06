@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shenghai Demo for Neolyre</title>
-  <meta name="description" content="A lightweight Shenghai demo for singing practice, score-to-audio alignment, pitch feedback, and future SVS research links.">
+  <title>Shenghai Singing Practice Demo</title>
+  <meta name="description" content="Try a zero-install Shenghai singing practice demo: hear a target melody, sing into the microphone, and see pitch feedback.">
   <style>
     :root {
       color-scheme: light dark;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.6;
-      --ink: CanvasText;
       --muted: color-mix(in srgb, CanvasText 68%, transparent);
       --line: color-mix(in srgb, CanvasText 14%, transparent);
       --surface: color-mix(in srgb, CanvasText 5%, transparent);
@@ -19,13 +18,12 @@
       --good: #238636;
       --warn: #b45309;
       --bad: #d1242f;
-      --blue: #2563eb;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       background: Canvas;
-      color: var(--ink);
+      color: CanvasText;
     }
     nav, header, main, footer {
       max-width: 1120px;
@@ -48,33 +46,44 @@
     }
     nav a:first-child {
       margin-left: 0;
-      color: var(--ink);
-      font-weight: 800;
+      color: CanvasText;
+      font-weight: 850;
     }
-    nav a:hover { color: var(--ink); }
+    nav a:hover { color: CanvasText; }
     header {
       padding-top: 48px;
-      padding-bottom: 34px;
+      padding-bottom: 30px;
     }
     .eyebrow {
       color: var(--accent);
-      font-weight: 800;
-      letter-spacing: 0;
+      font-weight: 850;
       margin: 0 0 12px;
     }
     h1 {
-      font-size: clamp(2.4rem, 7vw, 5.1rem);
+      max-width: 930px;
+      margin: 0 0 18px;
+      font-size: clamp(2.35rem, 7vw, 5rem);
       line-height: 1.02;
       letter-spacing: 0;
-      margin: 0 0 18px;
-      max-width: 920px;
     }
     .lead {
-      font-size: clamp(1.08rem, 2vw, 1.34rem);
+      max-width: 840px;
       color: var(--muted);
-      max-width: 850px;
-      margin: 0 0 24px;
+      font-size: clamp(1.08rem, 2vw, 1.34rem);
+      margin: 0 0 22px;
     }
+    section {
+      border-top: 1px solid var(--line);
+      padding: 34px 0;
+    }
+    h2 {
+      margin: 0 0 16px;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      line-height: 1.16;
+    }
+    h3 { margin: 0 0 8px; }
+    p { margin: 0 0 12px; }
+    .muted { color: var(--muted); }
     .actions, .toolbar {
       display: flex;
       flex-wrap: wrap;
@@ -86,96 +95,81 @@
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
-      color: var(--ink);
+      color: CanvasText;
       min-height: 42px;
       padding: 9px 13px;
       font: inherit;
-      font-weight: 750;
+      font-weight: 780;
       text-decoration: none;
       cursor: pointer;
     }
     button:hover, .button:hover { background: var(--surface-strong); }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
     .primary {
       background: var(--accent);
       border-color: var(--accent);
       color: white;
     }
-    section {
-      border-top: 1px solid var(--line);
-      padding: 34px 0;
-    }
-    h2 {
-      margin: 0 0 16px;
-      line-height: 1.16;
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-    }
-    h3 { margin: 0 0 8px; }
-    p { margin: 0 0 12px; }
-    .muted { color: var(--muted); }
-    .grid {
+    .demo-layout {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.52fr);
+      gap: 16px;
+      align-items: start;
     }
-    .card, .demo-panel {
+    @media (max-width: 860px) {
+      nav { align-items: flex-start; flex-direction: column; }
+      nav a { margin-left: 0; margin-right: 14px; }
+      .demo-layout { grid-template-columns: 1fr; }
+    }
+    .panel, .card {
       border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
       padding: 18px;
     }
-    .card p { color: var(--muted); }
-    .status-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      min-height: 30px;
-      border-radius: 999px;
-      padding: 3px 10px;
-      background: var(--surface-strong);
-      color: var(--muted);
-      font-size: 0.92rem;
-      font-weight: 700;
-    }
-    .ready { color: var(--good); }
-    .planned { color: var(--blue); }
-    .research { color: var(--warn); }
-    .demo-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.54fr);
-      gap: 16px;
-      align-items: start;
-    }
-    @media (max-width: 840px) {
-      .demo-layout { grid-template-columns: 1fr; }
-      nav { align-items: flex-start; flex-direction: column; }
-      nav a { margin-left: 0; margin-right: 14px; }
-    }
-    .score-stage {
-      min-height: 390px;
-      overflow: hidden;
-      position: relative;
+    .stage {
+      border: 1px solid var(--line);
+      border-radius: 8px;
       background:
         linear-gradient(to bottom, transparent 47px, color-mix(in srgb, CanvasText 14%, transparent) 48px, transparent 49px),
         Canvas;
       background-size: 100% 49px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 20px;
+      padding: 18px;
+      overflow: hidden;
     }
-    svg { width: 100%; height: auto; display: block; }
-    .note-dot { transition: transform 160ms ease, fill 160ms ease; }
-    .note-dot.active { transform: translateY(-4px); fill: var(--accent); }
-    .marker {
-      transition: opacity 180ms ease;
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .note-head {
+      fill: CanvasText;
+      transition: fill 160ms ease, transform 160ms ease;
+    }
+    .note-head.active {
+      fill: var(--accent);
+      transform: translateY(-4px);
+    }
+    .note-head.good { fill: var(--good); }
+    .note-head.bad { fill: var(--bad); }
+    .note-label {
+      font-size: 13px;
+      fill: CanvasText;
+      opacity: 0.72;
+    }
+    .feedback-tag {
       opacity: 0;
+      transition: opacity 160ms ease;
     }
-    .marker.visible { opacity: 1; }
-    .pitch-panel {
+    .feedback-tag.visible { opacity: 1; }
+    .side {
+      display: grid;
+      gap: 12px;
+    }
+    .readout {
       display: grid;
       gap: 12px;
     }
@@ -185,23 +179,58 @@
       gap: 10px;
       align-items: center;
       padding: 12px;
+      border: 1px solid var(--line);
       border-radius: 8px;
       background: var(--surface);
-      border: 1px solid var(--line);
     }
-    .metric strong { font-size: 1.08rem; }
+    .metric strong { font-size: 1.05rem; }
     .meter {
-      height: 8px;
+      height: 9px;
+      background: var(--line);
       border-radius: 999px;
       overflow: hidden;
-      background: var(--line);
       margin-top: 8px;
     }
     .meter span {
       display: block;
+      width: 0%;
       height: 100%;
-      width: 78%;
       background: var(--accent);
+      transition: width 120ms ease, background 120ms ease;
+    }
+    .verdict {
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--surface-strong);
+      border: 1px solid var(--line);
+      font-weight: 850;
+      min-height: 56px;
+    }
+    .verdict.good { color: var(--good); }
+    .verdict.bad { color: var(--bad); }
+    .verdict.waiting { color: var(--muted); }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--surface);
+    }
+    .step span {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font-weight: 900;
+      margin-bottom: 10px;
     }
     .composer {
       display: grid;
@@ -213,53 +242,27 @@
       gap: 8px;
     }
     .chip {
-      border-radius: 8px;
       border: 1px solid var(--line);
+      border-radius: 8px;
       background: var(--surface-strong);
       padding: 8px 10px;
-      font-weight: 750;
+      font-weight: 760;
     }
     textarea {
       width: 100%;
       min-height: 148px;
-      resize: vertical;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: Canvas;
-      color: var(--ink);
+      color: CanvasText;
       padding: 12px;
+      resize: vertical;
       font: 0.92rem ui-monospace, SFMono-Regular, Menlo, monospace;
       line-height: 1.45;
     }
-    .timeline {
-      display: grid;
-      gap: 10px;
-      counter-reset: step;
-    }
-    .step {
-      display: grid;
-      grid-template-columns: 34px 1fr;
-      gap: 12px;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
-    }
-    .step::before {
-      counter-increment: step;
-      content: counter(step);
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: white;
-      display: grid;
-      place-items: center;
-      font-weight: 900;
-    }
     footer {
-      color: var(--muted);
       border-top: 1px solid var(--line);
+      color: var(--muted);
       padding-top: 30px;
       padding-bottom: 44px;
     }
@@ -277,58 +280,37 @@
   </nav>
 
   <header>
-    <p class="eyebrow">SOAR / Neolyre application demo</p>
-    <h1>Shenghai turns a score into an interactive singing practice loop.</h1>
-    <p class="lead">The current prototype focuses on MusicXML import/composition, score-to-pitch timelines, MIDI playback, live pitch tracking, and user-facing feedback for beginner singers and chorus rehearsal.</p>
+    <p class="eyebrow">Public singing practice demo</p>
+    <h1>Hear the target, sing into the mic, and see where your pitch is wrong.</h1>
+    <p class="lead">Shenghai is a prototype for score-based singing practice. This web demo lets you try the core idea without installing anything.</p>
     <div class="actions">
-      <a class="button primary" href="#interactive">Try the web demo</a>
+      <a class="button primary" href="#try">Start the singing demo</a>
+      <a class="button" href="manual.html">Read user guide</a>
       <a class="button" href="https://github.com/Chein-Shawn/shenghai">View code</a>
-      <a class="button" href="manual.html">Read manual</a>
-    </div>
-    <div class="status-row">
-      <span class="pill ready">Built: SwiftUI app shell</span>
-      <span class="pill ready">Built: MusicXML composer/importer</span>
-      <span class="pill ready">Built: pitch deviation model</span>
-      <span class="pill planned">Next: SVS-informed vocal analysis</span>
     </div>
   </header>
 
   <main>
-    <section>
-      <h2>Why this fits Neolyre</h2>
-      <div class="grid">
-        <article class="card">
-          <h3>Shared data primitives</h3>
-          <p>SVS needs notes, lyrics/phonemes, durations, F0, energy, and alignment. Shenghai needs the same objects to compare a learner's singing against a score.</p>
-        </article>
-        <article class="card">
-          <h3>Training feedback, not only synthesis</h3>
-          <p>Instead of generating a voice for performance, Shenghai can use SVS-style acoustic features to tell singers what changed: pitch, timing, breathiness, tension, and technique.</p>
-        </article>
-        <article class="card">
-          <h3>Ethical YouTube path</h3>
-          <p>Shenghai should not download unauthorized YouTube audio. The research path is licensed/local audio, user recordings, or official embeds for reference playback.</p>
-        </article>
-      </div>
-    </section>
+    <section id="try">
+      <h2>Try it now</h2>
+      <p class="muted">Use headphones if possible. Click a target note, listen, then start the microphone and sing the same pitch. The demo marks the note green when you are close and red when you are too sharp or flat.</p>
 
-    <section id="interactive">
-      <h2>Interactive concept demo</h2>
-      <p class="muted">This browser demo simulates the product flow. The native Swift prototype already compiles; this page is the zero-install mentor preview.</p>
       <div class="demo-layout">
-        <div class="demo-panel">
-          <div class="toolbar" aria-label="Demo controls">
-            <button class="primary" id="playTarget">Play target melody</button>
-            <button id="playAttempt">Play learner attempt</button>
-            <button id="showFeedback">Show feedback</button>
+        <div class="panel">
+          <div class="toolbar" aria-label="Practice controls">
+            <button class="primary" id="playTarget">Play selected target</button>
+            <button id="startMic">Start microphone</button>
+            <button id="stopMic" disabled>Stop microphone</button>
+            <button id="nextNote">Next note</button>
             <button id="resetDemo">Reset</button>
           </div>
 
-          <div class="score-stage" aria-label="Simulated score and feedback">
-            <svg viewBox="0 0 820 330" role="img" aria-label="Score with note and pitch feedback markers">
-              <text x="20" y="30" font-size="22" font-weight="800" fill="currentColor">MusicXML score to practice timeline</text>
-              <text x="20" y="55" font-size="14" fill="currentColor" opacity="0.68">Score: C4 D4 E4 G4 | learner sings D# sharp and enters late</text>
-              <g transform="translate(28 86)" stroke="currentColor" opacity="0.62" stroke-width="2">
+          <div class="stage" aria-label="Practice score">
+            <svg viewBox="0 0 820 350" role="img" aria-label="Score with live pitch feedback">
+              <text x="20" y="32" font-size="22" font-weight="850" fill="currentColor">Sing the highlighted note</text>
+              <text id="scoreInstruction" x="20" y="56" font-size="14" fill="currentColor" opacity="0.7">Target: C4. Listen, then sing.</text>
+
+              <g transform="translate(28 94)" stroke="currentColor" opacity="0.62" stroke-width="2">
                 <line x1="0" y1="0" x2="760" y2="0"/>
                 <line x1="0" y1="18" x2="760" y2="18"/>
                 <line x1="0" y1="36" x2="760" y2="36"/>
@@ -336,65 +318,84 @@
                 <line x1="0" y1="72" x2="760" y2="72"/>
                 <line x1="390" y1="-10" x2="390" y2="84"/>
               </g>
-              <g transform="translate(28 86)">
-                <ellipse class="note-dot" data-note="0" cx="90" cy="54" rx="17" ry="12" fill="currentColor"/>
+
+              <g transform="translate(28 94)">
+                <ellipse class="note-head active" data-index="0" cx="90" cy="54" rx="17" ry="12"/>
                 <line x1="106" y1="54" x2="106" y2="-2" stroke="currentColor" stroke-width="4"/>
-                <ellipse class="note-dot" data-note="1" cx="210" cy="45" rx="17" ry="12" fill="currentColor"/>
+                <text class="note-label" x="72" y="106">C4</text>
+
+                <ellipse class="note-head" data-index="1" cx="210" cy="45" rx="17" ry="12"/>
                 <line x1="226" y1="45" x2="226" y2="-10" stroke="currentColor" stroke-width="4"/>
-                <ellipse class="note-dot" data-note="2" cx="330" cy="36" rx="17" ry="12" fill="currentColor"/>
+                <text class="note-label" x="192" y="106">D4</text>
+
+                <ellipse class="note-head" data-index="2" cx="330" cy="36" rx="17" ry="12"/>
                 <line x1="346" y1="36" x2="346" y2="-18" stroke="currentColor" stroke-width="4"/>
-                <ellipse class="note-dot" data-note="3" cx="510" cy="18" rx="17" ry="12" fill="currentColor"/>
+                <text class="note-label" x="312" y="106">E4</text>
+
+                <ellipse class="note-head" data-index="3" cx="510" cy="18" rx="17" ry="12"/>
                 <line x1="526" y1="18" x2="526" y2="-36" stroke="currentColor" stroke-width="4"/>
+                <text class="note-label" x="492" y="106">G4</text>
               </g>
-              <g class="marker" id="feedbackMarkers">
-                <rect x="216" y="65" width="72" height="24" rx="6" fill="color-mix(in srgb, #d1242f 22%, transparent)" stroke="#d1242f"/>
-                <text x="225" y="82" font-size="13" fill="currentColor">sharp</text>
-                <rect x="500" y="39" width="80" height="24" rx="6" fill="color-mix(in srgb, #2563eb 22%, transparent)" stroke="#2563eb"/>
-                <text x="509" y="56" font-size="13" fill="currentColor">late</text>
+
+              <g class="feedback-tag" id="feedbackTag">
+                <rect id="feedbackRect" x="50" y="190" width="250" height="40" rx="8" fill="color-mix(in srgb, #d1242f 18%, transparent)" stroke="#d1242f"/>
+                <text id="feedbackText" x="66" y="216" font-size="18" font-weight="850" fill="currentColor">Waiting for microphone</text>
               </g>
-              <g transform="translate(26 218)">
-                <text x="0" y="-16" font-size="14" font-weight="800" fill="currentColor">Pitch tracking</text>
-                <polyline points="0,70 90,56 190,43 290,30 390,21 520,10 680,10" fill="none" stroke="currentColor" opacity="0.25" stroke-width="4"/>
-                <polyline id="attemptLine" points="0,74 90,57 190,30 290,33 390,22 520,28 680,12" fill="none" stroke="#d1242f" opacity="0" stroke-width="4"/>
-                <line x1="0" y1="76" x2="740" y2="76" stroke="currentColor" opacity="0.2"/>
-                <text x="0" y="104" font-size="13" fill="currentColor" opacity="0.68">gray = target F0 timeline, red = learner recording</text>
+
+              <g transform="translate(28 270)">
+                <text x="0" y="-16" font-size="14" font-weight="850" fill="currentColor">Live pitch trace</text>
+                <line x1="0" y1="56" x2="740" y2="56" stroke="currentColor" opacity="0.18"/>
+                <polyline id="pitchTrace" points="" fill="none" stroke="#2f7dd3" stroke-width="4"/>
+                <text x="0" y="88" font-size="13" fill="currentColor" opacity="0.68">Your detected pitch appears here while the microphone is running.</text>
               </g>
             </svg>
           </div>
         </div>
 
-        <aside class="pitch-panel">
-          <div class="metric">
-            <div>
-              <strong>Pitch accuracy</strong>
-              <div class="meter"><span id="pitchMeter"></span></div>
+        <aside class="side">
+          <div class="readout">
+            <div class="metric">
+              <div>
+                <strong>Target</strong>
+                <div class="meter"><span id="targetMeter" style="width: 100%;"></span></div>
+              </div>
+              <span id="targetValue">C4 / 261.6 Hz</span>
             </div>
-            <span id="pitchValue">78%</span>
-          </div>
-          <div class="metric">
-            <div>
-              <strong>Timing stability</strong>
-              <div class="meter"><span id="timingMeter" style="width: 64%; background: var(--warn);"></span></div>
+            <div class="metric">
+              <div>
+                <strong>Your pitch</strong>
+                <div class="meter"><span id="pitchMeter"></span></div>
+              </div>
+              <span id="pitchValue">--</span>
             </div>
-            <span id="timingValue">64%</span>
+            <div class="metric">
+              <div>
+                <strong>Pitch error</strong>
+                <div class="meter"><span id="errorMeter"></span></div>
+              </div>
+              <span id="errorValue">--</span>
+            </div>
           </div>
+          <div class="verdict waiting" id="verdict">Start the microphone, then sing C4.</div>
           <div class="card">
-            <h3>Current native prototype</h3>
-            <p>MusicXML composer/importer, ScoreDocument wrapper, MIDI export/playback, OMR provider planning, live pitch tracking baseline, usage stats, and support docs.</p>
-          </div>
-          <div class="card">
-            <h3>What the mentor can evaluate</h3>
-            <p>Whether my product instincts and current codebase can become a concrete SVS-adjacent research platform: score parsing, alignment, F0 extraction, audio feedback, and vocal feature analysis.</p>
+            <h3>What this demo proves</h3>
+            <p>Shenghai can turn a score note into a target pitch, listen to the user's voice, and display whether the sung pitch is close, sharp, or flat.</p>
           </div>
         </aside>
+      </div>
+
+      <div class="steps">
+        <div class="step"><span>1</span><strong>Listen</strong><p class="muted">Play the selected target note.</p></div>
+        <div class="step"><span>2</span><strong>Sing</strong><p class="muted">Start the mic and match the note.</p></div>
+        <div class="step"><span>3</span><strong>Correct</strong><p class="muted">Use the red/green feedback to adjust.</p></div>
       </div>
     </section>
 
     <section>
-      <h2>Mini MusicXML composer</h2>
-      <p class="muted">The native app now has a Compose section. This web mock shows the same idea: create notes, export a MusicXML-like representation, then use it as the practice target.</p>
+      <h2>Create a simple MusicXML target</h2>
+      <p class="muted">The native app also has a Compose page. This small web composer shows how a user can create a target melody instead of importing one.</p>
       <div class="demo-layout">
-        <div class="demo-panel composer">
+        <div class="panel composer">
           <div class="toolbar">
             <button data-add="C4">C4</button>
             <button data-add="D4">D4</button>
@@ -407,95 +408,203 @@
           <textarea id="musicXMLPreview" spellcheck="false" aria-label="MusicXML preview"></textarea>
         </div>
         <div class="card">
-          <h3>Why this matters technically</h3>
-          <p>A reliable score representation is the bridge between a singer-facing practice tool and an SVS model. The same score can condition a synthesizer, generate a target F0 curve, or evaluate a user recording.</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <h2>Research bridge to modern SVS</h2>
-      <div class="timeline">
-        <div class="step">
-          <div><strong>Data pipeline</strong><p class="muted">Adopt SVS preprocessing concepts: vocal separation, segmentation, F0 extraction, phoneme/lyric alignment, and quality scoring. Shenghai can store the same features as practice metadata.</p></div>
-        </div>
-        <div class="step">
-          <div><strong>Reference voice for practice</strong><p class="muted">Use an open SVS model to synthesize a clean target line from MusicXML, so beginners can hear their exact choral part even when no recording exists.</p></div>
-        </div>
-        <div class="step">
-          <div><strong>Analysis, not unauthorized copying</strong><p class="muted">For YouTube-like songs, use official embeds or user-provided/licensed audio. Apply source separation, melody extraction, and F0 comparison only where rights and terms allow it.</p></div>
-        </div>
-        <div class="step">
-          <div><strong>Technique-aware feedback</strong><p class="muted">SVS technique labels such as breathy, falsetto, intensity, or tension can become user feedback dimensions rather than only synthesis controls.</p></div>
+          <h3>Why MusicXML</h3>
+          <p>MusicXML gives Shenghai a stable bridge between score reading, playback, pitch targets, and user feedback.</p>
         </div>
       </div>
     </section>
   </main>
 
   <footer>
-    Shenghai is an early prototype by Chien-Hsiang Chien. This page is designed as a zero-install preview for research mentors and application reviewers.
+    Shenghai is an early prototype by Chien-Hsiang Chien. Microphone audio in this demo is processed in your browser and is not uploaded.
   </footer>
 
   <script>
-    const target = [
-      { freq: 261.63, ms: 280 },
-      { freq: 293.66, ms: 280 },
-      { freq: 329.63, ms: 280 },
-      { freq: 392.00, ms: 520 }
+    const targetNotes = [
+      { name: "C4", freq: 261.63 },
+      { name: "D4", freq: 293.66 },
+      { name: "E4", freq: 329.63 },
+      { name: "G4", freq: 392.00 }
     ];
-    const attempt = [
-      { freq: 261.63, ms: 280 },
-      { freq: 311.13, ms: 360 },
-      { freq: 329.63, ms: 240 },
-      { freq: 392.00, ms: 600 }
-    ];
+    let selectedIndex = 0;
     let audioContext;
+    let analyser;
+    let mediaStream;
+    let animationID;
     let notes = ["C4", "D4", "E4", "G4"];
+    const pitchHistory = [];
 
-    function playSequence(sequence) {
+    function ensureAudioContext() {
       audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-      let start = audioContext.currentTime + 0.05;
-      document.querySelectorAll(".note-dot").forEach(dot => dot.classList.remove("active"));
-
-      sequence.forEach((note, index) => {
-        const osc = audioContext.createOscillator();
-        const gain = audioContext.createGain();
-        osc.type = "sine";
-        osc.frequency.value = note.freq;
-        gain.gain.setValueAtTime(0.001, start);
-        gain.gain.exponentialRampToValueAtTime(0.13, start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, start + note.ms / 1000);
-        osc.connect(gain).connect(audioContext.destination);
-        osc.start(start);
-        osc.stop(start + note.ms / 1000 + 0.03);
-        window.setTimeout(() => {
-          document.querySelectorAll(".note-dot").forEach(dot => dot.classList.remove("active"));
-          const dot = document.querySelector(`.note-dot[data-note="${index}"]`);
-          if (dot) dot.classList.add("active");
-        }, Math.max(0, (start - audioContext.currentTime) * 1000));
-        start += note.ms / 1000;
-      });
+      return audioContext;
     }
 
-    function showFeedback() {
-      document.getElementById("feedbackMarkers").classList.add("visible");
-      document.getElementById("attemptLine").style.opacity = "1";
-      document.getElementById("pitchMeter").style.width = "58%";
-      document.getElementById("pitchMeter").style.background = "var(--bad)";
-      document.getElementById("pitchValue").textContent = "58%";
-      document.getElementById("timingMeter").style.width = "52%";
-      document.getElementById("timingValue").textContent = "52%";
+    function playTarget() {
+      const context = ensureAudioContext();
+      const target = targetNotes[selectedIndex];
+      const osc = context.createOscillator();
+      const gain = context.createGain();
+      osc.type = "sine";
+      osc.frequency.value = target.freq;
+      gain.gain.setValueAtTime(0.001, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.85);
+      osc.connect(gain).connect(context.destination);
+      osc.start();
+      osc.stop(context.currentTime + 0.9);
+      setVerdict(`Listen to ${target.name}, then sing it.`, "waiting");
+    }
+
+    async function startMic() {
+      try {
+        const context = ensureAudioContext();
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+        const source = context.createMediaStreamSource(mediaStream);
+        analyser = context.createAnalyser();
+        analyser.fftSize = 4096;
+        source.connect(analyser);
+        document.getElementById("startMic").disabled = true;
+        document.getElementById("stopMic").disabled = false;
+        setVerdict(`Sing ${targetNotes[selectedIndex].name}.`, "waiting");
+        detectLoop();
+      } catch (error) {
+        setVerdict("Microphone permission is needed to try live pitch feedback.", "bad");
+      }
+    }
+
+    function stopMic() {
+      if (animationID) cancelAnimationFrame(animationID);
+      if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+      mediaStream = null;
+      analyser = null;
+      document.getElementById("startMic").disabled = false;
+      document.getElementById("stopMic").disabled = true;
+      setVerdict("Microphone stopped.", "waiting");
+    }
+
+    function detectLoop() {
+      const buffer = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(buffer);
+      const frequency = autoCorrelate(buffer, audioContext.sampleRate);
+      if (frequency > 0) updatePitchFeedback(frequency);
+      animationID = requestAnimationFrame(detectLoop);
+    }
+
+    function autoCorrelate(buffer, sampleRate) {
+      let rms = 0;
+      for (let i = 0; i < buffer.length; i++) rms += buffer[i] * buffer[i];
+      rms = Math.sqrt(rms / buffer.length);
+      if (rms < 0.012) return -1;
+
+      let bestOffset = -1;
+      let bestCorrelation = 0;
+      const minFrequency = 80;
+      const maxFrequency = 900;
+      const minOffset = Math.floor(sampleRate / maxFrequency);
+      const maxOffset = Math.floor(sampleRate / minFrequency);
+
+      for (let offset = minOffset; offset <= maxOffset; offset++) {
+        let correlation = 0;
+        for (let i = 0; i < buffer.length - offset; i++) {
+          correlation += 1 - Math.abs(buffer[i] - buffer[i + offset]);
+        }
+        correlation /= buffer.length - offset;
+        if (correlation > bestCorrelation) {
+          bestCorrelation = correlation;
+          bestOffset = offset;
+        }
+      }
+
+      if (bestCorrelation < 0.86 || bestOffset <= 0) return -1;
+      return sampleRate / bestOffset;
+    }
+
+    function updatePitchFeedback(frequency) {
+      const target = targetNotes[selectedIndex];
+      const cents = 1200 * Math.log2(frequency / target.freq);
+      const absCents = Math.abs(cents);
+      const close = absCents <= 35;
+      const direction = cents > 0 ? "sharp" : "flat";
+
+      document.getElementById("pitchValue").textContent = `${frequency.toFixed(1)} Hz`;
+      document.getElementById("errorValue").textContent = `${cents > 0 ? "+" : ""}${cents.toFixed(0)} cents`;
+      document.getElementById("pitchMeter").style.width = `${Math.max(8, Math.min(100, 100 - absCents))}%`;
+      document.getElementById("pitchMeter").style.background = close ? "var(--good)" : "var(--bad)";
+      document.getElementById("errorMeter").style.width = `${Math.max(8, Math.min(100, absCents))}%`;
+      document.getElementById("errorMeter").style.background = close ? "var(--good)" : "var(--bad)";
+
+      setVerdict(close ? `Good: ${target.name} is in tune.` : `Adjust: you are ${direction} by ${Math.round(absCents)} cents.`, close ? "good" : "bad");
+      updateScoreFeedback(close, direction, cents);
+      updatePitchTrace(frequency, target.freq);
+    }
+
+    function updateScoreFeedback(close, direction, cents) {
+      document.querySelectorAll(".note-head").forEach(note => note.classList.remove("good", "bad"));
+      const note = document.querySelector(`.note-head[data-index="${selectedIndex}"]`);
+      if (note) note.classList.add(close ? "good" : "bad");
+      const tag = document.getElementById("feedbackTag");
+      const rect = document.getElementById("feedbackRect");
+      const text = document.getElementById("feedbackText");
+      const target = targetNotes[selectedIndex];
+      tag.classList.add("visible");
+      if (close) {
+        rect.setAttribute("stroke", "#238636");
+        rect.setAttribute("fill", "color-mix(in srgb, #238636 18%, transparent)");
+        text.textContent = `${target.name}: in tune`;
+      } else {
+        rect.setAttribute("stroke", "#d1242f");
+        rect.setAttribute("fill", "color-mix(in srgb, #d1242f 18%, transparent)");
+        text.textContent = `${target.name}: ${direction} ${Math.round(Math.abs(cents))} cents`;
+      }
+    }
+
+    function updatePitchTrace(frequency, targetFrequency) {
+      const normalized = Math.max(-1, Math.min(1, Math.log2(frequency / targetFrequency)));
+      pitchHistory.push(normalized);
+      while (pitchHistory.length > 80) pitchHistory.shift();
+      const points = pitchHistory.map((value, index) => {
+        const x = index * (740 / 79);
+        const y = 56 - value * 92;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
+      document.getElementById("pitchTrace").setAttribute("points", points);
+    }
+
+    function setVerdict(message, kind) {
+      const verdict = document.getElementById("verdict");
+      verdict.textContent = message;
+      verdict.className = `verdict ${kind}`;
+    }
+
+    function selectNote(index) {
+      selectedIndex = index;
+      const target = targetNotes[selectedIndex];
+      document.querySelectorAll(".note-head").forEach(note => {
+        note.classList.remove("active", "good", "bad");
+      });
+      const active = document.querySelector(`.note-head[data-index="${selectedIndex}"]`);
+      if (active) active.classList.add("active");
+      document.getElementById("targetValue").textContent = `${target.name} / ${target.freq.toFixed(1)} Hz`;
+      document.getElementById("scoreInstruction").textContent = `Target: ${target.name}. Listen, then sing.`;
+      document.getElementById("feedbackTag").classList.remove("visible");
+      pitchHistory.length = 0;
+      document.getElementById("pitchTrace").setAttribute("points", "");
+      setVerdict(`Start the microphone, then sing ${target.name}.`, "waiting");
     }
 
     function resetDemo() {
-      document.getElementById("feedbackMarkers").classList.remove("visible");
-      document.getElementById("attemptLine").style.opacity = "0";
-      document.querySelectorAll(".note-dot").forEach(dot => dot.classList.remove("active"));
-      document.getElementById("pitchMeter").style.width = "78%";
-      document.getElementById("pitchMeter").style.background = "var(--accent)";
-      document.getElementById("pitchValue").textContent = "78%";
-      document.getElementById("timingMeter").style.width = "64%";
-      document.getElementById("timingValue").textContent = "64%";
+      stopMic();
+      document.getElementById("pitchValue").textContent = "--";
+      document.getElementById("errorValue").textContent = "--";
+      document.getElementById("pitchMeter").style.width = "0%";
+      document.getElementById("errorMeter").style.width = "0%";
+      selectNote(0);
     }
 
     function renderComposer() {
@@ -521,13 +630,15 @@
       ].join("\n");
     }
 
-    document.getElementById("playTarget").addEventListener("click", () => playSequence(target));
-    document.getElementById("playAttempt").addEventListener("click", () => {
-      playSequence(attempt);
-      showFeedback();
-    });
-    document.getElementById("showFeedback").addEventListener("click", showFeedback);
+    document.getElementById("playTarget").addEventListener("click", playTarget);
+    document.getElementById("startMic").addEventListener("click", startMic);
+    document.getElementById("stopMic").addEventListener("click", stopMic);
+    document.getElementById("nextNote").addEventListener("click", () => selectNote((selectedIndex + 1) % targetNotes.length));
     document.getElementById("resetDemo").addEventListener("click", resetDemo);
+    document.querySelectorAll(".note-head").forEach(note => {
+      note.addEventListener("click", () => selectNote(Number(note.dataset.index)));
+      note.style.cursor = "pointer";
+    });
     document.querySelectorAll("[data-add]").forEach(button => {
       button.addEventListener("click", () => {
         notes.push(button.dataset.add);
