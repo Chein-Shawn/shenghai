@@ -9,6 +9,11 @@ struct ScoreWorkspaceView: View {
     @State private var pageScale = 1.0
     @State private var showPitchOverlay = true
     @State private var showMeasureNumbers = true
+    @State private var isAnnotating = false
+    @State private var annotationTool: ScoreAnnotationTool = .pen
+    @State private var annotationLineWidth = 3.0
+    @State private var annotationStrokes: [ScoreAnnotationStroke] = []
+    @State private var annotationDraft: [CGPoint] = []
     @State private var partVolumes: [String: Double] = [:]
     @State private var mutedPartIDs: Set<String> = []
     @State private var soloPartID: String?
@@ -37,7 +42,12 @@ struct ScoreWorkspaceView: View {
                                 score: score,
                                 pageScale: pageScale,
                                 showPitchOverlay: showPitchOverlay,
-                                showMeasureNumbers: showMeasureNumbers
+                                showMeasureNumbers: showMeasureNumbers,
+                                isAnnotating: isAnnotating,
+                                annotationTool: annotationTool,
+                                annotationLineWidth: annotationLineWidth,
+                                annotationStrokes: $annotationStrokes,
+                                annotationDraft: $annotationDraft
                             )
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
@@ -49,6 +59,11 @@ struct ScoreWorkspaceView: View {
                                 pageScale: $pageScale,
                                 showPitchOverlay: $showPitchOverlay,
                                 showMeasureNumbers: $showMeasureNumbers,
+                                isAnnotating: $isAnnotating,
+                                annotationTool: $annotationTool,
+                                annotationLineWidth: $annotationLineWidth,
+                                annotationStrokes: $annotationStrokes,
+                                annotationDraft: $annotationDraft,
                                 partVolumes: $partVolumes,
                                 mutedPartIDs: $mutedPartIDs,
                                 soloPartID: $soloPartID
@@ -65,7 +80,12 @@ struct ScoreWorkspaceView: View {
                                     score: score,
                                     pageScale: pageScale,
                                     showPitchOverlay: showPitchOverlay,
-                                    showMeasureNumbers: showMeasureNumbers
+                                    showMeasureNumbers: showMeasureNumbers,
+                                    isAnnotating: isAnnotating,
+                                    annotationTool: annotationTool,
+                                    annotationLineWidth: annotationLineWidth,
+                                    annotationStrokes: $annotationStrokes,
+                                    annotationDraft: $annotationDraft
                                 )
                                 ScoreInspectorPanel(
                                     workspace: workspace,
@@ -73,6 +93,11 @@ struct ScoreWorkspaceView: View {
                                     pageScale: $pageScale,
                                     showPitchOverlay: $showPitchOverlay,
                                     showMeasureNumbers: $showMeasureNumbers,
+                                    isAnnotating: $isAnnotating,
+                                    annotationTool: $annotationTool,
+                                    annotationLineWidth: $annotationLineWidth,
+                                    annotationStrokes: $annotationStrokes,
+                                    annotationDraft: $annotationDraft,
                                     partVolumes: $partVolumes,
                                     mutedPartIDs: $mutedPartIDs,
                                     soloPartID: $soloPartID
@@ -101,6 +126,44 @@ struct ScoreWorkspaceView: View {
             workspace.importMusicXML(url: url)
         }
     }
+}
+
+private enum ScoreAnnotationTool: String, CaseIterable, Identifiable {
+    case pen
+    case highlighter
+    case eraser
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .pen:
+            return "Pen"
+        case .highlighter:
+            return "Highlighter"
+        case .eraser:
+            return "Eraser"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .pen:
+            return "pencil.tip"
+        case .highlighter:
+            return "highlighter"
+        case .eraser:
+            return "eraser"
+        }
+    }
+}
+
+private struct ScoreAnnotationStroke: Identifiable {
+    var id = UUID()
+    var points: [CGPoint]
+    var color: Color
+    var opacity: Double
+    var lineWidth: Double
 }
 
 private struct ScoreToolbar: View {
@@ -197,6 +260,11 @@ private struct ScoreReaderPanel: View {
     var pageScale: Double
     var showPitchOverlay: Bool
     var showMeasureNumbers: Bool
+    var isAnnotating: Bool
+    var annotationTool: ScoreAnnotationTool
+    var annotationLineWidth: Double
+    @Binding var annotationStrokes: [ScoreAnnotationStroke]
+    @Binding var annotationDraft: [CGPoint]
 
     var body: some View {
         ScrollView([.vertical, .horizontal]) {
@@ -210,7 +278,7 @@ private struct ScoreReaderPanel: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Label("Voice practice", systemImage: "waveform.and.mic")
+                    Label(isAnnotating ? "Annotation mode" : "Voice practice", systemImage: isAnnotating ? "pencil.tip" : "waveform.and.mic")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -234,6 +302,16 @@ private struct ScoreReaderPanel: View {
             .padding(28)
             .background(.white, in: RoundedRectangle(cornerRadius: 8))
             .foregroundStyle(.black)
+            .overlay {
+                VectorAnnotationLayer(
+                    strokes: $annotationStrokes,
+                    draft: $annotationDraft,
+                    tool: annotationTool,
+                    lineWidth: annotationLineWidth
+                )
+                .allowsHitTesting(isAnnotating)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
             .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
             .padding(32)
         }
@@ -247,6 +325,11 @@ private struct ScoreInspectorPanel: View {
     @Binding var pageScale: Double
     @Binding var showPitchOverlay: Bool
     @Binding var showMeasureNumbers: Bool
+    @Binding var isAnnotating: Bool
+    @Binding var annotationTool: ScoreAnnotationTool
+    @Binding var annotationLineWidth: Double
+    @Binding var annotationStrokes: [ScoreAnnotationStroke]
+    @Binding var annotationDraft: [CGPoint]
     @Binding var partVolumes: [String: Double]
     @Binding var mutedPartIDs: Set<String>
     @Binding var soloPartID: String?
@@ -263,6 +346,55 @@ private struct ScoreInspectorPanel: View {
                             .foregroundStyle(.secondary)
                         Slider(value: $pageScale, in: 0.75...1.45, step: 0.05)
                     }
+                }
+            }
+
+            StudioPanel(title: "Annotations", systemImage: "pencil.and.outline") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Toggle("Annotation mode", isOn: $isAnnotating)
+
+                    HStack(spacing: 8) {
+                        ForEach(ScoreAnnotationTool.allCases) { tool in
+                            Button {
+                                annotationTool = tool
+                            } label: {
+                                Image(systemName: tool.systemImage)
+                                    .frame(width: 32, height: 32)
+                                    .foregroundStyle(annotationTool == tool ? Color.accentColor : Color.secondary)
+                            }
+                            .buttonStyle(.bordered)
+                            .help(tool.title)
+                            .accessibilityLabel(tool.title)
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Line width")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Slider(value: $annotationLineWidth, in: 1.5...8, step: 0.5)
+                    }
+
+                    HStack {
+                        Button {
+                            undoLastAnnotation()
+                        } label: {
+                            Label("Undo", systemImage: "arrow.uturn.backward")
+                        }
+                        .disabled(annotationStrokes.isEmpty)
+
+                        Button(role: .destructive) {
+                            clearAnnotations()
+                        } label: {
+                            Label("Clear", systemImage: "trash")
+                        }
+                        .disabled(annotationStrokes.isEmpty)
+                    }
+                    .buttonStyle(.bordered)
+
+                    Text("\(annotationStrokes.count) vector strokes. Strokes are stored as scalable paths, not a page bitmap.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 
@@ -313,12 +445,141 @@ private struct ScoreInspectorPanel: View {
         )
     }
 
+    private func undoLastAnnotation() {
+        annotationDraft.removeAll()
+        _ = annotationStrokes.popLast()
+    }
+
+    private func clearAnnotations() {
+        annotationDraft.removeAll()
+        annotationStrokes.removeAll()
+    }
+
     private func toggleMute(_ id: String) {
         if mutedPartIDs.contains(id) {
             mutedPartIDs.remove(id)
         } else {
             mutedPartIDs.insert(id)
         }
+    }
+}
+
+private struct VectorAnnotationLayer: View {
+    @Binding var strokes: [ScoreAnnotationStroke]
+    @Binding var draft: [CGPoint]
+    var tool: ScoreAnnotationTool
+    var lineWidth: Double
+
+    var body: some View {
+        GeometryReader { proxy in
+            Canvas { context, size in
+                for stroke in strokes {
+                    draw(stroke.points, in: size, context: &context, stroke: stroke)
+                }
+
+                if !draft.isEmpty, tool != .eraser {
+                    draw(
+                        draft,
+                        in: size,
+                        context: &context,
+                        stroke: makeStroke(points: draft)
+                    )
+                }
+            }
+            .contentShape(Rectangle())
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        let point = normalizedPoint(from: value.location, size: proxy.size)
+                        switch tool {
+                        case .eraser:
+                            erase(near: point)
+                        case .pen, .highlighter:
+                            if draft.last.map({ distance($0, point) > 0.002 }) ?? true {
+                                draft.append(point)
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        guard tool != .eraser, draft.count > 1 else {
+                            draft.removeAll()
+                            return
+                        }
+                        strokes.append(makeStroke(points: draft))
+                        draft.removeAll()
+                    }
+            )
+        }
+    }
+
+    private func draw(
+        _ points: [CGPoint],
+        in size: CGSize,
+        context: inout GraphicsContext,
+        stroke: ScoreAnnotationStroke
+    ) {
+        guard points.count > 1 else {
+            return
+        }
+
+        var path = Path()
+        path.move(to: denormalize(points[0], size: size))
+        for point in points.dropFirst() {
+            path.addLine(to: denormalize(point, size: size))
+        }
+
+        context.stroke(
+            path,
+            with: .color(stroke.color.opacity(stroke.opacity)),
+            style: StrokeStyle(
+                lineWidth: stroke.lineWidth,
+                lineCap: .round,
+                lineJoin: .round
+            )
+        )
+    }
+
+    private func makeStroke(points: [CGPoint]) -> ScoreAnnotationStroke {
+        switch tool {
+        case .pen:
+            return ScoreAnnotationStroke(
+                points: points,
+                color: .red,
+                opacity: 0.88,
+                lineWidth: lineWidth
+            )
+        case .highlighter:
+            return ScoreAnnotationStroke(
+                points: points,
+                color: .yellow,
+                opacity: 0.34,
+                lineWidth: max(lineWidth * 3.2, 12)
+            )
+        case .eraser:
+            return ScoreAnnotationStroke(points: points, color: .clear, opacity: 0, lineWidth: lineWidth)
+        }
+    }
+
+    private func erase(near point: CGPoint) {
+        let threshold: CGFloat = 0.018
+        strokes.removeAll { stroke in
+            stroke.points.contains { distance($0, point) < threshold }
+        }
+    }
+
+    private func normalizedPoint(from location: CGPoint, size: CGSize) -> CGPoint {
+        CGPoint(
+            x: min(max(location.x / max(size.width, 1), 0), 1),
+            y: min(max(location.y / max(size.height, 1), 0), 1)
+        )
+    }
+
+    private func denormalize(_ point: CGPoint, size: CGSize) -> CGPoint {
+        CGPoint(x: point.x * size.width, y: point.y * size.height)
+    }
+
+    private func distance(_ a: CGPoint, _ b: CGPoint) -> CGFloat {
+        hypot(a.x - b.x, a.y - b.y)
     }
 }
 
