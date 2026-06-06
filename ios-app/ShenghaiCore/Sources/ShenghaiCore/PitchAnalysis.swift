@@ -14,11 +14,32 @@ public struct PitchSample: Codable, Equatable, Sendable {
 
 public struct TargetPitchPoint: Codable, Equatable, Sendable {
     public var time: TimeInterval
+    public var duration: TimeInterval
     public var midi: Int
+    public var partID: String?
+    public var measureNumber: String?
+    public var noteID: String?
+    public var startTick: Int
+    public var durationTick: Int
 
-    public init(time: TimeInterval, midi: Int) {
+    public init(
+        time: TimeInterval,
+        midi: Int,
+        duration: TimeInterval = 0,
+        partID: String? = nil,
+        measureNumber: String? = nil,
+        noteID: String? = nil,
+        startTick: Int = 0,
+        durationTick: Int = 0
+    ) {
         self.time = time
+        self.duration = duration
         self.midi = midi
+        self.partID = partID
+        self.measureNumber = measureNumber
+        self.noteID = noteID
+        self.startTick = startTick
+        self.durationTick = durationTick
     }
 }
 
@@ -162,8 +183,93 @@ public struct PitchDeviationAnalyzer: Sendable {
     }
 
     private func nearestTarget(to time: TimeInterval, in targets: [TargetPitchPoint]) -> TargetPitchPoint? {
-        targets.min { lhs, rhs in
+        if let activeTarget = targets.first(where: { target in
+            guard target.duration > 0 else {
+                return false
+            }
+            return time >= target.time && time < target.time + target.duration
+        }) {
+            return activeTarget
+        }
+
+        return targets.min { lhs, rhs in
             abs(lhs.time - time) < abs(rhs.time - time)
         }
+    }
+}
+
+public struct ScoreTimelineBuilder: Sendable {
+    public var includeRepeats: Bool
+
+    public init(includeRepeats: Bool = true) {
+        self.includeRepeats = includeRepeats
+    }
+
+    public func targetPitchTimeline(for score: ScoreDocument, partIndex: Int = 0) -> [TargetPitchPoint] {
+        guard score.parts.indices.contains(partIndex) else {
+            return []
+        }
+
+        let part = score.parts[partIndex]
+        let secondsPerTick = 60.0 / Double(max(score.tempoBPM, 1)) / Double(max(score.ticksPerQuarter, 1))
+        var absoluteTick = 0
+        var targets: [TargetPitchPoint] = []
+
+        for measure in measureSequence(for: part) {
+            let originalMeasureStartTick = measure.notes
+                .map(\.startTick)
+                .min() ?? 0
+            let measureDuration = measure.notes
+                .map { $0.startTick + $0.durationTick - originalMeasureStartTick }
+                .max() ?? 0
+
+            for note in measure.notes where !note.isRest {
+                guard let midi = note.midi else {
+                    continue
+                }
+                let startTick = absoluteTick + note.startTick - originalMeasureStartTick
+                targets.append(
+                    TargetPitchPoint(
+                        time: Double(startTick) * secondsPerTick,
+                        midi: midi,
+                        duration: Double(note.durationTick) * secondsPerTick,
+                        partID: part.id,
+                        measureNumber: measure.number,
+                        noteID: note.id,
+                        startTick: startTick,
+                        durationTick: note.durationTick
+                    )
+                )
+            }
+
+            absoluteTick += measureDuration
+        }
+
+        return targets
+    }
+
+    public func measureSequence(for part: ScorePart) -> [ScoreMeasure] {
+        guard includeRepeats else {
+            return part.measures
+        }
+
+        var sequence: [ScoreMeasure] = []
+        var repeatStartIndex = 0
+
+        for index in part.measures.indices {
+            let measure = part.measures[index]
+            if measure.repeatStart {
+                repeatStartIndex = index
+            }
+
+            sequence.append(measure)
+
+            if measure.repeatEnd, repeatStartIndex <= index {
+                sequence.append(contentsOf: part.measures[repeatStartIndex...index])
+                repeatStartIndex = index + 1
+            }
+        }
+
+        return sequence
     }
 }

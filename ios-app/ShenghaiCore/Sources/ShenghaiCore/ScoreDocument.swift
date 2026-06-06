@@ -46,10 +46,25 @@ public struct ScorePart: Codable, Equatable, Sendable, Identifiable {
 public struct ScoreMeasure: Codable, Equatable, Sendable, Identifiable {
     public var id: String { number }
     public var number: String
+    public var beats: Int?
+    public var beatType: Int?
+    public var repeatStart: Bool
+    public var repeatEnd: Bool
     public var notes: [ScoreNote]
 
-    public init(number: String, notes: [ScoreNote]) {
+    public init(
+        number: String,
+        beats: Int? = nil,
+        beatType: Int? = nil,
+        repeatStart: Bool = false,
+        repeatEnd: Bool = false,
+        notes: [ScoreNote]
+    ) {
         self.number = number
+        self.beats = beats
+        self.beatType = beatType
+        self.repeatStart = repeatStart
+        self.repeatEnd = repeatEnd
         self.notes = notes
     }
 }

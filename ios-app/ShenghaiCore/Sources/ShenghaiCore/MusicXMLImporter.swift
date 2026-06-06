@@ -15,7 +15,7 @@ public enum MusicXMLImportError: Error, LocalizedError, Sendable {
 }
 
 public final class MusicXMLImporter: NSObject, XMLParserDelegate {
-    private let tempoBPM: Int
+    private let defaultTempoBPM: Int
     private let ticksPerQuarter: Int
 
     private var parserError: Error?
@@ -31,8 +31,15 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
 
     private var globalDivisions = 1
     private var activeDivisions = 1
+    private var parsedTempoBPM: Int?
+    private var activeBeats: Int?
+    private var activeBeatType: Int?
     private var currentMeasureNumber: String?
     private var currentMeasureNotes: [ScoreNote] = []
+    private var currentMeasureBeats: Int?
+    private var currentMeasureBeatType: Int?
+    private var currentMeasureRepeatStart = false
+    private var currentMeasureRepeatEnd = false
     private var currentTick = 0
 
     private var inNote = false
@@ -44,7 +51,7 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
     private var noteIsRest = false
 
     public init(tempoBPM: Int = 96, ticksPerQuarter: Int = 480) {
-        self.tempoBPM = tempoBPM
+        self.defaultTempoBPM = tempoBPM
         self.ticksPerQuarter = ticksPerQuarter
     }
 
@@ -65,7 +72,7 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         return ScoreDocument(
             divisions: globalDivisions,
             ticksPerQuarter: ticksPerQuarter,
-            tempoBPM: tempoBPM,
+            tempoBPM: parsedTempoBPM ?? defaultTempoBPM,
             parts: parts,
             expandedMeasureOrder: expandedMeasureOrder
         )
@@ -93,9 +100,15 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             currentPartMeasures = []
             currentTick = 0
             activeDivisions = globalDivisions
+            activeBeats = nil
+            activeBeatType = nil
         case "measure":
             currentMeasureNumber = attributeDict["number"] ?? "\(currentPartMeasures.count + 1)"
             currentMeasureNotes = []
+            currentMeasureBeats = activeBeats
+            currentMeasureBeatType = activeBeatType
+            currentMeasureRepeatStart = false
+            currentMeasureRepeatEnd = false
         case "note":
             inNote = true
             noteStep = nil
@@ -107,6 +120,19 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         case "rest":
             if inNote {
                 noteIsRest = true
+            }
+        case "sound":
+            if let tempoValue = attributeDict["tempo"], let tempo = Double(tempoValue), tempo > 0 {
+                parsedTempoBPM = Int(tempo.rounded())
+            }
+        case "repeat":
+            switch attributeDict["direction"] {
+            case "forward":
+                currentMeasureRepeatStart = true
+            case "backward":
+                currentMeasureRepeatEnd = true
+            default:
+                break
             }
         default:
             break
@@ -134,6 +160,16 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             if let divisions = Int(value), divisions > 0 {
                 activeDivisions = divisions
                 globalDivisions = divisions
+            }
+        case "beats":
+            if isInside("time"), let beats = Int(value), beats > 0 {
+                activeBeats = beats
+                currentMeasureBeats = beats
+            }
+        case "beat-type":
+            if isInside("time"), let beatType = Int(value), beatType > 0 {
+                activeBeatType = beatType
+                currentMeasureBeatType = beatType
             }
         case "step":
             if inNote {
@@ -189,8 +225,15 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         expandedMeasureOrder = []
         globalDivisions = 1
         activeDivisions = 1
+        parsedTempoBPM = nil
+        activeBeats = nil
+        activeBeatType = nil
         currentMeasureNumber = nil
         currentMeasureNotes = []
+        currentMeasureBeats = nil
+        currentMeasureBeatType = nil
+        currentMeasureRepeatStart = false
+        currentMeasureRepeatEnd = false
         currentTick = 0
     }
 
@@ -222,12 +265,25 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
 
     private func finishMeasure() {
         let number = currentMeasureNumber ?? "\(currentPartMeasures.count + 1)"
-        currentPartMeasures.append(ScoreMeasure(number: number, notes: currentMeasureNotes))
+        currentPartMeasures.append(
+            ScoreMeasure(
+                number: number,
+                beats: currentMeasureBeats,
+                beatType: currentMeasureBeatType,
+                repeatStart: currentMeasureRepeatStart,
+                repeatEnd: currentMeasureRepeatEnd,
+                notes: currentMeasureNotes
+            )
+        )
         if let currentPartID {
             expandedMeasureOrder.append(ExpandedMeasure(partID: currentPartID, measureNumber: number))
         }
         currentMeasureNumber = nil
         currentMeasureNotes = []
+        currentMeasureBeats = nil
+        currentMeasureBeatType = nil
+        currentMeasureRepeatStart = false
+        currentMeasureRepeatEnd = false
     }
 
     private func finishPart() {
@@ -259,5 +315,9 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             return nil
         }
         return (octave + 1) * 12 + semitone + alter
+    }
+
+    private func isInside(_ elementName: String) -> Bool {
+        elementStack.contains(elementName)
     }
 }

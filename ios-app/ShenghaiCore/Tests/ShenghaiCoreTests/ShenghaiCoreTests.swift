@@ -26,6 +26,28 @@ struct ShenghaiCoreTests {
         #expect(midiData.count > 40)
     }
 
+    @Test func importsTempoMeterRepeatsAndBuildsTargetTimeline() throws {
+        let score = try MusicXMLImporter().importDocument(data: Data(Self.repeatedMusicXML.utf8))
+
+        #expect(score.tempoBPM == 120)
+        #expect(score.parts[0].measures[0].beats == 2)
+        #expect(score.parts[0].measures[0].beatType == 4)
+        #expect(score.parts[0].measures[0].repeatStart)
+        #expect(score.parts[0].measures[1].repeatEnd)
+
+        let timeline = ScoreTimelineBuilder().targetPitchTimeline(for: score)
+
+        #expect(timeline.map(\.midi) == [60, 62, 60, 62])
+        #expect(timeline.map(\.measureNumber) == ["1", "2", "1", "2"])
+        #expect(timeline[0].time == 0)
+        #expect(abs(timeline[1].time - 0.5) < 0.001)
+        #expect(abs(timeline[2].time - 1.0) < 0.001)
+        #expect(abs(timeline[3].time - 1.5) < 0.001)
+        #expect(abs(timeline[0].duration - 0.5) < 0.001)
+        #expect(timeline[0].partID == "P1")
+        #expect(timeline[0].noteID?.contains("P1-1") == true)
+    }
+
     @Test func analyzesPitchDeviationWithConfidence() {
         let analyzer = PitchDeviationAnalyzer(toleranceCents: 25, minimumConfidence: 0.6)
         let samples = [
@@ -126,6 +148,47 @@ struct ShenghaiCoreTests {
             <pitch><step>G</step><octave>4</octave></pitch>
             <duration>2</duration><type>half</type>
           </note>
+        </measure>
+      </part>
+    </score-partwise>
+    """
+
+    private static let repeatedMusicXML = """
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <score-partwise version="4.0">
+      <part-list>
+        <score-part id="P1">
+          <part-name>Voice</part-name>
+        </score-part>
+      </part-list>
+      <part id="P1">
+        <measure number="1">
+          <direction>
+            <sound tempo="120"/>
+          </direction>
+          <attributes>
+            <divisions>1</divisions>
+            <time>
+              <beats>2</beats>
+              <beat-type>4</beat-type>
+            </time>
+          </attributes>
+          <barline location="left">
+            <repeat direction="forward"/>
+          </barline>
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+        </measure>
+        <measure number="2">
+          <note>
+            <pitch><step>D</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+          </note>
+          <barline location="right">
+            <repeat direction="backward"/>
+          </barline>
         </measure>
       </part>
     </score-partwise>
