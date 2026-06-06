@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shenghai Demo for Neolyre</title>
+  <meta name="description" content="A lightweight Shenghai demo for singing practice, score-to-audio alignment, pitch feedback, and future SVS research links.">
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      --ink: CanvasText;
+      --muted: color-mix(in srgb, CanvasText 68%, transparent);
+      --line: color-mix(in srgb, CanvasText 14%, transparent);
+      --surface: color-mix(in srgb, CanvasText 5%, transparent);
+      --surface-strong: color-mix(in srgb, CanvasText 9%, transparent);
+      --accent: #2f7dd3;
+      --good: #238636;
+      --warn: #b45309;
+      --bad: #d1242f;
+      --blue: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: Canvas;
+      color: var(--ink);
+    }
+    nav, header, main, footer {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-top: 22px;
+      padding-bottom: 22px;
+    }
+    nav a {
+      color: var(--muted);
+      text-decoration: none;
+      margin-left: 16px;
+    }
+    nav a:first-child {
+      margin-left: 0;
+      color: var(--ink);
+      font-weight: 800;
+    }
+    nav a:hover { color: var(--ink); }
+    header {
+      padding-top: 48px;
+      padding-bottom: 34px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-weight: 800;
+      letter-spacing: 0;
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: clamp(2.4rem, 7vw, 5.1rem);
+      line-height: 1.02;
+      letter-spacing: 0;
+      margin: 0 0 18px;
+      max-width: 920px;
+    }
+    .lead {
+      font-size: clamp(1.08rem, 2vw, 1.34rem);
+      color: var(--muted);
+      max-width: 850px;
+      margin: 0 0 24px;
+    }
+    .actions, .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    button, .button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 42px;
+      padding: 9px 13px;
+      font: inherit;
+      font-weight: 750;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    button:hover, .button:hover { background: var(--surface-strong); }
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    section {
+      border-top: 1px solid var(--line);
+      padding: 34px 0;
+    }
+    h2 {
+      margin: 0 0 16px;
+      line-height: 1.16;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+    }
+    h3 { margin: 0 0 8px; }
+    p { margin: 0 0 12px; }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .card, .demo-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      padding: 18px;
+    }
+    .card p { color: var(--muted); }
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      border-radius: 999px;
+      padding: 3px 10px;
+      background: var(--surface-strong);
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+    .ready { color: var(--good); }
+    .planned { color: var(--blue); }
+    .research { color: var(--warn); }
+    .demo-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 0.54fr);
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 840px) {
+      .demo-layout { grid-template-columns: 1fr; }
+      nav { align-items: flex-start; flex-direction: column; }
+      nav a { margin-left: 0; margin-right: 14px; }
+    }
+    .score-stage {
+      min-height: 390px;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(to bottom, transparent 47px, color-mix(in srgb, CanvasText 14%, transparent) 48px, transparent 49px),
+        Canvas;
+      background-size: 100% 49px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    svg { width: 100%; height: auto; display: block; }
+    .note-dot { transition: transform 160ms ease, fill 160ms ease; }
+    .note-dot.active { transform: translateY(-4px); fill: var(--accent); }
+    .marker {
+      transition: opacity 180ms ease;
+      opacity: 0;
+    }
+    .marker.visible { opacity: 1; }
+    .pitch-panel {
+      display: grid;
+      gap: 12px;
+    }
+    .metric {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+    }
+    .metric strong { font-size: 1.08rem; }
+    .meter {
+      height: 8px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--line);
+      margin-top: 8px;
+    }
+    .meter span {
+      display: block;
+      height: 100%;
+      width: 78%;
+      background: var(--accent);
+    }
+    .composer {
+      display: grid;
+      gap: 10px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      padding: 8px 10px;
+      font-weight: 750;
+    }
+    textarea {
+      width: 100%;
+      min-height: 148px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: Canvas;
+      color: var(--ink);
+      padding: 12px;
+      font: 0.92rem ui-monospace, SFMono-Regular, Menlo, monospace;
+      line-height: 1.45;
+    }
+    .timeline {
+      display: grid;
+      gap: 10px;
+      counter-reset: step;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 12px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+    }
+    footer {
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      padding-top: 30px;
+      padding-bottom: 44px;
+    }
+  </style>
+</head>
+<body>
+  <nav aria-label="Main navigation">
+    <a href="index.html">Shenghai</a>
+    <div>
+      <a href="demo.html">Demo</a>
+      <a href="manual.html">Manual</a>
+      <a href="changelog.html">Changelog</a>
+      <a href="https://github.com/Chein-Shawn/shenghai">GitHub</a>
+    </div>
+  </nav>
+
+  <header>
+    <p class="eyebrow">SOAR / Neolyre application demo</p>
+    <h1>Shenghai turns a score into an interactive singing practice loop.</h1>
+    <p class="lead">The current prototype focuses on MusicXML import/composition, score-to-pitch timelines, MIDI playback, live pitch tracking, and user-facing feedback for beginner singers and chorus rehearsal.</p>
+    <div class="actions">
+      <a class="button primary" href="#interactive">Try the web demo</a>
+      <a class="button" href="https://github.com/Chein-Shawn/shenghai">View code</a>
+      <a class="button" href="manual.html">Read manual</a>
+    </div>
+    <div class="status-row">
+      <span class="pill ready">Built: SwiftUI app shell</span>
+      <span class="pill ready">Built: MusicXML composer/importer</span>
+      <span class="pill ready">Built: pitch deviation model</span>
+      <span class="pill planned">Next: SVS-informed vocal analysis</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Why this fits Neolyre</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Shared data primitives</h3>
+          <p>SVS needs notes, lyrics/phonemes, durations, F0, energy, and alignment. Shenghai needs the same objects to compare a learner's singing against a score.</p>
+        </article>
+        <article class="card">
+          <h3>Training feedback, not only synthesis</h3>
+          <p>Instead of generating a voice for performance, Shenghai can use SVS-style acoustic features to tell singers what changed: pitch, timing, breathiness, tension, and technique.</p>
+        </article>
+        <article class="card">
+          <h3>Ethical YouTube path</h3>
+          <p>Shenghai should not download unauthorized YouTube audio. The research path is licensed/local audio, user recordings, or official embeds for reference playback.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="interactive">
+      <h2>Interactive concept demo</h2>
+      <p class="muted">This browser demo simulates the product flow. The native Swift prototype already compiles; this page is the zero-install mentor preview.</p>
+      <div class="demo-layout">
+        <div class="demo-panel">
+          <div class="toolbar" aria-label="Demo controls">
+            <button class="primary" id="playTarget">Play target melody</button>
+            <button id="playAttempt">Play learner attempt</button>
+            <button id="showFeedback">Show feedback</button>
+            <button id="resetDemo">Reset</button>
+          </div>
+
+          <div class="score-stage" aria-label="Simulated score and feedback">
+            <svg viewBox="0 0 820 330" role="img" aria-label="Score with note and pitch feedback markers">
+              <text x="20" y="30" font-size="22" font-weight="800" fill="currentColor">MusicXML score to practice timeline</text>
+              <text x="20" y="55" font-size="14" fill="currentColor" opacity="0.68">Score: C4 D4 E4 G4 | learner sings D# sharp and enters late</text>
+              <g transform="translate(28 86)" stroke="currentColor" opacity="0.62" stroke-width="2">
+                <line x1="0" y1="0" x2="760" y2="0"/>
+                <line x1="0" y1="18" x2="760" y2="18"/>
+                <line x1="0" y1="36" x2="760" y2="36"/>
+                <line x1="0" y1="54" x2="760" y2="54"/>
+                <line x1="0" y1="72" x2="760" y2="72"/>
+                <line x1="390" y1="-10" x2="390" y2="84"/>
+              </g>
+              <g transform="translate(28 86)">
+                <ellipse class="note-dot" data-note="0" cx="90" cy="54" rx="17" ry="12" fill="currentColor"/>
+                <line x1="106" y1="54" x2="106" y2="-2" stroke="currentColor" stroke-width="4"/>
+                <ellipse class="note-dot" data-note="1" cx="210" cy="45" rx="17" ry="12" fill="currentColor"/>
+                <line x1="226" y1="45" x2="226" y2="-10" stroke="currentColor" stroke-width="4"/>
+                <ellipse class="note-dot" data-note="2" cx="330" cy="36" rx="17" ry="12" fill="currentColor"/>
+                <line x1="346" y1="36" x2="346" y2="-18" stroke="currentColor" stroke-width="4"/>
+                <ellipse class="note-dot" data-note="3" cx="510" cy="18" rx="17" ry="12" fill="currentColor"/>
+                <line x1="526" y1="18" x2="526" y2="-36" stroke="currentColor" stroke-width="4"/>
+              </g>
+              <g class="marker" id="feedbackMarkers">
+                <rect x="216" y="65" width="72" height="24" rx="6" fill="color-mix(in srgb, #d1242f 22%, transparent)" stroke="#d1242f"/>
+                <text x="225" y="82" font-size="13" fill="currentColor">sharp</text>
+                <rect x="500" y="39" width="80" height="24" rx="6" fill="color-mix(in srgb, #2563eb 22%, transparent)" stroke="#2563eb"/>
+                <text x="509" y="56" font-size="13" fill="currentColor">late</text>
+              </g>
+              <g transform="translate(26 218)">
+                <text x="0" y="-16" font-size="14" font-weight="800" fill="currentColor">Pitch tracking</text>
+                <polyline points="0,70 90,56 190,43 290,30 390,21 520,10 680,10" fill="none" stroke="currentColor" opacity="0.25" stroke-width="4"/>
+                <polyline id="attemptLine" points="0,74 90,57 190,30 290,33 390,22 520,28 680,12" fill="none" stroke="#d1242f" opacity="0" stroke-width="4"/>
+                <line x1="0" y1="76" x2="740" y2="76" stroke="currentColor" opacity="0.2"/>
+                <text x="0" y="104" font-size="13" fill="currentColor" opacity="0.68">gray = target F0 timeline, red = learner recording</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <aside class="pitch-panel">
+          <div class="metric">
+            <div>
+              <strong>Pitch accuracy</strong>
+              <div class="meter"><span id="pitchMeter"></span></div>
+            </div>
+            <span id="pitchValue">78%</span>
+          </div>
+          <div class="metric">
+            <div>
+              <strong>Timing stability</strong>
+              <div class="meter"><span id="timingMeter" style="width: 64%; background: var(--warn);"></span></div>
+            </div>
+            <span id="timingValue">64%</span>
+          </div>
+          <div class="card">
+            <h3>Current native prototype</h3>
+            <p>MusicXML composer/importer, ScoreDocument wrapper, MIDI export/playback, OMR provider planning, live pitch tracking baseline, usage stats, and support docs.</p>
+          </div>
+          <div class="card">
+            <h3>What the mentor can evaluate</h3>
+            <p>Whether my product instincts and current codebase can become a concrete SVS-adjacent research platform: score parsing, alignment, F0 extraction, audio feedback, and vocal feature analysis.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section>
+      <h2>Mini MusicXML composer</h2>
+      <p class="muted">The native app now has a Compose section. This web mock shows the same idea: create notes, export a MusicXML-like representation, then use it as the practice target.</p>
+      <div class="demo-layout">
+        <div class="demo-panel composer">
+          <div class="toolbar">
+            <button data-add="C4">C4</button>
+            <button data-add="D4">D4</button>
+            <button data-add="E4">E4</button>
+            <button data-add="G4">G4</button>
+            <button data-add="Rest">Rest</button>
+            <button id="clearComposer">Clear</button>
+          </div>
+          <div class="chips" id="noteChips" aria-label="Composed notes"></div>
+          <textarea id="musicXMLPreview" spellcheck="false" aria-label="MusicXML preview"></textarea>
+        </div>
+        <div class="card">
+          <h3>Why this matters technically</h3>
+          <p>A reliable score representation is the bridge between a singer-facing practice tool and an SVS model. The same score can condition a synthesizer, generate a target F0 curve, or evaluate a user recording.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Research bridge to modern SVS</h2>
+      <div class="timeline">
+        <div class="step">
+          <div><strong>Data pipeline</strong><p class="muted">Adopt SVS preprocessing concepts: vocal separation, segmentation, F0 extraction, phoneme/lyric alignment, and quality scoring. Shenghai can store the same features as practice metadata.</p></div>
+        </div>
+        <div class="step">
+          <div><strong>Reference voice for practice</strong><p class="muted">Use an open SVS model to synthesize a clean target line from MusicXML, so beginners can hear their exact choral part even when no recording exists.</p></div>
+        </div>
+        <div class="step">
+          <div><strong>Analysis, not unauthorized copying</strong><p class="muted">For YouTube-like songs, use official embeds or user-provided/licensed audio. Apply source separation, melody extraction, and F0 comparison only where rights and terms allow it.</p></div>
+        </div>
+        <div class="step">
+          <div><strong>Technique-aware feedback</strong><p class="muted">SVS technique labels such as breathy, falsetto, intensity, or tension can become user feedback dimensions rather than only synthesis controls.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Shenghai is an early prototype by Chien-Hsiang Chien. This page is designed as a zero-install preview for research mentors and application reviewers.
+  </footer>
+
+  <script>
+    const target = [
+      { freq: 261.63, ms: 280 },
+      { freq: 293.66, ms: 280 },
+      { freq: 329.63, ms: 280 },
+      { freq: 392.00, ms: 520 }
+    ];
+    const attempt = [
+      { freq: 261.63, ms: 280 },
+      { freq: 311.13, ms: 360 },
+      { freq: 329.63, ms: 240 },
+      { freq: 392.00, ms: 600 }
+    ];
+    let audioContext;
+    let notes = ["C4", "D4", "E4", "G4"];
+
+    function playSequence(sequence) {
+      audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
+      let start = audioContext.currentTime + 0.05;
+      document.querySelectorAll(".note-dot").forEach(dot => dot.classList.remove("active"));
+
+      sequence.forEach((note, index) => {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = "sine";
+        osc.frequency.value = note.freq;
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.13, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + note.ms / 1000);
+        osc.connect(gain).connect(audioContext.destination);
+        osc.start(start);
+        osc.stop(start + note.ms / 1000 + 0.03);
+        window.setTimeout(() => {
+          document.querySelectorAll(".note-dot").forEach(dot => dot.classList.remove("active"));
+          const dot = document.querySelector(`.note-dot[data-note="${index}"]`);
+          if (dot) dot.classList.add("active");
+        }, Math.max(0, (start - audioContext.currentTime) * 1000));
+        start += note.ms / 1000;
+      });
+    }
+
+    function showFeedback() {
+      document.getElementById("feedbackMarkers").classList.add("visible");
+      document.getElementById("attemptLine").style.opacity = "1";
+      document.getElementById("pitchMeter").style.width = "58%";
+      document.getElementById("pitchMeter").style.background = "var(--bad)";
+      document.getElementById("pitchValue").textContent = "58%";
+      document.getElementById("timingMeter").style.width = "52%";
+      document.getElementById("timingValue").textContent = "52%";
+    }
+
+    function resetDemo() {
+      document.getElementById("feedbackMarkers").classList.remove("visible");
+      document.getElementById("attemptLine").style.opacity = "0";
+      document.querySelectorAll(".note-dot").forEach(dot => dot.classList.remove("active"));
+      document.getElementById("pitchMeter").style.width = "78%";
+      document.getElementById("pitchMeter").style.background = "var(--accent)";
+      document.getElementById("pitchValue").textContent = "78%";
+      document.getElementById("timingMeter").style.width = "64%";
+      document.getElementById("timingValue").textContent = "64%";
+    }
+
+    function renderComposer() {
+      const noteChips = document.getElementById("noteChips");
+      noteChips.innerHTML = "";
+      notes.forEach((note, index) => {
+        const chip = document.createElement("span");
+        chip.className = "chip";
+        chip.textContent = `${index + 1}. ${note}`;
+        noteChips.appendChild(chip);
+      });
+      document.getElementById("musicXMLPreview").value = [
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+        "<score-partwise version=\"4.0\">",
+        "  <part id=\"P1\">",
+        "    <measure number=\"1\">",
+        ...notes.map(note => note === "Rest"
+          ? "      <note><rest/><duration>2</duration><type>quarter</type></note>"
+          : `      <note><pitch><step>${note[0]}</step><octave>${note[1]}</octave></pitch><duration>2</duration><type>quarter</type></note>`),
+        "    </measure>",
+        "  </part>",
+        "</score-partwise>"
+      ].join("\n");
+    }
+
+    document.getElementById("playTarget").addEventListener("click", () => playSequence(target));
+    document.getElementById("playAttempt").addEventListener("click", () => {
+      playSequence(attempt);
+      showFeedback();
+    });
+    document.getElementById("showFeedback").addEventListener("click", showFeedback);
+    document.getElementById("resetDemo").addEventListener("click", resetDemo);
+    document.querySelectorAll("[data-add]").forEach(button => {
+      button.addEventListener("click", () => {
+        notes.push(button.dataset.add);
+        renderComposer();
+      });
+    });
+    document.getElementById("clearComposer").addEventListener("click", () => {
+      notes = [];
+      renderComposer();
+    });
+    renderComposer();
+  </script>
+</body>
+</html>
