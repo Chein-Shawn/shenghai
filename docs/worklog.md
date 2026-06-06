@@ -123,3 +123,11 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added third-party algorithm and launch-license audit in `docs/third-party-algorithm-and-license-audit-2026-06-06.md`.
 - Validated with `env CLANG_MODULE_CACHE_PATH=.build/ModuleCache-ops swift test --disable-sandbox --scratch-path .build/spm-ops`; 9 tests passed.
 - Xcode build still fails inside the sandbox because the Observation macro/plugin server cannot access required services. A non-sandbox Xcode build attempt hung and was terminated. SwiftPM successfully compiled the app target and tests.
+
+### OMR Provider Selection Update
+
+- Added `OMRProvider` with `homr` and `oemer` choices.
+- Added provider-specific command preview through `OMRProviderCommandPlan`.
+- Added Score workspace OMR Review picker so users can choose homr or oemer.
+- Updated Research view to treat homr/oemer as external MusicXML-producing OMR providers and Audiveris as a benchmark path.
+- Updated user manual and changelog to explain that homr/oemer currently run outside the app, then MusicXML is imported into Shenghai.

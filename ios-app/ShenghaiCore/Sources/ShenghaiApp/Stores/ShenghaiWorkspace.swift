@@ -19,6 +19,7 @@ final class ShenghaiWorkspace {
     var exportedMIDIURL: URL?
     var isImportingScore = false
     var isPlaying = false
+    var selectedOMRProvider: OMRProvider = .homr
     let usageTracking = UsageTrackingStore()
 
     private let importer = MusicXMLImporter()

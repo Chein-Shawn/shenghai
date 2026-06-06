@@ -174,6 +174,29 @@ struct ShenghaiCoreTests {
         #expect(OMRPipelinePlan.mvpBaseline(inputKind: .pdf).stages.count == OMRPipelineStage.allCases.count)
     }
 
+    @Test func createsSelectableOMRProviderPlans() {
+        let homrPlan = OMRProviderCommandPlan(
+            provider: .homr,
+            inputPath: "/tmp/choir score.png",
+            outputPath: "/tmp/choir.musicxml"
+        )
+        let oemerPlan = OMRProviderCommandPlan(
+            provider: .oemer,
+            inputPath: "/tmp/choir score.png",
+            outputPath: "/tmp/choir.musicxml"
+        )
+        let pipeline = OMRPipelinePlan.mvpBaseline(inputKind: .image, provider: .oemer)
+
+        #expect(OMRProvider.allCases == [.homr, .oemer])
+        #expect(homrPlan.commandName == "homr")
+        #expect(homrPlan.arguments == ["/tmp/choir score.png", "--output", "/tmp/choir.musicxml"])
+        #expect(homrPlan.shellPreview.contains("'"))
+        #expect(oemerPlan.commandName == "oemer")
+        #expect(oemerPlan.arguments == ["-o", "/tmp/choir.musicxml", "/tmp/choir score.png"])
+        #expect(pipeline.provider == .oemer)
+        #expect(pipeline.stages.first(where: { $0.stage == .omrRecognition })?.note.contains("oemer") == true)
+    }
+
     private static let twinkleMusicXML = """
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <score-partwise version="4.0">

@@ -12,7 +12,7 @@ struct ResearchStatusView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     SectionTitle("Product Algorithms")
-                    ResearchRow(topic: "OMR", decision: "Use Audiveris and MusicXML as the baseline path.")
+                    ResearchRow(topic: "OMR", decision: "Let users choose homr or oemer as external MusicXML-producing providers; keep Audiveris as a benchmark path.")
                     ResearchRow(topic: "OMR Pipeline", decision: "Track capture, preprocessing, recognition, MusicXML export, correction, and playback validation as explicit stages.")
                     ResearchRow(topic: "Internal Format", decision: "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.")
                     ResearchRow(topic: "Pitch Feedback", decision: "Use a YIN baseline for live monophonic pitch, smooth contours, and keep CREPE/pYIN as replaceable higher-accuracy trackers.")
@@ -22,6 +22,7 @@ struct ResearchStatusView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     SectionTitle("Current Blockers")
+                    PipelineRow(title: "External OMR provider execution", state: .planned, detail: "homr/oemer are selected in-app but run in a reviewed external environment for now.")
                     PipelineRow(title: "Audiveris app install", state: .blocked, detail: "Install official macOS release or use JDK 25 for source build.")
                     PipelineRow(title: "TestFlight signing", state: .blocked, detail: "Needs Apple Developer Program and App Store Connect setup.")
                     PipelineRow(title: "Live pitch capture", state: .planned, detail: "Requires microphone permission and input calibration.")

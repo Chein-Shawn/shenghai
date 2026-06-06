@@ -431,7 +431,18 @@ private struct ScoreInspectorPanel: View {
             }
 
             StudioPanel(title: "OMR Review", systemImage: "doc.viewfinder") {
+                Picker("Provider", selection: $workspace.selectedOMRProvider) {
+                    ForEach(OMRProvider.allCases, id: \.self) { provider in
+                        Text(provider.displayName)
+                            .tag(provider)
+                    }
+                }
+                .pickerStyle(.segmented)
+
+                OMRProviderSummary(provider: workspace.selectedOMRProvider)
+
                 PipelineRow(title: "MusicXML parsed", state: .ready, detail: "\(workspace.scoreSummary.noteCount) notes")
+                PipelineRow(title: "\(workspace.selectedOMRProvider.displayName) external OMR", state: .planned, detail: "Run outside the app, then import generated MusicXML.")
                 PipelineRow(title: "Manual correction layer", state: .planned)
                 PipelineRow(title: "Repeat expansion audit", state: .planned)
             }
@@ -461,6 +472,49 @@ private struct ScoreInspectorPanel: View {
         } else {
             mutedPartIDs.insert(id)
         }
+    }
+}
+
+private struct OMRProviderSummary: View {
+    var provider: OMRProvider
+
+    private var commandPlan: OMRProviderCommandPlan {
+        OMRProviderCommandPlan(
+            provider: provider,
+            inputPath: "~/Scores/input-score.png",
+            outputPath: "~/Scores/output.musicxml"
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "wand.and.stars")
+                    .foregroundStyle(.tint)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(provider.summary)
+                        .font(.subheadline.weight(.semibold))
+                    Text(provider.bestFor)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Label(provider.licenseNote, systemImage: "shield.lefthalf.filled")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Text(commandPlan.shellPreview)
+                .font(.caption.monospaced())
+                .textSelection(.enabled)
+                .lineLimit(3)
+                .padding(8)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+        }
+        .padding(10)
+        .background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
