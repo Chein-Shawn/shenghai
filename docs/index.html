@@ -84,6 +84,25 @@
       border-color: var(--accent);
       color: white;
     }
+    .demo-callout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      margin-top: 24px;
+    }
+    .demo-callout h2 {
+      margin: 0 0 8px;
+      font-size: clamp(1.35rem, 2.4vw, 2rem);
+    }
+    .demo-callout p { margin: 0; color: var(--muted); }
+    @media (max-width: 720px) {
+      .demo-callout { grid-template-columns: 1fr; }
+    }
     section {
       padding: 34px 0;
       border-top: 1px solid var(--line);
@@ -162,9 +181,16 @@
     <h1>為聲樂與合唱練習打造的智慧練習工作台</h1>
     <p class="lead">聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。</p>
     <div class="actions">
-      <a class="button primary" href="demo.html">觀看 Demo</a>
+      <a class="button primary" href="demo.html">試唱 Happy Birthday Demo</a>
       <a class="button" href="manual.html">開始使用</a>
       <a class="button" href="changelog.html">查看新功能</a>
+    </div>
+    <div class="demo-callout">
+      <div>
+        <h2>現在可以直接試唱 Happy Birthday</h2>
+        <p>點開 Demo 後，播放示範旋律、開啟麥克風、跟著 highlighted lyric 唱；系統會用紅色/綠色顯示音準是否偏高或偏低。</p>
+      </div>
+      <a class="button primary" href="demo.html#try">開始試唱</a>
     </div>
   </header>
 
