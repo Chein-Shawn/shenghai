@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Shenghai Singing Practice Demo</title>
-  <meta name="description" content="Try a zero-install Shenghai singing practice demo: hear a target melody, sing into the microphone, and see pitch feedback.">
+  <meta name="description" content="Try a zero-install Shenghai demo: sing Happy Birthday into the microphone and see live pitch feedback.">
   <style>
     :root {
       color-scheme: light dark;
@@ -165,6 +165,29 @@
       transition: opacity 160ms ease;
     }
     .feedback-tag.visible { opacity: 1; }
+    .phrase-strip {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0 0;
+    }
+    .phrase-progress {
+      height: 10px;
+      border-radius: 999px;
+      background: var(--line);
+      overflow: hidden;
+    }
+    .phrase-progress span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: var(--accent);
+      transition: width 180ms ease;
+    }
+    .lyric-line {
+      font-size: 1.35rem;
+      font-weight: 900;
+      line-height: 1.2;
+    }
     .side {
       display: grid;
       gap: 12px;
@@ -281,8 +304,8 @@
 
   <header>
     <p class="eyebrow">Public singing practice demo</p>
-    <h1>Hear the target, sing into the mic, and see where your pitch is wrong.</h1>
-    <p class="lead">Shenghai is a prototype for score-based singing practice. This web demo lets you try the core idea without installing anything.</p>
+    <h1>Sing Happy Birthday and see where your pitch is wrong.</h1>
+    <p class="lead">Shenghai is a prototype for score-based singing practice. This web demo guides you through a familiar melody, listens to your voice, and marks pitch mistakes in real time.</p>
     <div class="actions">
       <a class="button primary" href="#try">Start the singing demo</a>
       <a class="button" href="manual.html">Read user guide</a>
@@ -293,22 +316,27 @@
   <main>
     <section id="try">
       <h2>Try it now</h2>
-      <p class="muted">Use headphones if possible. Click a target note, listen, then start the microphone and sing the same pitch. The demo marks the note green when you are close and red when you are too sharp or flat.</p>
+      <p class="muted">Use headphones if possible. Play the model melody once, start the microphone, then sing the highlighted Happy Birthday lyric. The demo turns notes green when you are close and red when you are too sharp or flat.</p>
 
       <div class="demo-layout">
         <div class="panel">
           <div class="toolbar" aria-label="Practice controls">
-            <button class="primary" id="playTarget">Play selected target</button>
+            <button class="primary" id="playPhrase">Play Happy Birthday</button>
+            <button id="playTarget">Play highlighted note</button>
             <button id="startMic">Start microphone</button>
             <button id="stopMic" disabled>Stop microphone</button>
-            <button id="nextNote">Next note</button>
+            <button id="nextNote">Next lyric</button>
             <button id="resetDemo">Reset</button>
+          </div>
+          <div class="phrase-strip" aria-live="polite">
+            <div class="lyric-line" id="currentLyric">Happy</div>
+            <div class="phrase-progress" aria-label="Song progress"><span id="phraseProgress"></span></div>
           </div>
 
           <div class="stage" aria-label="Practice score">
-            <svg viewBox="0 0 820 350" role="img" aria-label="Score with live pitch feedback">
-              <text x="20" y="32" font-size="22" font-weight="850" fill="currentColor">Sing the highlighted note</text>
-              <text id="scoreInstruction" x="20" y="56" font-size="14" fill="currentColor" opacity="0.7">Target: C4. Listen, then sing.</text>
+            <svg viewBox="0 0 820 660" role="img" aria-label="Happy Birthday score with live pitch feedback">
+              <text x="20" y="32" font-size="22" font-weight="850" fill="currentColor">Happy Birthday practice</text>
+              <text id="scoreInstruction" x="20" y="56" font-size="14" fill="currentColor" opacity="0.7">Target: C4 on "Happy". Listen, then sing.</text>
 
               <g transform="translate(28 94)" stroke="currentColor" opacity="0.62" stroke-width="2">
                 <line x1="0" y1="0" x2="760" y2="0"/>
@@ -316,33 +344,36 @@
                 <line x1="0" y1="36" x2="760" y2="36"/>
                 <line x1="0" y1="54" x2="760" y2="54"/>
                 <line x1="0" y1="72" x2="760" y2="72"/>
-                <line x1="390" y1="-10" x2="390" y2="84"/>
               </g>
-
-              <g transform="translate(28 94)">
-                <ellipse class="note-head active" data-index="0" cx="90" cy="54" rx="17" ry="12"/>
-                <line x1="106" y1="54" x2="106" y2="-2" stroke="currentColor" stroke-width="4"/>
-                <text class="note-label" x="72" y="106">C4</text>
-
-                <ellipse class="note-head" data-index="1" cx="210" cy="45" rx="17" ry="12"/>
-                <line x1="226" y1="45" x2="226" y2="-10" stroke="currentColor" stroke-width="4"/>
-                <text class="note-label" x="192" y="106">D4</text>
-
-                <ellipse class="note-head" data-index="2" cx="330" cy="36" rx="17" ry="12"/>
-                <line x1="346" y1="36" x2="346" y2="-18" stroke="currentColor" stroke-width="4"/>
-                <text class="note-label" x="312" y="106">E4</text>
-
-                <ellipse class="note-head" data-index="3" cx="510" cy="18" rx="17" ry="12"/>
-                <line x1="526" y1="18" x2="526" y2="-36" stroke="currentColor" stroke-width="4"/>
-                <text class="note-label" x="492" y="106">G4</text>
+              <g transform="translate(28 214)" stroke="currentColor" opacity="0.62" stroke-width="2">
+                <line x1="0" y1="0" x2="760" y2="0"/>
+                <line x1="0" y1="18" x2="760" y2="18"/>
+                <line x1="0" y1="36" x2="760" y2="36"/>
+                <line x1="0" y1="54" x2="760" y2="54"/>
+                <line x1="0" y1="72" x2="760" y2="72"/>
               </g>
+              <g transform="translate(28 334)" stroke="currentColor" opacity="0.62" stroke-width="2">
+                <line x1="0" y1="0" x2="760" y2="0"/>
+                <line x1="0" y1="18" x2="760" y2="18"/>
+                <line x1="0" y1="36" x2="760" y2="36"/>
+                <line x1="0" y1="54" x2="760" y2="54"/>
+                <line x1="0" y1="72" x2="760" y2="72"/>
+              </g>
+              <g transform="translate(28 444)" stroke="currentColor" opacity="0.62" stroke-width="2">
+                <line x1="0" y1="0" x2="760" y2="0"/>
+                <line x1="0" y1="18" x2="760" y2="18"/>
+                <line x1="0" y1="36" x2="760" y2="36"/>
+                <line x1="0" y1="54" x2="760" y2="54"/>
+                <line x1="0" y1="72" x2="760" y2="72"/>
+              </g>
+              <g id="birthdayNotes"></g>
 
               <g class="feedback-tag" id="feedbackTag">
-                <rect id="feedbackRect" x="50" y="190" width="250" height="40" rx="8" fill="color-mix(in srgb, #d1242f 18%, transparent)" stroke="#d1242f"/>
-                <text id="feedbackText" x="66" y="216" font-size="18" font-weight="850" fill="currentColor">Waiting for microphone</text>
+                <rect id="feedbackRect" x="50" y="74" width="300" height="40" rx="8" fill="color-mix(in srgb, #d1242f 18%, transparent)" stroke="#d1242f"/>
+                <text id="feedbackText" x="66" y="100" font-size="18" font-weight="850" fill="currentColor">Waiting for microphone</text>
               </g>
 
-              <g transform="translate(28 270)">
+              <g transform="translate(28 522)">
                 <text x="0" y="-16" font-size="14" font-weight="850" fill="currentColor">Live pitch trace</text>
                 <line x1="0" y1="56" x2="740" y2="56" stroke="currentColor" opacity="0.18"/>
                 <polyline id="pitchTrace" points="" fill="none" stroke="#2f7dd3" stroke-width="4"/>
@@ -363,6 +394,13 @@
             </div>
             <div class="metric">
               <div>
+                <strong>Current lyric</strong>
+                <div class="meter"><span id="lyricMeter" style="width: 100%;"></span></div>
+              </div>
+              <span id="lyricValue">Happy</span>
+            </div>
+            <div class="metric">
+              <div>
                 <strong>Your pitch</strong>
                 <div class="meter"><span id="pitchMeter"></span></div>
               </div>
@@ -376,18 +414,18 @@
               <span id="errorValue">--</span>
             </div>
           </div>
-          <div class="verdict waiting" id="verdict">Start the microphone, then sing C4.</div>
+          <div class="verdict waiting" id="verdict">Start the microphone, then sing "Happy" on C4.</div>
           <div class="card">
             <h3>What this demo proves</h3>
-            <p>Shenghai can turn a score note into a target pitch, listen to the user's voice, and display whether the sung pitch is close, sharp, or flat.</p>
+            <p>Shenghai can turn a song score into a guided practice path, listen to the user's voice, and display whether each sung note is close, sharp, or flat.</p>
           </div>
         </aside>
       </div>
 
       <div class="steps">
-        <div class="step"><span>1</span><strong>Listen</strong><p class="muted">Play the selected target note.</p></div>
-        <div class="step"><span>2</span><strong>Sing</strong><p class="muted">Start the mic and match the note.</p></div>
-        <div class="step"><span>3</span><strong>Correct</strong><p class="muted">Use the red/green feedback to adjust.</p></div>
+        <div class="step"><span>1</span><strong>Listen</strong><p class="muted">Play Happy Birthday or the highlighted note.</p></div>
+        <div class="step"><span>2</span><strong>Sing</strong><p class="muted">Follow the highlighted lyric through the phrase.</p></div>
+        <div class="step"><span>3</span><strong>Correct</strong><p class="muted">Use the red/green feedback to adjust pitch.</p></div>
       </div>
     </section>
 
@@ -400,7 +438,11 @@
             <button data-add="C4">C4</button>
             <button data-add="D4">D4</button>
             <button data-add="E4">E4</button>
+            <button data-add="F4">F4</button>
             <button data-add="G4">G4</button>
+            <button data-add="A4">A4</button>
+            <button data-add="Bb4">Bb4</button>
+            <button data-add="C5">C5</button>
             <button data-add="Rest">Rest</button>
             <button id="clearComposer">Clear</button>
           </div>
@@ -420,19 +462,51 @@
   </footer>
 
   <script>
+    const pitchTable = {
+      C4: 261.63,
+      D4: 293.66,
+      E4: 329.63,
+      F4: 349.23,
+      G4: 392.00,
+      A4: 440.00,
+      Bb4: 466.16,
+      C5: 523.25
+    };
     const targetNotes = [
-      { name: "C4", freq: 261.63 },
-      { name: "D4", freq: 293.66 },
-      { name: "E4", freq: 329.63 },
-      { name: "G4", freq: 392.00 }
+      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 },
+      { name: "C4", lyric: "-py", freq: pitchTable.C4 },
+      { name: "D4", lyric: "birth-", freq: pitchTable.D4 },
+      { name: "C4", lyric: "-day", freq: pitchTable.C4 },
+      { name: "F4", lyric: "to", freq: pitchTable.F4 },
+      { name: "E4", lyric: "you", freq: pitchTable.E4 },
+      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 },
+      { name: "C4", lyric: "-py", freq: pitchTable.C4 },
+      { name: "D4", lyric: "birth-", freq: pitchTable.D4 },
+      { name: "C4", lyric: "-day", freq: pitchTable.C4 },
+      { name: "G4", lyric: "to", freq: pitchTable.G4 },
+      { name: "F4", lyric: "you", freq: pitchTable.F4 },
+      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 },
+      { name: "C4", lyric: "-py", freq: pitchTable.C4 },
+      { name: "C5", lyric: "birth-", freq: pitchTable.C5 },
+      { name: "A4", lyric: "-day", freq: pitchTable.A4 },
+      { name: "F4", lyric: "dear", freq: pitchTable.F4 },
+      { name: "E4", lyric: "sing-", freq: pitchTable.E4 },
+      { name: "D4", lyric: "-er", freq: pitchTable.D4 },
+      { name: "Bb4", lyric: "Hap-", freq: pitchTable.Bb4 },
+      { name: "Bb4", lyric: "-py", freq: pitchTable.Bb4 },
+      { name: "A4", lyric: "birth-", freq: pitchTable.A4 },
+      { name: "F4", lyric: "-day", freq: pitchTable.F4 },
+      { name: "G4", lyric: "to", freq: pitchTable.G4 },
+      { name: "F4", lyric: "you", freq: pitchTable.F4 }
     ];
     let selectedIndex = 0;
     let audioContext;
     let analyser;
     let mediaStream;
     let animationID;
-    let notes = ["C4", "D4", "E4", "G4"];
+    let notes = ["C4", "C4", "D4", "C4", "F4", "E4"];
     const pitchHistory = [];
+    let stableHitFrames = 0;
 
     function ensureAudioContext() {
       audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
@@ -452,7 +526,28 @@
       osc.connect(gain).connect(context.destination);
       osc.start();
       osc.stop(context.currentTime + 0.9);
-      setVerdict(`Listen to ${target.name}, then sing it.`, "waiting");
+      setVerdict(`Listen to ${target.name} for "${target.lyric}", then sing it.`, "waiting");
+    }
+
+    async function playPhrase() {
+      const context = ensureAudioContext();
+      const start = context.currentTime + 0.08;
+      let time = start;
+      targetNotes.forEach((target, index) => {
+        const osc = context.createOscillator();
+        const gain = context.createGain();
+        const duration = index === 5 || index === 11 || index === 18 || index === 24 ? 0.72 : 0.42;
+        osc.type = "sine";
+        osc.frequency.value = target.freq;
+        gain.gain.setValueAtTime(0.001, time);
+        gain.gain.exponentialRampToValueAtTime(0.14, time + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+        osc.connect(gain).connect(context.destination);
+        osc.start(time);
+        osc.stop(time + duration + 0.02);
+        time += duration;
+      });
+      setVerdict("Listen once, then start the microphone and sing the highlighted lyric.", "waiting");
     }
 
     async function startMic() {
@@ -471,7 +566,7 @@
         source.connect(analyser);
         document.getElementById("startMic").disabled = true;
         document.getElementById("stopMic").disabled = false;
-        setVerdict(`Sing ${targetNotes[selectedIndex].name}.`, "waiting");
+        setVerdict(`Sing "${targetNotes[selectedIndex].lyric}" on ${targetNotes[selectedIndex].name}.`, "waiting");
         detectLoop();
       } catch (error) {
         setVerdict("Microphone permission is needed to try live pitch feedback.", "bad");
@@ -542,6 +637,7 @@
       setVerdict(close ? `Good: ${target.name} is in tune.` : `Adjust: you are ${direction} by ${Math.round(absCents)} cents.`, close ? "good" : "bad");
       updateScoreFeedback(close, direction, cents);
       updatePitchTrace(frequency, target.freq);
+      maybeAdvance(close);
     }
 
     function updateScoreFeedback(close, direction, cents) {
@@ -556,11 +652,19 @@
       if (close) {
         rect.setAttribute("stroke", "#238636");
         rect.setAttribute("fill", "color-mix(in srgb, #238636 18%, transparent)");
-        text.textContent = `${target.name}: in tune`;
+        text.textContent = `${target.lyric} ${target.name}: in tune`;
       } else {
         rect.setAttribute("stroke", "#d1242f");
         rect.setAttribute("fill", "color-mix(in srgb, #d1242f 18%, transparent)");
-        text.textContent = `${target.name}: ${direction} ${Math.round(Math.abs(cents))} cents`;
+        text.textContent = `${target.lyric} ${target.name}: ${direction} ${Math.round(Math.abs(cents))} cents`;
+      }
+    }
+
+    function maybeAdvance(close) {
+      stableHitFrames = close ? stableHitFrames + 1 : 0;
+      if (stableHitFrames >= 16 && selectedIndex < targetNotes.length - 1) {
+        stableHitFrames = 0;
+        selectNote(selectedIndex + 1, true);
       }
     }
 
@@ -582,7 +686,7 @@
       verdict.className = `verdict ${kind}`;
     }
 
-    function selectNote(index) {
+    function selectNote(index, fromAutoAdvance = false) {
       selectedIndex = index;
       const target = targetNotes[selectedIndex];
       document.querySelectorAll(".note-head").forEach(note => {
@@ -591,11 +695,19 @@
       const active = document.querySelector(`.note-head[data-index="${selectedIndex}"]`);
       if (active) active.classList.add("active");
       document.getElementById("targetValue").textContent = `${target.name} / ${target.freq.toFixed(1)} Hz`;
-      document.getElementById("scoreInstruction").textContent = `Target: ${target.name}. Listen, then sing.`;
+      document.getElementById("lyricValue").textContent = target.lyric;
+      document.getElementById("currentLyric").textContent = `Sing "${target.lyric}" on ${target.name}`;
+      document.getElementById("scoreInstruction").textContent = `Target: ${target.name} on "${target.lyric}". Listen, then sing.`;
+      document.getElementById("phraseProgress").style.width = `${((selectedIndex + 1) / targetNotes.length * 100).toFixed(1)}%`;
       document.getElementById("feedbackTag").classList.remove("visible");
       pitchHistory.length = 0;
+      stableHitFrames = 0;
       document.getElementById("pitchTrace").setAttribute("points", "");
-      setVerdict(`Start the microphone, then sing ${target.name}.`, "waiting");
+      if (fromAutoAdvance) {
+        setVerdict(`Good. Next: sing "${target.lyric}" on ${target.name}.`, "waiting");
+      } else {
+        setVerdict(`Start the microphone, then sing "${target.lyric}" on ${target.name}.`, "waiting");
+      }
     }
 
     function resetDemo() {
@@ -605,6 +717,70 @@
       document.getElementById("pitchMeter").style.width = "0%";
       document.getElementById("errorMeter").style.width = "0%";
       selectNote(0);
+    }
+
+    function renderBirthdayScore() {
+      const group = document.getElementById("birthdayNotes");
+      group.innerHTML = "";
+      const rows = [
+        { start: 0, end: 6, y: 94 },
+        { start: 6, end: 12, y: 214 },
+        { start: 12, end: 19, y: 334 },
+        { start: 19, end: 25, y: 444 }
+      ];
+      const pitchY = {
+        C4: 72,
+        D4: 63,
+        E4: 54,
+        F4: 45,
+        G4: 36,
+        A4: 27,
+        Bb4: 18,
+        C5: 9
+      };
+      rows.forEach(row => {
+        const count = row.end - row.start;
+        for (let i = row.start; i < row.end; i++) {
+          const target = targetNotes[i];
+          const localIndex = i - row.start;
+          const x = 56 + localIndex * (680 / Math.max(1, count - 1));
+          const y = row.y + pitchY[target.name];
+          const note = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+          note.setAttribute("class", `note-head${i === selectedIndex ? " active" : ""}`);
+          note.setAttribute("data-index", String(i));
+          note.setAttribute("cx", String(x));
+          note.setAttribute("cy", String(y));
+          note.setAttribute("rx", "15");
+          note.setAttribute("ry", "11");
+          note.style.cursor = "pointer";
+          note.addEventListener("click", () => selectNote(i));
+
+          const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          stem.setAttribute("x1", String(x + 14));
+          stem.setAttribute("y1", String(y));
+          stem.setAttribute("x2", String(x + 14));
+          stem.setAttribute("y2", String(y - 48));
+          stem.setAttribute("stroke", "currentColor");
+          stem.setAttribute("stroke-width", "4");
+
+          const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          label.setAttribute("class", "note-label");
+          label.setAttribute("x", String(x - 24));
+          label.setAttribute("y", String(row.y + 106));
+          label.textContent = target.lyric;
+
+          const pitch = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          pitch.setAttribute("class", "note-label");
+          pitch.setAttribute("x", String(x - 18));
+          pitch.setAttribute("y", String(row.y + 122));
+          pitch.textContent = target.name;
+
+          group.appendChild(stem);
+          group.appendChild(note);
+          group.appendChild(label);
+          group.appendChild(pitch);
+        }
+      });
     }
 
     function renderComposer() {
@@ -622,23 +798,20 @@
         "  <part id=\"P1\">",
         "    <measure number=\"1\">",
         ...notes.map(note => note === "Rest"
-          ? "      <note><rest/><duration>2</duration><type>quarter</type></note>"
-          : `      <note><pitch><step>${note[0]}</step><octave>${note[1]}</octave></pitch><duration>2</duration><type>quarter</type></note>`),
+            ? "      <note><rest/><duration>2</duration><type>quarter</type></note>"
+          : `      <note><pitch><step>${note.replace(/[0-9]/g, "").replace("b", "")}</step>${note.includes("b") ? "<alter>-1</alter>" : ""}<octave>${note.match(/[0-9]/)?.[0] || "4"}</octave></pitch><duration>2</duration><type>quarter</type></note>`),
         "    </measure>",
         "  </part>",
         "</score-partwise>"
       ].join("\n");
     }
 
+    document.getElementById("playPhrase").addEventListener("click", playPhrase);
     document.getElementById("playTarget").addEventListener("click", playTarget);
     document.getElementById("startMic").addEventListener("click", startMic);
     document.getElementById("stopMic").addEventListener("click", stopMic);
     document.getElementById("nextNote").addEventListener("click", () => selectNote((selectedIndex + 1) % targetNotes.length));
     document.getElementById("resetDemo").addEventListener("click", resetDemo);
-    document.querySelectorAll(".note-head").forEach(note => {
-      note.addEventListener("click", () => selectNote(Number(note.dataset.index)));
-      note.style.cursor = "pointer";
-    });
     document.querySelectorAll("[data-add]").forEach(button => {
       button.addEventListener("click", () => {
         notes.push(button.dataset.add);
@@ -649,6 +822,8 @@
       notes = [];
       renderComposer();
     });
+    renderBirthdayScore();
+    selectNote(0);
     renderComposer();
   </script>
 </body>
