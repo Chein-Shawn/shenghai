@@ -39,7 +39,7 @@ ShenghaiCore
   - usage analytics ledger
 
 Support Site
-  - static HTML under docs/site
+  - static HTML under docs
   - published through GitHub Pages
   - manual, changelog, support links
 

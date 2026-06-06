@@ -117,7 +117,9 @@ Manual MusicXML import from MuseScore / Audiveris / other OMR tool -> ScoreDocum
 Static support-site files live in:
 
 ```text
-docs/site/
+docs/index.html
+docs/manual.html
+docs/changelog.html
 ```
 
 They are intended for GitHub Pages, with no custom domain required:
@@ -128,8 +130,8 @@ https://chein-shawn.github.io/shenghai/
 
 Current app links point to:
 
-- `manual.html`
-- `changelog.html`
+- `https://chein-shawn.github.io/shenghai/manual.html`
+- `https://chein-shawn.github.io/shenghai/changelog.html`
 - GitHub Issues for tester feedback
 
 ## Planning And Review Docs

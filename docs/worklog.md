@@ -114,7 +114,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Product Operations Update
 
-- Added a GitHub Pages-ready support site under `docs/site`.
+- Added a GitHub Pages-ready support site under `docs/`.
 - Added app Support view with manual, changelog, GitHub Issue, and mail draft actions.
 - Added app Usage view with local usage time by feature and day.
 - Added `UsageAnalyticsLedger` in ShenghaiCore and `UsageTrackingStore` in the app.
