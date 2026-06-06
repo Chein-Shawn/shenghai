@@ -96,3 +96,18 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Updated Practice UI with a live microphone prototype panel.
 - Added tests for synthetic A4 pitch detection and Audiveris command generation.
 - Validated `swift test`, macOS Xcode build, and iOS simulator Xcode build.
+
+### Score / Audio Alignment Update
+
+- Clarified that Shenghai should not ship automatic YouTube-to-MP3 downloading or modification.
+- Kept YouTube as a reference-link / official-player integration path.
+- Implemented shared core models for local/licensed audio alignment:
+  - `AudioSourceReference`
+  - `AudioScoreSyncAnchor`
+  - `PerformanceDifference`
+  - `AudioEditProposal`
+  - `ScoreAudioAlignmentAnalyzer`
+- Added blue score/audio difference annotations at the data layer.
+- Added non-destructive edit proposals for pitch shift and timing correction.
+- Added docs in `docs/youtube-score-audio-alignment-plan-2026-06-06.md`.
+- Validated with `env CLANG_MODULE_CACHE_PATH=.build/ModuleCache swift test --disable-sandbox --scratch-path .build/spm`.

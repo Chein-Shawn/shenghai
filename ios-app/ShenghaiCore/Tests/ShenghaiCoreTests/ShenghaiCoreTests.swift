@@ -68,6 +68,60 @@ struct ShenghaiCoreTests {
         #expect(deviations[2].quality == .lowConfidence)
     }
 
+    @Test func detectsScoreAudioPitchAndTimingDifferences() {
+        let target = TargetPitchPoint(
+            time: 1.0,
+            midi: 60,
+            duration: 0.45,
+            partID: "P1",
+            measureNumber: "8",
+            noteID: "P1-8-1",
+            startTick: 960,
+            durationTick: 480
+        )
+        let sharpFrequency = PitchDeviationAnalyzer.frequencyHz(forMIDI: 60) * pow(2.0, 55.0 / 1200.0)
+        let samples = [
+            PitchSample(time: 1.12, frequencyHz: sharpFrequency, confidence: 0.92),
+            PitchSample(time: 1.22, frequencyHz: sharpFrequency, confidence: 0.91),
+            PitchSample(time: 1.32, frequencyHz: sharpFrequency, confidence: 0.90)
+        ]
+        let analyzer = ScoreAudioAlignmentAnalyzer(
+            pitchToleranceCents: 35,
+            timingTolerance: 0.08,
+            minimumConfidence: 0.6,
+            analysisWindowPadding: 0.15
+        )
+
+        let differences = analyzer.differences(targets: [target], audioSamples: samples)
+        let proposals = analyzer.editProposals(for: differences)
+
+        #expect(differences.map(\.kind).contains(.pitch))
+        #expect(differences.map(\.kind).contains(.timing))
+        #expect(differences.allSatisfy { $0.annotationColor == .blue })
+        #expect(differences.first?.target.measureNumber == "8")
+        #expect(proposals.map(\.kind).contains(.pitchShift))
+        #expect(proposals.map(\.kind).contains(.timeStretch))
+        #expect(proposals.first(where: { $0.kind == .pitchShift })?.cents ?? 0 < -50)
+        #expect(proposals.first(where: { $0.kind == .timeStretch })?.timingOffset ?? 0 < -0.08)
+    }
+
+    @Test func mapsScoreAudioAnchorsWhenComparingReferenceAudio() {
+        let target = TargetPitchPoint(time: 2.0, midi: 64, duration: 0.3)
+        let expectedFrequency = PitchDeviationAnalyzer.frequencyHz(forMIDI: 64)
+        let samples = [
+            PitchSample(time: 3.0, frequencyHz: expectedFrequency, confidence: 0.95)
+        ]
+        let anchors = [
+            AudioScoreSyncAnchor(scoreTime: 0.0, audioTime: 1.0, confidence: 0.9),
+            AudioScoreSyncAnchor(scoreTime: 2.0, audioTime: 3.0, confidence: 0.9)
+        ]
+
+        let differences = ScoreAudioAlignmentAnalyzer()
+            .differences(targets: [target], audioSamples: samples, anchors: anchors)
+
+        #expect(differences.isEmpty)
+    }
+
     @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
         let sampleRate = 44_100.0
         let frequency = 440.0

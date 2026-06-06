@@ -76,6 +76,108 @@ public struct PitchDeviation: Codable, Equatable, Sendable {
     }
 }
 
+public enum AudioSourceKind: String, Codable, Sendable {
+    case localFile
+    case userRecording
+    case licensedRemoteAudio
+    case youtubeReference
+}
+
+public struct AudioSourceReference: Codable, Equatable, Sendable {
+    public var kind: AudioSourceKind
+    public var identifier: String
+    public var displayName: String?
+    public var isEditable: Bool
+
+    public init(kind: AudioSourceKind, identifier: String, displayName: String? = nil, isEditable: Bool) {
+        self.kind = kind
+        self.identifier = identifier
+        self.displayName = displayName
+        self.isEditable = isEditable
+    }
+}
+
+public struct AudioScoreSyncAnchor: Codable, Equatable, Sendable {
+    public var scoreTime: TimeInterval
+    public var audioTime: TimeInterval
+    public var confidence: Double
+
+    public init(scoreTime: TimeInterval, audioTime: TimeInterval, confidence: Double) {
+        self.scoreTime = scoreTime
+        self.audioTime = audioTime
+        self.confidence = confidence
+    }
+}
+
+public struct PerformanceDifference: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Sendable {
+        case pitch
+        case timing
+        case missingPitch
+        case extraPitch
+        case articulation
+    }
+
+    public enum AnnotationColor: String, Codable, Sendable {
+        case blue
+        case red
+        case orange
+    }
+
+    public var kind: Kind
+    public var target: TargetPitchPoint
+    public var audioTime: TimeInterval
+    public var cents: Double?
+    public var timingOffset: TimeInterval?
+    public var confidence: Double
+    public var annotationColor: AnnotationColor
+
+    public init(
+        kind: Kind,
+        target: TargetPitchPoint,
+        audioTime: TimeInterval,
+        cents: Double?,
+        timingOffset: TimeInterval?,
+        confidence: Double,
+        annotationColor: AnnotationColor = .blue
+    ) {
+        self.kind = kind
+        self.target = target
+        self.audioTime = audioTime
+        self.cents = cents
+        self.timingOffset = timingOffset
+        self.confidence = confidence
+        self.annotationColor = annotationColor
+    }
+}
+
+public struct AudioEditProposal: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Sendable {
+        case pitchShift
+        case timeStretch
+    }
+
+    public var kind: Kind
+    public var target: TargetPitchPoint
+    public var cents: Double?
+    public var timingOffset: TimeInterval?
+    public var confidence: Double
+
+    public init(
+        kind: Kind,
+        target: TargetPitchPoint,
+        cents: Double?,
+        timingOffset: TimeInterval?,
+        confidence: Double
+    ) {
+        self.kind = kind
+        self.target = target
+        self.cents = cents
+        self.timingOffset = timingOffset
+        self.confidence = confidence
+    }
+}
+
 public protocol PitchTracking: Sendable {
     func trackPitch(samples: [Float], sampleRate: Double) async throws -> [PitchSample]
 }
@@ -195,6 +297,172 @@ public struct PitchDeviationAnalyzer: Sendable {
         return targets.min { lhs, rhs in
             abs(lhs.time - time) < abs(rhs.time - time)
         }
+    }
+}
+
+public struct ScoreAudioAlignmentAnalyzer: Sendable {
+    public var pitchToleranceCents: Double
+    public var timingTolerance: TimeInterval
+    public var minimumConfidence: Double
+    public var analysisWindowPadding: TimeInterval
+
+    public init(
+        pitchToleranceCents: Double = 35,
+        timingTolerance: TimeInterval = 0.08,
+        minimumConfidence: Double = 0.55,
+        analysisWindowPadding: TimeInterval = 0.08
+    ) {
+        self.pitchToleranceCents = pitchToleranceCents
+        self.timingTolerance = timingTolerance
+        self.minimumConfidence = minimumConfidence
+        self.analysisWindowPadding = analysisWindowPadding
+    }
+
+    public func differences(
+        targets: [TargetPitchPoint],
+        audioSamples: [PitchSample],
+        anchors: [AudioScoreSyncAnchor] = []
+    ) -> [PerformanceDifference] {
+        let sortedSamples = audioSamples.sorted { $0.time < $1.time }
+        return targets.flatMap { target -> [PerformanceDifference] in
+            let expectedAudioTime = mappedAudioTime(forScoreTime: target.time, anchors: anchors)
+            let targetEnd = expectedAudioTime + max(target.duration, timingTolerance)
+            let windowStart = expectedAudioTime - analysisWindowPadding
+            let windowEnd = targetEnd + analysisWindowPadding
+            let windowSamples = sortedSamples.filter { sample in
+                sample.time >= windowStart && sample.time <= windowEnd
+            }
+            let confidentSamples = windowSamples.filter { sample in
+                sample.confidence >= minimumConfidence && sample.frequencyHz != nil
+            }
+
+            guard !confidentSamples.isEmpty else {
+                return [
+                    PerformanceDifference(
+                        kind: .missingPitch,
+                        target: target,
+                        audioTime: expectedAudioTime,
+                        cents: nil,
+                        timingOffset: nil,
+                        confidence: 0,
+                        annotationColor: .blue
+                    )
+                ]
+            }
+
+            var differences: [PerformanceDifference] = []
+            let medianFrequency = median(confidentSamples.compactMap(\.frequencyHz))
+            let medianConfidence = median(confidentSamples.map(\.confidence)) ?? 0
+
+            if let medianFrequency {
+                let cents = PitchDeviationAnalyzer.centsDifference(
+                    frequencyHz: medianFrequency,
+                    targetMidi: target.midi
+                )
+                if abs(cents) > pitchToleranceCents {
+                    differences.append(
+                        PerformanceDifference(
+                            kind: .pitch,
+                            target: target,
+                            audioTime: medianTime(confidentSamples),
+                            cents: cents,
+                            timingOffset: nil,
+                            confidence: medianConfidence,
+                            annotationColor: .blue
+                        )
+                    )
+                }
+            }
+
+            if let onsetSample = confidentSamples.first {
+                let timingOffset = onsetSample.time - expectedAudioTime
+                if abs(timingOffset) > timingTolerance {
+                    differences.append(
+                        PerformanceDifference(
+                            kind: .timing,
+                            target: target,
+                            audioTime: onsetSample.time,
+                            cents: nil,
+                            timingOffset: timingOffset,
+                            confidence: onsetSample.confidence,
+                            annotationColor: .blue
+                        )
+                    )
+                }
+            }
+
+            return differences
+        }
+    }
+
+    public func editProposals(for differences: [PerformanceDifference]) -> [AudioEditProposal] {
+        differences.compactMap { difference in
+            switch difference.kind {
+            case .pitch:
+                AudioEditProposal(
+                    kind: .pitchShift,
+                    target: difference.target,
+                    cents: difference.cents.map { -$0 },
+                    timingOffset: nil,
+                    confidence: difference.confidence
+                )
+            case .timing:
+                AudioEditProposal(
+                    kind: .timeStretch,
+                    target: difference.target,
+                    cents: nil,
+                    timingOffset: difference.timingOffset.map { -$0 },
+                    confidence: difference.confidence
+                )
+            case .missingPitch, .extraPitch, .articulation:
+                nil
+            }
+        }
+    }
+
+    private func mappedAudioTime(forScoreTime scoreTime: TimeInterval, anchors: [AudioScoreSyncAnchor]) -> TimeInterval {
+        let sortedAnchors = anchors.sorted { $0.scoreTime < $1.scoreTime }
+        guard !sortedAnchors.isEmpty else {
+            return scoreTime
+        }
+
+        if let exact = sortedAnchors.first(where: { abs($0.scoreTime - scoreTime) < 0.000_1 }) {
+            return exact.audioTime
+        }
+
+        guard let next = sortedAnchors.first(where: { $0.scoreTime > scoreTime }) else {
+            let last = sortedAnchors[sortedAnchors.count - 1]
+            return last.audioTime + scoreTime - last.scoreTime
+        }
+
+        guard let previous = sortedAnchors.last(where: { $0.scoreTime < scoreTime }) else {
+            return next.audioTime - (next.scoreTime - scoreTime)
+        }
+
+        let scoreSpan = next.scoreTime - previous.scoreTime
+        guard scoreSpan > 0 else {
+            return previous.audioTime
+        }
+
+        let progress = (scoreTime - previous.scoreTime) / scoreSpan
+        return previous.audioTime + progress * (next.audioTime - previous.audioTime)
+    }
+
+    private func median(_ values: [Double]) -> Double? {
+        guard !values.isEmpty else {
+            return nil
+        }
+
+        let sorted = values.sorted()
+        let middle = sorted.count / 2
+        if sorted.count.isMultiple(of: 2) {
+            return (sorted[middle - 1] + sorted[middle]) / 2
+        }
+        return sorted[middle]
+    }
+
+    private func medianTime(_ samples: [PitchSample]) -> TimeInterval {
+        median(samples.map(\.time)) ?? samples[0].time
     }
 }
 
