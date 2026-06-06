@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-title-zh="聲海更新日誌" data-title-en="Shenghai Changelog">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>聲海更新日誌</title>
+  <meta name="description" content="聲海更新日誌：查看新功能、改善內容與目前限制。" data-zh="聲海更新日誌：查看新功能、改善內容與目前限制。" data-en="Shenghai changelog: see new features, improvements, and current limitations.">
   <style>
     :root {
       color-scheme: light dark;
@@ -14,11 +15,45 @@
       --surface: color-mix(in srgb, CanvasText 5%, transparent);
       --accent: #2f7dd3;
     }
+    * { box-sizing: border-box; }
     body { margin: 0; background: Canvas; color: CanvasText; }
     nav, main, footer { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-    nav { display: flex; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
-    nav a { color: var(--muted); text-decoration: none; margin-left: 16px; }
-    nav a:first-child { margin-left: 0; color: CanvasText; font-weight: 800; }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 22px;
+      padding-bottom: 22px;
+    }
+    nav a { color: var(--muted); text-decoration: none; }
+    nav a:first-child { color: CanvasText; font-weight: 800; }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .language-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .language-switch button {
+      appearance: none;
+      border: 0;
+      border-left: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      min-height: 34px;
+      padding: 6px 10px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .language-switch button:first-child { border-left: 0; }
+    .language-switch button.active { background: var(--accent); color: white; }
     h1 { font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.08; margin: 42px 0 14px; }
     h2 { margin-top: 34px; line-height: 1.2; }
     .release { padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 18px 0; }
@@ -26,54 +61,60 @@
     li { margin: 9px 0; }
     .muted { color: var(--muted); }
     footer { padding-top: 40px; padding-bottom: 48px; color: var(--muted); }
+    @media (max-width: 720px) { nav { flex-direction: column; } .nav-links { justify-content: flex-start; } }
   </style>
 </head>
 <body>
   <nav>
     <a href="index.html">聲海 Shenghai</a>
-    <div>
-      <a href="manual.html">使用手冊</a>
-      <a href="changelog.html">更新日誌</a>
+    <div class="nav-links">
+      <a href="demo.html">Demo</a>
+      <a href="manual.html" data-zh="使用手冊" data-en="Manual">使用手冊</a>
+      <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">更新日誌</a>
+      <span class="language-switch" aria-label="Language">
+        <button type="button" data-lang-button="zh-Hant">繁</button>
+        <button type="button" data-lang-button="en">EN</button>
+      </span>
     </div>
   </nav>
 
   <main>
-    <h1>聲海更新日誌</h1>
-    <p class="muted">這裡只記錄使用者需要知道的新功能、改善與目前限制。更細的工程紀錄會留在開發文件中。</p>
+    <h1 data-zh="聲海更新日誌" data-en="Shenghai Changelog">聲海更新日誌</h1>
+    <p class="muted" data-zh="這裡只記錄使用者需要知道的新功能、改善與目前限制。更細的工程紀錄會留在開發文件中。" data-en="This page records the features, improvements, and current limitations users need to know. Detailed engineering notes stay in developer documents.">這裡只記錄使用者需要知道的新功能、改善與目前限制。更細的工程紀錄會留在開發文件中。</p>
 
     <section class="release">
       <h2>2026-06-06 <span class="tag">Alpha</span></h2>
-      <h3>新功能</h3>
+      <h3 data-zh="新功能" data-en="New Features">新功能</h3>
       <ul>
-        <li><strong>打譜功能</strong>：新增 Compose 頁面，可建立單聲部 MusicXML 草稿、加入音符/休止符、載入練習流程或匯出 MusicXML。</li>
-        <li><strong>支援頁面</strong>：可以從 App 內開啟使用手冊、更新日誌，並送出錯誤或功能建議。</li>
-        <li><strong>OMR 工具選擇</strong>：可以在 Score 頁選擇 homr 或 oemer 作為外部樂譜辨識流程，完成後再匯入 MusicXML。</li>
-        <li><strong>使用時間統計</strong>：可以查看每日使用趨勢，以及各功能花費的時間。</li>
-        <li><strong>譜面標註</strong>：加入向量筆跡標註，適合記錄換氣、音準、節奏與排練提醒。</li>
-        <li><strong>練習工具</strong>：加入節拍器、鋼琴音與標準音，幫助開始練習前建立音高和節奏基準。</li>
-        <li><strong>樂譜播放與匯出</strong>：MusicXML 樂譜可以轉成播放時間線，並輸出 MIDI。</li>
+        <li data-zh="Happy Birthday 網頁 Demo：使用者可以播放旋律、開啟麥克風、跟唱並查看紅色/綠色音準回饋。" data-en="Happy Birthday web demo: users can play the melody, start the microphone, sing along, and see red/green pitch feedback.">Happy Birthday 網頁 Demo：使用者可以播放旋律、開啟麥克風、跟唱並查看紅色/綠色音準回饋。</li>
+        <li data-zh="打譜功能：新增 Compose 頁面，可建立單聲部 MusicXML 草稿、加入音符/休止符、載入練習流程或匯出 MusicXML。" data-en="Compose: create a single-line MusicXML draft, add notes/rests, load it into practice, or export MusicXML.">打譜功能：新增 Compose 頁面，可建立單聲部 MusicXML 草稿、加入音符/休止符、載入練習流程或匯出 MusicXML。</li>
+        <li data-zh="支援頁面：可以從 App 內開啟使用手冊、更新日誌，並送出錯誤或功能建議。" data-en="Support pages: open the user guide and changelog from the app, then send bug reports or feature suggestions.">支援頁面：可以從 App 內開啟使用手冊、更新日誌，並送出錯誤或功能建議。</li>
+        <li data-zh="OMR 工具選擇：可以在 Score 頁選擇 homr 或 oemer 作為外部樂譜辨識流程，完成後再匯入 MusicXML。" data-en="OMR provider choice: choose homr or oemer as an external score-recognition workflow, then import the resulting MusicXML.">OMR 工具選擇：可以在 Score 頁選擇 homr 或 oemer 作為外部樂譜辨識流程，完成後再匯入 MusicXML。</li>
+        <li data-zh="使用時間統計：可以查看每日使用趨勢，以及各功能花費的時間。" data-en="Usage tracking: review daily usage trends and time spent in each feature.">使用時間統計：可以查看每日使用趨勢，以及各功能花費的時間。</li>
+        <li data-zh="譜面標註：加入向量筆跡標註，適合記錄換氣、音準、節奏與排練提醒。" data-en="Score annotation: vector ink annotations for breath marks, pitch notes, rhythm notes, and rehearsal reminders.">譜面標註：加入向量筆跡標註，適合記錄換氣、音準、節奏與排練提醒。</li>
+        <li data-zh="練習工具：加入節拍器、鋼琴音與標準音，幫助開始練習前建立音高和節奏基準。" data-en="Practice tools: metronome, piano tones, and tuning fork help establish pitch and rhythm before singing.">練習工具：加入節拍器、鋼琴音與標準音，幫助開始練習前建立音高和節奏基準。</li>
       </ul>
 
-      <h3>練習回饋</h3>
+      <h3 data-zh="練習回饋" data-en="Practice Feedback">練習回饋</h3>
       <ul>
-        <li>聲海現在能建立譜面目標音高時間線，讓未來的即時音準回饋更精準。</li>
-        <li>加入本機或授權音檔的比對基礎，可標出音高或節奏和譜面不一致的地方。</li>
-        <li>藍色標記代表「參考音檔與譜面不同，等待確認」；紅色保留給「使用者練習時唱錯」。</li>
+        <li data-zh="聲海現在能建立譜面目標音高時間線，讓未來的即時音準回饋更精準。" data-en="Shenghai can now build target pitch timelines from scores, preparing for more precise live pitch feedback.">聲海現在能建立譜面目標音高時間線，讓未來的即時音準回饋更精準。</li>
+        <li data-zh="加入本機或授權音檔的比對基礎，可標出音高或節奏和譜面不一致的地方。" data-en="Local or licensed audio comparison can mark where pitch or rhythm differs from the score.">加入本機或授權音檔的比對基礎，可標出音高或節奏和譜面不一致的地方。</li>
+        <li data-zh="藍色標記代表參考音檔與譜面不同，等待確認；紅色代表使用者練習時唱錯。" data-en="Blue marks reference-audio differences that need confirmation; red marks user mistakes during practice.">藍色標記代表參考音檔與譜面不同，等待確認；紅色代表使用者練習時唱錯。</li>
       </ul>
 
-      <h3>目前限制</h3>
+      <h3 data-zh="目前限制" data-en="Current Limitations">目前限制</h3>
       <ul>
-        <li>PDF/圖片樂譜辨識仍在開發中，目前最穩定的方式是匯入 MusicXML。</li>
-        <li>homr/oemer 目前是外部流程選項，尚未直接內建在 iPhone/iPad App 內執行。</li>
-        <li>聲海不提供 YouTube MP3 自動下載功能。若要做音檔比對，請使用你擁有或已授權的音檔。</li>
-        <li>使用時間目前儲存在本機，尚未支援雲端同步或匯出。</li>
-        <li>多語言版本尚未正式上線，目前會先整理英文與繁體中文內容。</li>
+        <li data-zh="PDF/圖片樂譜辨識仍在開發中，目前最穩定的方式是匯入 MusicXML。" data-en="PDF/image score recognition is still under development. MusicXML import is currently the most stable path.">PDF/圖片樂譜辨識仍在開發中，目前最穩定的方式是匯入 MusicXML。</li>
+        <li data-zh="homr/oemer 目前是外部流程選項，尚未直接內建在 iPhone/iPad App 內執行。" data-en="homr/oemer are currently external workflow options and are not yet running directly inside the iPhone/iPad app.">homr/oemer 目前是外部流程選項，尚未直接內建在 iPhone/iPad App 內執行。</li>
+        <li data-zh="聲海不提供 YouTube MP3 自動下載功能。若要做音檔比對，請使用你擁有或已授權的音檔。" data-en="Shenghai does not provide automatic YouTube MP3 downloads. For audio comparison, use files you own or have permission to use.">聲海不提供 YouTube MP3 自動下載功能。若要做音檔比對，請使用你擁有或已授權的音檔。</li>
+        <li data-zh="使用時間目前儲存在本機，尚未支援雲端同步或匯出。" data-en="Usage time is currently stored locally and does not yet support cloud sync or export.">使用時間目前儲存在本機，尚未支援雲端同步或匯出。</li>
       </ul>
     </section>
   </main>
 
-  <footer>
+  <footer data-zh="想回報問題或建議功能，請從 App 內 Support 頁面送出回饋。" data-en="To report a problem or suggest a feature, use the Support page inside the app.">
     想回報問題或建議功能，請從 App 內 Support 頁面送出回饋。
   </footer>
+  <script src="i18n.js"></script>
 </body>
 </html>

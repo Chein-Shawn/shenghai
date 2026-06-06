@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-title-zh="聲海試唱 Demo" data-title-en="Shenghai Singing Practice Demo">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Shenghai Singing Practice Demo</title>
-  <meta name="description" content="Try a zero-install Shenghai demo: sing Happy Birthday into the microphone and see live pitch feedback.">
+  <meta name="description" content="Try a zero-install Shenghai demo: sing Happy Birthday into the microphone and see live pitch feedback." data-zh="免安裝試用聲海 Demo：對著麥克風唱 Happy Birthday，並查看即時音準回饋。" data-en="Try a zero-install Shenghai demo: sing Happy Birthday into the microphone and see live pitch feedback.">
   <style>
     :root {
       color-scheme: light dark;
@@ -50,6 +50,37 @@
       font-weight: 850;
     }
     nav a:hover { color: CanvasText; }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .nav-links a { margin-left: 0; }
+    .language-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .language-switch button {
+      appearance: none;
+      border: 0;
+      border-left: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      min-height: 34px;
+      padding: 6px 10px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .language-switch button:first-child { border-left: 0; }
+    .language-switch button.active {
+      background: var(--accent);
+      color: white;
+    }
     header {
       padding-top: 48px;
       padding-bottom: 30px;
@@ -293,40 +324,42 @@
 </head>
 <body>
   <nav aria-label="Main navigation">
-    <a href="index.html">Shenghai</a>
-    <div>
+    <a href="index.html">聲海 Shenghai</a>
+    <div class="nav-links">
       <a href="demo.html">Demo</a>
-      <a href="manual.html">Manual</a>
-      <a href="changelog.html">Changelog</a>
-      <a href="https://github.com/Chein-Shawn/shenghai">GitHub</a>
+      <a href="manual.html" data-zh="使用手冊" data-en="Manual">Manual</a>
+      <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">Changelog</a>
+      <span class="language-switch" aria-label="Language">
+        <button type="button" data-lang-button="zh-Hant">繁</button>
+        <button type="button" data-lang-button="en">EN</button>
+      </span>
     </div>
   </nav>
 
   <header>
-    <p class="eyebrow">Public singing practice demo</p>
-    <h1>Sing Happy Birthday and see where your pitch is wrong.</h1>
-    <p class="lead">Shenghai is a prototype for score-based singing practice. This web demo guides you through a familiar melody, listens to your voice, and marks pitch mistakes in real time.</p>
+    <p class="eyebrow" data-zh="公開試唱 Demo" data-en="Public singing practice demo">Public singing practice demo</p>
+    <h1 data-zh="唱 Happy Birthday，立即看到音準哪裡偏了。" data-en="Sing Happy Birthday and see where your pitch is wrong.">Sing Happy Birthday and see where your pitch is wrong.</h1>
+    <p class="lead" data-zh="聲海是為樂譜式聲樂練習打造的原型。這個網頁 Demo 會帶你唱一段熟悉旋律，聽你的聲音，並即時標出音準偏差。" data-en="Shenghai is a prototype for score-based singing practice. This web demo guides you through a familiar melody, listens to your voice, and marks pitch mistakes in real time.">Shenghai is a prototype for score-based singing practice. This web demo guides you through a familiar melody, listens to your voice, and marks pitch mistakes in real time.</p>
     <div class="actions">
-      <a class="button primary" href="#try">Start the singing demo</a>
-      <a class="button" href="manual.html">Read user guide</a>
-      <a class="button" href="https://github.com/Chein-Shawn/shenghai">View code</a>
+      <a class="button primary" href="#try" data-zh="開始試唱 Demo" data-en="Start the singing demo">Start the singing demo</a>
+      <a class="button" href="manual.html" data-zh="閱讀使用手冊" data-en="Read user guide">Read user guide</a>
     </div>
   </header>
 
   <main>
     <section id="try">
-      <h2>Try it now</h2>
-      <p class="muted">Use headphones if possible. Play the model melody once, start the microphone, then sing the highlighted Happy Birthday lyric. The demo turns notes green when you are close and red when you are too sharp or flat.</p>
+      <h2 data-zh="現在試唱" data-en="Try it now">Try it now</h2>
+      <p class="muted" data-zh="建議使用耳機。先播放示範旋律，開啟麥克風，接著唱 highlighted Happy Birthday lyric。當你接近目標音時音符會變綠；太高或太低時會變紅。" data-en="Use headphones if possible. Play the model melody once, start the microphone, then sing the highlighted Happy Birthday lyric. The demo turns notes green when you are close and red when you are too sharp or flat.">Use headphones if possible. Play the model melody once, start the microphone, then sing the highlighted Happy Birthday lyric. The demo turns notes green when you are close and red when you are too sharp or flat.</p>
 
       <div class="demo-layout">
         <div class="panel">
           <div class="toolbar" aria-label="Practice controls">
-            <button class="primary" id="playPhrase">Play Happy Birthday</button>
-            <button id="playTarget">Play highlighted note</button>
-            <button id="startMic">Start microphone</button>
-            <button id="stopMic" disabled>Stop microphone</button>
-            <button id="nextNote">Next lyric</button>
-            <button id="resetDemo">Reset</button>
+            <button class="primary" id="playPhrase" data-zh="播放 Happy Birthday" data-en="Play Happy Birthday">Play Happy Birthday</button>
+            <button id="playTarget" data-zh="播放目前音符" data-en="Play highlighted note">Play highlighted note</button>
+            <button id="startMic" data-zh="開啟麥克風" data-en="Start microphone">Start microphone</button>
+            <button id="stopMic" disabled data-zh="停止麥克風" data-en="Stop microphone">Stop microphone</button>
+            <button id="nextNote" data-zh="下一個 lyric" data-en="Next lyric">Next lyric</button>
+            <button id="resetDemo" data-zh="重設" data-en="Reset">Reset</button>
           </div>
           <div class="phrase-strip" aria-live="polite">
             <div class="lyric-line" id="currentLyric">Happy</div>
@@ -374,10 +407,10 @@
               </g>
 
               <g transform="translate(28 522)">
-                <text x="0" y="-16" font-size="14" font-weight="850" fill="currentColor">Live pitch trace</text>
+                <text x="0" y="-16" font-size="14" font-weight="850" fill="currentColor" data-zh="即時音高軌跡" data-en="Live pitch trace">Live pitch trace</text>
                 <line x1="0" y1="56" x2="740" y2="56" stroke="currentColor" opacity="0.18"/>
                 <polyline id="pitchTrace" points="" fill="none" stroke="#2f7dd3" stroke-width="4"/>
-                <text x="0" y="88" font-size="13" fill="currentColor" opacity="0.68">Your detected pitch appears here while the microphone is running.</text>
+                <text x="0" y="88" font-size="13" fill="currentColor" opacity="0.68" data-zh="麥克風運作時，偵測到的音高會顯示在這裡。" data-en="Your detected pitch appears here while the microphone is running.">Your detected pitch appears here while the microphone is running.</text>
               </g>
             </svg>
           </div>
@@ -387,28 +420,28 @@
           <div class="readout">
             <div class="metric">
               <div>
-                <strong>Target</strong>
+                <strong data-zh="目標音" data-en="Target">Target</strong>
                 <div class="meter"><span id="targetMeter" style="width: 100%;"></span></div>
               </div>
               <span id="targetValue">C4 / 261.6 Hz</span>
             </div>
             <div class="metric">
               <div>
-                <strong>Current lyric</strong>
+                <strong data-zh="目前 lyric" data-en="Current lyric">Current lyric</strong>
                 <div class="meter"><span id="lyricMeter" style="width: 100%;"></span></div>
               </div>
               <span id="lyricValue">Happy</span>
             </div>
             <div class="metric">
               <div>
-                <strong>Your pitch</strong>
+                <strong data-zh="你的音高" data-en="Your pitch">Your pitch</strong>
                 <div class="meter"><span id="pitchMeter"></span></div>
               </div>
               <span id="pitchValue">--</span>
             </div>
             <div class="metric">
               <div>
-                <strong>Pitch error</strong>
+                <strong data-zh="音準偏差" data-en="Pitch error">Pitch error</strong>
                 <div class="meter"><span id="errorMeter"></span></div>
               </div>
               <span id="errorValue">--</span>
@@ -416,22 +449,22 @@
           </div>
           <div class="verdict waiting" id="verdict">Start the microphone, then sing "Happy" on C4.</div>
           <div class="card">
-            <h3>What this demo proves</h3>
-            <p>Shenghai can turn a song score into a guided practice path, listen to the user's voice, and display whether each sung note is close, sharp, or flat.</p>
+            <h3 data-zh="這個 Demo 證明什麼" data-en="What this demo proves">What this demo proves</h3>
+            <p data-zh="聲海可以把歌曲樂譜轉成練習路徑，聽使用者的聲音，並顯示每個音是否接近、偏高或偏低。" data-en="Shenghai can turn a song score into a guided practice path, listen to the user's voice, and display whether each sung note is close, sharp, or flat.">Shenghai can turn a song score into a guided practice path, listen to the user's voice, and display whether each sung note is close, sharp, or flat.</p>
           </div>
         </aside>
       </div>
 
       <div class="steps">
-        <div class="step"><span>1</span><strong>Listen</strong><p class="muted">Play Happy Birthday or the highlighted note.</p></div>
-        <div class="step"><span>2</span><strong>Sing</strong><p class="muted">Follow the highlighted lyric through the phrase.</p></div>
-        <div class="step"><span>3</span><strong>Correct</strong><p class="muted">Use the red/green feedback to adjust pitch.</p></div>
+        <div class="step"><span>1</span><strong data-zh="聆聽" data-en="Listen">Listen</strong><p class="muted" data-zh="播放 Happy Birthday 或目前音符。" data-en="Play Happy Birthday or the highlighted note.">Play Happy Birthday or the highlighted note.</p></div>
+        <div class="step"><span>2</span><strong data-zh="跟唱" data-en="Sing">Sing</strong><p class="muted" data-zh="跟著 highlighted lyric 唱完整片段。" data-en="Follow the highlighted lyric through the phrase.">Follow the highlighted lyric through the phrase.</p></div>
+        <div class="step"><span>3</span><strong data-zh="修正" data-en="Correct">Correct</strong><p class="muted" data-zh="用紅色/綠色回饋調整音準。" data-en="Use the red/green feedback to adjust pitch.">Use the red/green feedback to adjust pitch.</p></div>
       </div>
     </section>
 
     <section>
-      <h2>Create a simple MusicXML target</h2>
-      <p class="muted">The native app also has a Compose page. This small web composer shows how a user can create a target melody instead of importing one.</p>
+      <h2 data-zh="建立簡單 MusicXML 目標" data-en="Create a simple MusicXML target">Create a simple MusicXML target</h2>
+      <p class="muted" data-zh="原生 App 也有 Compose 頁面。這個小型網頁打譜器示範使用者如何自己建立目標旋律，而不只能匯入樂譜。" data-en="The native app also has a Compose page. This small web composer shows how a user can create a target melody instead of importing one.">The native app also has a Compose page. This small web composer shows how a user can create a target melody instead of importing one.</p>
       <div class="demo-layout">
         <div class="panel composer">
           <div class="toolbar">
@@ -444,23 +477,24 @@
             <button data-add="Bb4">Bb4</button>
             <button data-add="C5">C5</button>
             <button data-add="Rest">Rest</button>
-            <button id="clearComposer">Clear</button>
+            <button id="clearComposer" data-zh="清除" data-en="Clear">Clear</button>
           </div>
           <div class="chips" id="noteChips" aria-label="Composed notes"></div>
           <textarea id="musicXMLPreview" spellcheck="false" aria-label="MusicXML preview"></textarea>
         </div>
         <div class="card">
-          <h3>Why MusicXML</h3>
-          <p>MusicXML gives Shenghai a stable bridge between score reading, playback, pitch targets, and user feedback.</p>
+          <h3 data-zh="為什麼使用 MusicXML" data-en="Why MusicXML">Why MusicXML</h3>
+          <p data-zh="MusicXML 讓聲海能穩定串起讀譜、播放、目標音高與使用者回饋。" data-en="MusicXML gives Shenghai a stable bridge between score reading, playback, pitch targets, and user feedback.">MusicXML gives Shenghai a stable bridge between score reading, playback, pitch targets, and user feedback.</p>
         </div>
       </div>
     </section>
   </main>
 
   <footer>
-    Shenghai is an early prototype by Chien-Hsiang Chien. Microphone audio in this demo is processed in your browser and is not uploaded.
+    <span data-zh="聲海是 Chien-Hsiang Chien 建立的早期原型。這個 Demo 的麥克風聲音只在你的瀏覽器中處理，不會上傳。" data-en="Shenghai is an early prototype by Chien-Hsiang Chien. Microphone audio in this demo is processed in your browser and is not uploaded.">Shenghai is an early prototype by Chien-Hsiang Chien. Microphone audio in this demo is processed in your browser and is not uploaded.</span>
   </footer>
 
+  <script src="i18n.js"></script>
   <script>
     const pitchTable = {
       C4: 261.63,
@@ -507,6 +541,47 @@
     let notes = ["C4", "C4", "D4", "C4", "F4", "E4"];
     const pitchHistory = [];
     let stableHitFrames = 0;
+    const interfaceText = {
+      en: {
+        listenTarget: target => `Listen to ${target.name} for "${target.lyric}", then sing it.`,
+        phrasePlayed: "Listen once, then start the microphone and sing the highlighted lyric.",
+        micSing: target => `Sing "${target.lyric}" on ${target.name}.`,
+        micNeeded: "Microphone permission is needed to try live pitch feedback.",
+        micStopped: "Microphone stopped.",
+        good: target => `Good: ${target.name} is in tune.`,
+        adjust: (direction, cents) => `Adjust: you are ${direction} by ${cents} cents.`,
+        sharp: "sharp",
+        flat: "flat",
+        inTuneTag: target => `${target.lyric} ${target.name}: in tune`,
+        errorTag: (target, direction, cents) => `${target.lyric} ${target.name}: ${direction} ${cents} cents`,
+        currentLyric: target => `Sing "${target.lyric}" on ${target.name}`,
+        scoreInstruction: target => `Target: ${target.name} on "${target.lyric}". Listen, then sing.`,
+        next: target => `Good. Next: sing "${target.lyric}" on ${target.name}.`,
+        start: target => `Start the microphone, then sing "${target.lyric}" on ${target.name}.`
+      },
+      zh: {
+        listenTarget: target => `先聽 ${target.name} 的 "${target.lyric}"，接著跟唱。`,
+        phrasePlayed: "先聽一次示範旋律，接著開啟麥克風並唱 highlighted lyric。",
+        micSing: target => `請用 ${target.name} 唱 "${target.lyric}"。`,
+        micNeeded: "需要允許麥克風權限，才能試用即時音準回饋。",
+        micStopped: "麥克風已停止。",
+        good: target => `很好：${target.name} 音準接近。`,
+        adjust: (direction, cents) => `請調整：你${direction} ${cents} cents。`,
+        sharp: "偏高",
+        flat: "偏低",
+        inTuneTag: target => `${target.lyric} ${target.name}：音準接近`,
+        errorTag: (target, direction, cents) => `${target.lyric} ${target.name}：${direction} ${cents} cents`,
+        currentLyric: target => `用 ${target.name} 唱 "${target.lyric}"`,
+        scoreInstruction: target => `目標：用 ${target.name} 唱 "${target.lyric}"。先聽，再跟唱。`,
+        next: target => `很好。下一個：用 ${target.name} 唱 "${target.lyric}"。`,
+        start: target => `開啟麥克風，然後用 ${target.name} 唱 "${target.lyric}"。`
+      }
+    };
+
+    function copy() {
+      const language = window.shenghaiI18n?.getLanguage?.() === "zh-Hant" ? "zh" : "en";
+      return interfaceText[language];
+    }
 
     function ensureAudioContext() {
       audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
@@ -526,7 +601,7 @@
       osc.connect(gain).connect(context.destination);
       osc.start();
       osc.stop(context.currentTime + 0.9);
-      setVerdict(`Listen to ${target.name} for "${target.lyric}", then sing it.`, "waiting");
+      setVerdict(copy().listenTarget(target), "waiting");
     }
 
     async function playPhrase() {
@@ -547,7 +622,7 @@
         osc.stop(time + duration + 0.02);
         time += duration;
       });
-      setVerdict("Listen once, then start the microphone and sing the highlighted lyric.", "waiting");
+      setVerdict(copy().phrasePlayed, "waiting");
     }
 
     async function startMic() {
@@ -566,10 +641,10 @@
         source.connect(analyser);
         document.getElementById("startMic").disabled = true;
         document.getElementById("stopMic").disabled = false;
-        setVerdict(`Sing "${targetNotes[selectedIndex].lyric}" on ${targetNotes[selectedIndex].name}.`, "waiting");
+        setVerdict(copy().micSing(targetNotes[selectedIndex]), "waiting");
         detectLoop();
       } catch (error) {
-        setVerdict("Microphone permission is needed to try live pitch feedback.", "bad");
+        setVerdict(copy().micNeeded, "bad");
       }
     }
 
@@ -580,7 +655,7 @@
       analyser = null;
       document.getElementById("startMic").disabled = false;
       document.getElementById("stopMic").disabled = true;
-      setVerdict("Microphone stopped.", "waiting");
+      setVerdict(copy().micStopped, "waiting");
     }
 
     function detectLoop() {
@@ -625,7 +700,7 @@
       const cents = 1200 * Math.log2(frequency / target.freq);
       const absCents = Math.abs(cents);
       const close = absCents <= 35;
-      const direction = cents > 0 ? "sharp" : "flat";
+      const direction = cents > 0 ? copy().sharp : copy().flat;
 
       document.getElementById("pitchValue").textContent = `${frequency.toFixed(1)} Hz`;
       document.getElementById("errorValue").textContent = `${cents > 0 ? "+" : ""}${cents.toFixed(0)} cents`;
@@ -634,7 +709,7 @@
       document.getElementById("errorMeter").style.width = `${Math.max(8, Math.min(100, absCents))}%`;
       document.getElementById("errorMeter").style.background = close ? "var(--good)" : "var(--bad)";
 
-      setVerdict(close ? `Good: ${target.name} is in tune.` : `Adjust: you are ${direction} by ${Math.round(absCents)} cents.`, close ? "good" : "bad");
+      setVerdict(close ? copy().good(target) : copy().adjust(direction, Math.round(absCents)), close ? "good" : "bad");
       updateScoreFeedback(close, direction, cents);
       updatePitchTrace(frequency, target.freq);
       maybeAdvance(close);
@@ -652,11 +727,11 @@
       if (close) {
         rect.setAttribute("stroke", "#238636");
         rect.setAttribute("fill", "color-mix(in srgb, #238636 18%, transparent)");
-        text.textContent = `${target.lyric} ${target.name}: in tune`;
+        text.textContent = copy().inTuneTag(target);
       } else {
         rect.setAttribute("stroke", "#d1242f");
         rect.setAttribute("fill", "color-mix(in srgb, #d1242f 18%, transparent)");
-        text.textContent = `${target.lyric} ${target.name}: ${direction} ${Math.round(Math.abs(cents))} cents`;
+        text.textContent = copy().errorTag(target, direction, Math.round(Math.abs(cents)));
       }
     }
 
@@ -696,17 +771,17 @@
       if (active) active.classList.add("active");
       document.getElementById("targetValue").textContent = `${target.name} / ${target.freq.toFixed(1)} Hz`;
       document.getElementById("lyricValue").textContent = target.lyric;
-      document.getElementById("currentLyric").textContent = `Sing "${target.lyric}" on ${target.name}`;
-      document.getElementById("scoreInstruction").textContent = `Target: ${target.name} on "${target.lyric}". Listen, then sing.`;
+      document.getElementById("currentLyric").textContent = copy().currentLyric(target);
+      document.getElementById("scoreInstruction").textContent = copy().scoreInstruction(target);
       document.getElementById("phraseProgress").style.width = `${((selectedIndex + 1) / targetNotes.length * 100).toFixed(1)}%`;
       document.getElementById("feedbackTag").classList.remove("visible");
       pitchHistory.length = 0;
       stableHitFrames = 0;
       document.getElementById("pitchTrace").setAttribute("points", "");
       if (fromAutoAdvance) {
-        setVerdict(`Good. Next: sing "${target.lyric}" on ${target.name}.`, "waiting");
+        setVerdict(copy().next(target), "waiting");
       } else {
-        setVerdict(`Start the microphone, then sing "${target.lyric}" on ${target.name}.`, "waiting");
+        setVerdict(copy().start(target), "waiting");
       }
     }
 
@@ -825,6 +900,7 @@
     renderBirthdayScore();
     selectNote(0);
     renderComposer();
+    window.addEventListener("shenghai:languagechange", () => selectNote(selectedIndex));
   </script>
 </body>
 </html>

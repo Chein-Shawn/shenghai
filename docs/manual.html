@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-title-zh="聲海使用手冊" data-title-en="Shenghai User Guide">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>聲海使用手冊</title>
+  <meta name="description" content="聲海使用手冊：快速了解如何載入樂譜、練習聲部、查看音準回饋與回報問題。" data-zh="聲海使用手冊：快速了解如何載入樂譜、練習聲部、查看音準回饋與回報問題。" data-en="Shenghai user guide: learn how to load scores, practice parts, view pitch feedback, and send feedback.">
   <style>
     :root {
       color-scheme: light dark;
@@ -14,11 +15,45 @@
       --surface: color-mix(in srgb, CanvasText 5%, transparent);
       --accent: #2f7dd3;
     }
+    * { box-sizing: border-box; }
     body { margin: 0; background: Canvas; color: CanvasText; }
     nav, main, footer { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-    nav { display: flex; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
-    nav a { color: var(--muted); text-decoration: none; margin-left: 16px; }
-    nav a:first-child { margin-left: 0; color: CanvasText; font-weight: 800; }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 22px;
+      padding-bottom: 22px;
+    }
+    nav a { color: var(--muted); text-decoration: none; }
+    nav a:first-child { color: CanvasText; font-weight: 800; }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .language-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .language-switch button {
+      appearance: none;
+      border: 0;
+      border-left: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      min-height: 34px;
+      padding: 6px 10px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .language-switch button:first-child { border-left: 0; }
+    .language-switch button.active { background: var(--accent); color: white; }
     h1 { font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.08; margin: 42px 0 14px; }
     h2 { margin-top: 38px; line-height: 1.2; }
     p.lead { color: var(--muted); font-size: 1.16rem; max-width: 760px; }
@@ -27,120 +62,106 @@
     li { margin: 8px 0; }
     .tip { border-left: 4px solid var(--accent); padding-left: 14px; color: var(--muted); }
     footer { padding-top: 40px; padding-bottom: 48px; color: var(--muted); }
+    @media (max-width: 720px) { nav { flex-direction: column; } .nav-links { justify-content: flex-start; } }
   </style>
 </head>
 <body>
   <nav>
     <a href="index.html">聲海 Shenghai</a>
-    <div>
-      <a href="manual.html">使用手冊</a>
-      <a href="changelog.html">更新日誌</a>
+    <div class="nav-links">
+      <a href="demo.html">Demo</a>
+      <a href="manual.html" data-zh="使用手冊" data-en="Manual">使用手冊</a>
+      <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">更新日誌</a>
+      <span class="language-switch" aria-label="Language">
+        <button type="button" data-lang-button="zh-Hant">繁</button>
+        <button type="button" data-lang-button="en">EN</button>
+      </span>
     </div>
   </nav>
 
   <main>
-    <h1>聲海使用手冊</h1>
-    <p class="lead">這份手冊給第一次使用聲海的歌者、合唱團員與內測者。你不需要懂工程或演算法，只要照著流程，就能開始把樂譜變成可練習、可追蹤的聲音訓練。</p>
+    <h1 data-zh="聲海使用手冊" data-en="Shenghai User Guide">聲海使用手冊</h1>
+    <p class="lead" data-zh="這份手冊給第一次使用聲海的歌者、合唱團員與內測者。你不需要懂工程或演算法，只要照著流程，就能開始把樂譜變成可練習、可追蹤的聲音訓練。" data-en="This guide is for first-time Shenghai users, choir singers, and testers. You do not need to understand engineering or algorithms; follow the workflow and start turning scores into practice you can hear, track, and improve.">這份手冊給第一次使用聲海的歌者、合唱團員與內測者。你不需要懂工程或演算法，只要照著流程，就能開始把樂譜變成可練習、可追蹤的聲音訓練。</p>
 
-    <h2>第一步：建立或載入樂譜</h2>
+    <h2 data-zh="第一步：建立或載入樂譜" data-en="Step 1: Create or Load a Score">第一步：建立或載入樂譜</h2>
     <div class="panel">
-      <h3>自己打譜：Compose</h3>
+      <h3 data-zh="自己打譜：Compose" data-en="Compose your own score">自己打譜：Compose</h3>
       <ol>
-        <li>進入 <strong>Compose</strong>。</li>
-        <li>設定標題、聲部名稱、速度與拍號。</li>
-        <li>選擇音名、升降記號、八度與時值，加入音符或休止符。</li>
-        <li>選擇 <strong>Load Score</strong>，把草稿載入 Score 與 Practice；或選擇 <strong>Export MusicXML</strong> 產生可分享的 MusicXML 檔案。</li>
+        <li data-zh="進入 Compose。" data-en="Open Compose.">進入 Compose。</li>
+        <li data-zh="設定標題、聲部名稱、速度與拍號。" data-en="Set title, part name, tempo, and time signature.">設定標題、聲部名稱、速度與拍號。</li>
+        <li data-zh="選擇音名、升降記號、八度與時值，加入音符或休止符。" data-en="Choose pitch, accidental, octave, and duration, then add notes or rests.">選擇音名、升降記號、八度與時值，加入音符或休止符。</li>
+        <li data-zh="選擇 Load Score 載入 Score 與 Practice；或選擇 Export MusicXML 產生可分享檔案。" data-en="Choose Load Score to send the draft into Score and Practice, or Export MusicXML to create a shareable file.">選擇 Load Score 載入 Score 與 Practice；或選擇 Export MusicXML 產生可分享檔案。</li>
       </ol>
-      <p class="tip">第一版 Compose 適合建立單聲部旋律、聲部練習線與簡單校正稿；完整多聲部排版與專業製譜功能會在後續版本擴充。</p>
+      <p class="tip" data-zh="第一版 Compose 適合建立單聲部旋律、聲部練習線與簡單校正稿；完整多聲部排版與專業製譜功能會在後續版本擴充。" data-en="The first Compose version is best for single-line melodies, part practice lines, and simple corrections. Full multi-part engraving can expand later.">第一版 Compose 適合建立單聲部旋律、聲部練習線與簡單校正稿；完整多聲部排版與專業製譜功能會在後續版本擴充。</p>
     </div>
 
     <div class="panel">
-      <h3>目前建議格式：MusicXML</h3>
+      <h3 data-zh="目前建議格式：MusicXML" data-en="Recommended format: MusicXML">目前建議格式：MusicXML</h3>
       <ol>
-        <li>打開 App，進入 <strong>Score</strong>。</li>
-        <li>載入示範樂譜，或匯入自己的 MusicXML 檔案。</li>
-        <li>確認樂譜標題、聲部、小節與音符數量是否看起來合理。</li>
+        <li data-zh="打開 App，進入 Score。" data-en="Open the app and go to Score.">打開 App，進入 Score。</li>
+        <li data-zh="載入示範樂譜，或匯入自己的 MusicXML 檔案。" data-en="Load the sample score or import your own MusicXML file.">載入示範樂譜，或匯入自己的 MusicXML 檔案。</li>
+        <li data-zh="確認樂譜標題、聲部、小節與音符數量是否合理。" data-en="Check that title, parts, measures, and note counts look reasonable.">確認樂譜標題、聲部、小節與音符數量是否合理。</li>
       </ol>
-      <p class="tip">如果你手上是 PDF 或圖片樂譜，之後版本會逐步支援辨識。現階段可以先用 MuseScore、掃譜工具或其他 OMR 工具轉成 MusicXML。</p>
+      <p class="tip" data-zh="如果你手上是 PDF 或圖片樂譜，之後版本會逐步支援辨識。現階段可以先用 MuseScore、掃譜工具或其他 OMR 工具轉成 MusicXML。" data-en="If your score is a PDF or image, recognition will improve in later versions. For now, convert it to MusicXML with MuseScore, scanning tools, or external OMR tools.">如果你手上是 PDF 或圖片樂譜，之後版本會逐步支援辨識。現階段可以先用 MuseScore、掃譜工具或其他 OMR 工具轉成 MusicXML。</p>
     </div>
 
     <div class="panel">
-      <h3>PDF/圖片樂譜：選擇 homr 或 oemer</h3>
+      <h3 data-zh="PDF/圖片樂譜：選擇 homr 或 oemer" data-en="PDF/image scores: choose homr or oemer">PDF/圖片樂譜：選擇 homr 或 oemer</h3>
       <ol>
-        <li>進入 <strong>Score</strong> 的 OMR Review 區塊。</li>
-        <li>選擇 <strong>homr</strong> 或 <strong>oemer</strong>。</li>
-        <li>依照 App 顯示的外部流程提示，將樂譜圖片轉成 MusicXML。</li>
-        <li>把產生的 MusicXML 匯入聲海，繼續做聲部練習與播放驗證。</li>
+        <li data-zh="進入 Score 的 OMR Review 區塊。" data-en="Go to the OMR Review section in Score.">進入 Score 的 OMR Review 區塊。</li>
+        <li data-zh="選擇 homr 或 oemer。" data-en="Choose homr or oemer.">選擇 homr 或 oemer。</li>
+        <li data-zh="依照 App 顯示的外部流程提示，將樂譜圖片轉成 MusicXML。" data-en="Follow the external workflow hints to convert score images into MusicXML.">依照 App 顯示的外部流程提示，將樂譜圖片轉成 MusicXML。</li>
+        <li data-zh="把產生的 MusicXML 匯入聲海，繼續做聲部練習與播放驗證。" data-en="Import the resulting MusicXML into Shenghai for part practice and playback checks.">把產生的 MusicXML 匯入聲海，繼續做聲部練習與播放驗證。</li>
       </ol>
-      <p class="tip">homr/oemer 目前不是直接在 App 內執行；它們是外部辨識流程選項。這樣可以先測辨識品質，同時避免要求所有使用者安裝研究工具。</p>
+      <p class="tip" data-zh="homr/oemer 目前不是直接在 App 內執行；它們是外部辨識流程選項。這樣可以先測辨識品質，同時避免要求所有使用者安裝研究工具。" data-en="homr/oemer are not running inside the app yet; they are external recognition workflow options. This lets us test quality without asking every user to install research tools.">homr/oemer 目前不是直接在 App 內執行；它們是外部辨識流程選項。這樣可以先測辨識品質，同時避免要求所有使用者安裝研究工具。</p>
     </div>
 
-    <h2>第二步：選擇聲部</h2>
+    <h2 data-zh="第二步：選擇聲部" data-en="Step 2: Choose a Part">第二步：選擇聲部</h2>
     <div class="panel">
-      <h3>讓練習聚焦在你要唱的線條</h3>
+      <h3 data-zh="讓練習聚焦在你要唱的線條" data-en="Focus practice on the line you sing">讓練習聚焦在你要唱的線條</h3>
       <ol>
-        <li>在 Score 頁面選擇你的聲部或旋律線。</li>
-        <li>用播放功能聽目標音高與節奏。</li>
-        <li>反覆確認容易進錯、容易偏音或需要換氣的段落。</li>
+        <li data-zh="在 Score 頁面選擇你的聲部或旋律線。" data-en="Choose your part or melody line in Score.">在 Score 頁面選擇你的聲部或旋律線。</li>
+        <li data-zh="用播放功能聽目標音高與節奏。" data-en="Use playback to hear target pitch and rhythm.">用播放功能聽目標音高與節奏。</li>
+        <li data-zh="反覆確認容易進錯、容易偏音或需要換氣的段落。" data-en="Repeat sections where entrances, pitch, or breathing are difficult.">反覆確認容易進錯、容易偏音或需要換氣的段落。</li>
       </ol>
     </div>
 
-    <h2>第三步：使用練習工具</h2>
+    <h2 data-zh="第三步：使用練習工具" data-en="Step 3: Use Practice Tools">第三步：使用練習工具</h2>
     <div class="panel">
-      <h3>建立音高與節奏基準</h3>
+      <h3 data-zh="建立音高與節奏基準" data-en="Build pitch and rhythm reference points">建立音高與節奏基準</h3>
       <ul>
-        <li><strong>Metronome</strong>：練習速度穩定、切分與進入點。</li>
-        <li><strong>Piano</strong>：快速確認目標音、音程與聲部起音。</li>
-        <li><strong>Tuning Fork</strong>：建立標準音中心，避免一開始就唱偏。</li>
-        <li><strong>Live Pitch</strong>：用麥克風追蹤音高，協助你理解自己偏高或偏低。</li>
+        <li data-zh="Metronome：練習速度穩定、切分與進入點。" data-en="Metronome: practice steady tempo, subdivisions, and entrances.">Metronome：練習速度穩定、切分與進入點。</li>
+        <li data-zh="Piano：快速確認目標音、音程與聲部起音。" data-en="Piano: quickly check target notes, intervals, and starting pitches.">Piano：快速確認目標音、音程與聲部起音。</li>
+        <li data-zh="Tuning Fork：建立標準音中心，避免一開始就唱偏。" data-en="Tuning Fork: establish pitch center before you start singing.">Tuning Fork：建立標準音中心，避免一開始就唱偏。</li>
+        <li data-zh="Live Pitch：用麥克風追蹤音高，協助你理解自己偏高或偏低。" data-en="Live Pitch: track pitch through the microphone to see whether you are sharp or flat.">Live Pitch：用麥克風追蹤音高，協助你理解自己偏高或偏低。</li>
       </ul>
-      <p class="tip">Live Pitch 是練習回饋，不是醫療或聲帶診斷。請把它當成「幫你看見練習趨勢」的工具。</p>
+      <p class="tip" data-zh="Live Pitch 是練習回饋，不是醫療或聲帶診斷。請把它當成幫你看見練習趨勢的工具。" data-en="Live Pitch is practice feedback, not medical or vocal-fold diagnosis. Treat it as a tool for seeing training trends.">Live Pitch 是練習回饋，不是醫療或聲帶診斷。請把它當成幫你看見練習趨勢的工具。</p>
     </div>
 
-    <h2>第四步：在譜上做標註</h2>
+    <h2 data-zh="第四步：標註、修正、追蹤" data-en="Step 4: Annotate, Correct, and Track">第四步：標註、修正、追蹤</h2>
     <div class="panel">
-      <h3>把排練提醒留在樂譜上</h3>
+      <h3 data-zh="把排練提醒留在樂譜上" data-en="Keep rehearsal reminders on the score">把排練提醒留在樂譜上</h3>
       <ul>
-        <li>標記換氣、子音、母音、重音、漸強漸弱、指揮提醒。</li>
-        <li>使用向量筆跡，放大檢視時線條仍然清楚。</li>
-        <li>可用不同筆跡粗細與工具區分音準、節奏、文字提醒。</li>
+        <li data-zh="標記換氣、子音、母音、重音、漸強漸弱、指揮提醒。" data-en="Mark breathing, consonants, vowels, accents, dynamics, and conductor notes.">標記換氣、子音、母音、重音、漸強漸弱、指揮提醒。</li>
+        <li data-zh="紅色代表練習時你唱出的音與譜面目標不一致。" data-en="Red means your sung note did not match the score target during practice.">紅色代表練習時你唱出的音與譜面目標不一致。</li>
+        <li data-zh="藍色代表參考音檔或錄音和譜面不一致，等待你確認是否修改。" data-en="Blue means reference audio or a recording differs from the score and needs confirmation.">藍色代表參考音檔或錄音和譜面不一致，等待你確認是否修改。</li>
       </ul>
     </div>
 
-    <h2>第五步：理解藍色與紅色標記</h2>
+    <h2 data-zh="第五步：查看使用時間並回報問題" data-en="Step 5: Review Usage and Send Feedback">第五步：查看使用時間並回報問題</h2>
     <div class="panel">
-      <h3>不同顏色代表不同問題</h3>
-      <ul>
-        <li><strong>紅色</strong>：練習時你唱出的音與譜面目標不一致。</li>
-        <li><strong>藍色</strong>：參考音檔或錄音和譜面不一致，等待你確認是否修改。</li>
-      </ul>
-      <p class="tip">聲海不會自動替你改掉音樂判斷。它會提出差異與建議，最後仍由使用者決定。</p>
-    </div>
-
-    <h2>第六步：查看使用時間</h2>
-    <div class="panel">
-      <h3>把練習變成可追蹤的習慣</h3>
+      <h3 data-zh="把練習變成可追蹤的習慣" data-en="Turn practice into a trackable habit">把練習變成可追蹤的習慣</h3>
       <ol>
-        <li>進入 <strong>Usage</strong>。</li>
-        <li>查看每日使用趨勢。</li>
-        <li>比較自己花在 Score、Practice、Research、Support 等功能的時間。</li>
-      </ol>
-      <p class="tip">目前使用資料儲存在本機，不會自動上傳。</p>
-    </div>
-
-    <h2>第七步：回報問題或建議</h2>
-    <div class="panel">
-      <h3>內測者的回饋很重要</h3>
-      <ol>
-        <li>進入 <strong>Support</strong>。</li>
-        <li>選擇 Bug、Feature、Usability 或 Research。</li>
-        <li>描述你遇到的情況、期待的功能，或哪個步驟讓你困惑。</li>
+        <li data-zh="進入 Usage 查看每日使用趨勢與各功能時間。" data-en="Open Usage to review daily trends and time spent in each feature.">進入 Usage 查看每日使用趨勢與各功能時間。</li>
+        <li data-zh="進入 Support 回報 Bug、功能建議、易用性問題或研究想法。" data-en="Open Support to report bugs, feature ideas, usability issues, or research suggestions.">進入 Support 回報 Bug、功能建議、易用性問題或研究想法。</li>
+        <li data-zh="目前使用資料儲存在本機，不會自動上傳。" data-en="Usage data is currently stored locally and is not uploaded automatically.">目前使用資料儲存在本機，不會自動上傳。</li>
       </ol>
     </div>
   </main>
 
-  <footer>
+  <footer data-zh="聲海仍在 Alpha 內測階段。這份手冊會隨 App 功能持續更新。" data-en="Shenghai is still in Alpha testing. This guide will keep updating as app features improve.">
     聲海仍在 Alpha 內測階段。這份手冊會隨 App 功能持續更新。
   </footer>
+  <script src="i18n.js"></script>
 </body>
 </html>

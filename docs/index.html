@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-title-zh="聲海 Shenghai" data-title-en="Shenghai">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>聲海 Shenghai</title>
-  <meta name="description" content="聲海是為聲樂與合唱練習打造的智慧練習工具，協助歌者匯入樂譜、練聲部、追蹤音準與回顧練習。">
+  <meta name="description" content="聲海是為聲樂與合唱練習打造的智慧練習工具，協助歌者匯入樂譜、練聲部、追蹤音準與回顧練習。" data-zh="聲海是為聲樂與合唱練習打造的智慧練習工具，協助歌者匯入樂譜、練聲部、追蹤音準與回顧練習。" data-en="Shenghai is an intelligent singing and choir practice workspace for importing scores, rehearsing parts, tracking pitch, and reviewing progress.">
   <style>
     :root {
       color-scheme: light dark;
@@ -42,9 +42,40 @@
       color: var(--muted);
     }
     nav a:hover { color: CanvasText; }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .nav-links a { margin-left: 0; }
     .brand {
       font-weight: 800;
       letter-spacing: 0;
+    }
+    .language-switch {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .language-switch button {
+      appearance: none;
+      border: 0;
+      border-left: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      min-height: 34px;
+      padding: 6px 10px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .language-switch button:first-child { border-left: 0; }
+    .language-switch button.active {
+      background: var(--accent);
+      color: white;
     }
     .hero {
       padding: 60px 24px 42px;
@@ -169,105 +200,110 @@
 <body>
   <nav aria-label="Main navigation">
     <a class="brand" href="index.html">聲海 Shenghai</a>
-    <div>
+    <div class="nav-links">
       <a href="demo.html">Demo</a>
-      <a href="manual.html">使用手冊</a>
-      <a href="changelog.html">更新日誌</a>
-      <a href="https://github.com/Chein-Shawn/shenghai/issues/new">回饋</a>
+      <a href="manual.html" data-zh="使用手冊" data-en="Manual">使用手冊</a>
+      <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">更新日誌</a>
+      <a href="https://github.com/Chein-Shawn/shenghai/issues/new" data-zh="回饋" data-en="Feedback">回饋</a>
+      <span class="language-switch" aria-label="Language">
+        <button type="button" data-lang-button="zh-Hant">繁</button>
+        <button type="button" data-lang-button="en">EN</button>
+      </span>
     </div>
   </nav>
 
   <header class="hero">
-    <h1>為聲樂與合唱練習打造的智慧練習工作台</h1>
-    <p class="lead">聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。</p>
+    <h1 data-zh="為聲樂與合唱練習打造的智慧練習工作台" data-en="An intelligent practice workspace for singing and choir training">為聲樂與合唱練習打造的智慧練習工作台</h1>
+    <p class="lead" data-zh="聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。" data-en="Shenghai is like Strava for singers: it brings scores, part practice, pitch feedback, practice time, and vocal review into one place so singers can train more scientifically.">聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。</p>
     <div class="actions">
-      <a class="button primary" href="demo.html">試唱 Happy Birthday Demo</a>
-      <a class="button" href="manual.html">開始使用</a>
-      <a class="button" href="changelog.html">查看新功能</a>
+      <a class="button primary" href="demo.html" data-zh="試唱 Happy Birthday Demo" data-en="Try the Happy Birthday Demo">試唱 Happy Birthday Demo</a>
+      <a class="button" href="manual.html" data-zh="開始使用" data-en="Get started">開始使用</a>
+      <a class="button" href="changelog.html" data-zh="查看新功能" data-en="See updates">查看新功能</a>
     </div>
     <div class="demo-callout">
       <div>
-        <h2>現在可以直接試唱 Happy Birthday</h2>
-        <p>點開 Demo 後，播放示範旋律、開啟麥克風、跟著 highlighted lyric 唱；系統會用紅色/綠色顯示音準是否偏高或偏低。</p>
+        <h2 data-zh="現在可以直接試唱 Happy Birthday" data-en="Try singing Happy Birthday now">現在可以直接試唱 Happy Birthday</h2>
+        <p data-zh="點開 Demo 後，播放示範旋律、開啟麥克風、跟著 highlighted lyric 唱；系統會用紅色/綠色顯示音準是否偏高或偏低。" data-en="Open the demo, play the guide melody, turn on the microphone, and sing the highlighted lyric. The system shows red/green pitch feedback for notes that are too sharp, too flat, or close.">點開 Demo 後，播放示範旋律、開啟麥克風、跟著 highlighted lyric 唱；系統會用紅色/綠色顯示音準是否偏高或偏低。</p>
       </div>
-      <a class="button primary" href="demo.html#try">開始試唱</a>
+      <a class="button primary" href="demo.html#try" data-zh="開始試唱" data-en="Start singing">開始試唱</a>
     </div>
   </header>
 
   <main>
     <section>
-      <h2>聲海能幫你做什麼</h2>
+      <h2 data-zh="聲海能幫你做什麼" data-en="What Shenghai Helps You Do">聲海能幫你做什麼</h2>
       <div class="grid">
         <article class="card">
-          <h3>匯入樂譜</h3>
-          <p>以 MusicXML 作為第一版主要格式，把樂譜轉成可播放、可分析、可練習的資料。</p>
+          <h3 data-zh="匯入樂譜" data-en="Import Scores">匯入樂譜</h3>
+          <p data-zh="以 MusicXML 作為第一版主要格式，把樂譜轉成可播放、可分析、可練習的資料。" data-en="Use MusicXML as the first stable score format, turning music into playable, analyzable, practice-ready data.">以 MusicXML 作為第一版主要格式，把樂譜轉成可播放、可分析、可練習的資料。</p>
         </article>
         <article class="card">
-          <h3>自己打譜</h3>
-          <p>在 App 內建立單聲部旋律，加入音符與休止符，匯出 MusicXML 或直接載入練習流程。</p>
+          <h3 data-zh="自己打譜" data-en="Compose Your Own Melody">自己打譜</h3>
+          <p data-zh="在 App 內建立單聲部旋律，加入音符與休止符，匯出 MusicXML 或直接載入練習流程。" data-en="Create single-line melodies, add notes and rests, export MusicXML, or send the draft straight into practice.">在 App 內建立單聲部旋律，加入音符與休止符，匯出 MusicXML 或直接載入練習流程。</p>
         </article>
         <article class="card">
-          <h3>選擇聲部練習</h3>
-          <p>合唱團員可以專注自己的聲部，也能搭配播放與節拍工具練習進入點。</p>
+          <h3 data-zh="選擇聲部練習" data-en="Practice Your Part">選擇聲部練習</h3>
+          <p data-zh="合唱團員可以專注自己的聲部，也能搭配播放與節拍工具練習進入點。" data-en="Choir singers can focus on their own line while using playback and rhythm tools to rehearse entrances.">合唱團員可以專注自己的聲部，也能搭配播放與節拍工具練習進入點。</p>
         </article>
         <article class="card">
-          <h3>音準與節奏回饋</h3>
-          <p>透過目標音高時間線與麥克風追蹤，逐步建立唱準、唱穩、回顧錯誤的能力。</p>
+          <h3 data-zh="音準與節奏回饋" data-en="Pitch and Rhythm Feedback">音準與節奏回饋</h3>
+          <p data-zh="透過目標音高時間線與麥克風追蹤，逐步建立唱準、唱穩、回顧錯誤的能力。" data-en="Use target pitch timelines and microphone tracking to understand mistakes and build steadier singing.">透過目標音高時間線與麥克風追蹤，逐步建立唱準、唱穩、回顧錯誤的能力。</p>
         </article>
         <article class="card">
-          <h3>清楚標註譜面</h3>
-          <p>使用向量筆跡標註譜面，放大時仍保持清晰，適合記錄呼吸、換氣、咬字與指揮提醒。</p>
+          <h3 data-zh="清楚標註譜面" data-en="Annotate Scores Clearly">清楚標註譜面</h3>
+          <p data-zh="使用向量筆跡標註譜面，放大時仍保持清晰，適合記錄呼吸、換氣、咬字與指揮提醒。" data-en="Use vector ink annotations that stay sharp when zoomed, ideal for breath marks, diction, and rehearsal notes.">使用向量筆跡標註譜面，放大時仍保持清晰，適合記錄呼吸、換氣、咬字與指揮提醒。</p>
         </article>
         <article class="card">
-          <h3>練習工具</h3>
-          <p>內建節拍器、鋼琴音、標準音，讓你在練聲部前快速建立音高與節奏中心。</p>
+          <h3 data-zh="練習工具" data-en="Practice Tools">練習工具</h3>
+          <p data-zh="內建節拍器、鋼琴音、標準音，讓你在練聲部前快速建立音高與節奏中心。" data-en="Built-in metronome, piano tones, and tuning fork help you establish pitch and rhythm before practice.">內建節拍器、鋼琴音、標準音，讓你在練聲部前快速建立音高與節奏中心。</p>
         </article>
         <article class="card">
-          <h3>練習時間統計</h3>
-          <p>查看每日使用趨勢與各功能使用時間，幫助你知道自己是否穩定練習。</p>
+          <h3 data-zh="練習時間統計" data-en="Practice Time Tracking">練習時間統計</h3>
+          <p data-zh="查看每日使用趨勢與各功能使用時間，幫助你知道自己是否穩定練習。" data-en="Track daily usage trends and feature time so you can see whether your practice is consistent.">查看每日使用趨勢與各功能使用時間，幫助你知道自己是否穩定練習。</p>
         </article>
       </div>
     </section>
 
     <section>
-      <h2>新手使用流程</h2>
+      <h2 data-zh="新手使用流程" data-en="Beginner Workflow">新手使用流程</h2>
       <div class="flow">
         <div class="step">
-          <div><strong>匯入、載入或自己打譜</strong><span>先使用 MusicXML，也可以在 Compose 建立簡單旋律；之後版本會逐步強化 PDF/圖片樂譜辨識。</span></div>
+          <div><strong data-zh="匯入、載入或自己打譜" data-en="Import, load, or compose">匯入、載入或自己打譜</strong><span data-zh="先使用 MusicXML，也可以在 Compose 建立簡單旋律；之後版本會逐步強化 PDF/圖片樂譜辨識。" data-en="Start with MusicXML or create a simple melody in Compose. PDF/image score recognition will improve over later versions.">先使用 MusicXML，也可以在 Compose 建立簡單旋律；之後版本會逐步強化 PDF/圖片樂譜辨識。</span></div>
         </div>
         <div class="step">
-          <div><strong>選擇要練的聲部</strong><span>例如 Soprano、Alto、Tenor、Bass，或你的獨唱旋律線。</span></div>
+          <div><strong data-zh="選擇要練的聲部" data-en="Choose the line you want to practice">選擇要練的聲部</strong><span data-zh="例如 Soprano、Alto、Tenor、Bass，或你的獨唱旋律線。" data-en="Choose Soprano, Alto, Tenor, Bass, or a solo melody line.">例如 Soprano、Alto、Tenor、Bass，或你的獨唱旋律線。</span></div>
         </div>
         <div class="step">
-          <div><strong>播放、標註、練習</strong><span>用播放、節拍器、鋼琴與標準音建立練習基準，再把提醒寫在譜上。</span></div>
+          <div><strong data-zh="播放、標註、練習" data-en="Play, annotate, and practice">播放、標註、練習</strong><span data-zh="用播放、節拍器、鋼琴與標準音建立練習基準，再把提醒寫在譜上。" data-en="Use playback, metronome, piano, and tuning fork tools, then write useful reminders directly on the score.">用播放、節拍器、鋼琴與標準音建立練習基準，再把提醒寫在譜上。</span></div>
         </div>
         <div class="step">
-          <div><strong>追蹤表現與回饋</strong><span>查看音準偏差、練習時間與待修正處，讓下一次練習更有效。</span></div>
+          <div><strong data-zh="追蹤表現與回饋" data-en="Track performance and feedback">追蹤表現與回饋</strong><span data-zh="查看音準偏差、練習時間與待修正處，讓下一次練習更有效。" data-en="Review pitch errors, practice time, and correction points so the next session is more focused.">查看音準偏差、練習時間與待修正處，讓下一次練習更有效。</span></div>
         </div>
       </div>
     </section>
 
     <section>
-      <h2>目前適合誰</h2>
+      <h2 data-zh="目前適合誰" data-en="Who It Is For Now">目前適合誰</h2>
       <div class="grid">
         <article class="card">
-          <h3>合唱團員</h3>
-          <p>快速過譜、熟悉聲部、記錄排練提醒。</p>
+          <h3 data-zh="合唱團員" data-en="Choir Singers">合唱團員</h3>
+          <p data-zh="快速過譜、熟悉聲部、記錄排練提醒。" data-en="Learn notes faster, rehearse your part, and keep rehearsal reminders in one place.">快速過譜、熟悉聲部、記錄排練提醒。</p>
         </article>
         <article class="card">
-          <h3>聲樂初學者</h3>
-          <p>建立音準意識，追蹤每天練習習慣。</p>
+          <h3 data-zh="聲樂初學者" data-en="Beginner Singers">聲樂初學者</h3>
+          <p data-zh="建立音準意識，追蹤每天練習習慣。" data-en="Build pitch awareness and track everyday singing habits.">建立音準意識，追蹤每天練習習慣。</p>
         </article>
         <article class="card">
-          <h3>音樂學習者</h3>
-          <p>把視唱、音程、譜面標註與聲音回顧放在同一個工作流。</p>
+          <h3 data-zh="音樂學習者" data-en="Music Learners">音樂學習者</h3>
+          <p data-zh="把視唱、音程、譜面標註與聲音回顧放在同一個工作流。" data-en="Bring sight-singing, intervals, score annotation, and vocal review into one workflow.">把視唱、音程、譜面標註與聲音回顧放在同一個工作流。</p>
         </article>
       </div>
     </section>
   </main>
 
-  <footer>
+  <footer data-zh="聲海目前仍在 Alpha 內測階段。功能會持續更新，若遇到問題或有想法，歡迎送出回饋。" data-en="Shenghai is currently in Alpha testing. Features will keep improving; if you find a problem or have an idea, please send feedback.">
     聲海目前仍在 Alpha 內測階段。功能會持續更新，若遇到問題或有想法，歡迎送出回饋。
   </footer>
+  <script src="i18n.js"></script>
 </body>
 </html>
