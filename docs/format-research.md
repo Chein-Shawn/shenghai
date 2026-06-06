@@ -74,7 +74,9 @@ Current local status as of 2026-06-05:
 
 Practical next step:
 
-Use a stable Audiveris release/master branch that ships installers or supports a lower Java level, or install JDK 25 if continuing with the development branch. The baseline command to preserve is:
+Use a stable Audiveris macOS `.dmg` when available, because this avoids local source-build Java drift. The current Audiveris source build documentation lists JDK 25 as the needed JDK for the master branch, so source builds should use JDK 25 rather than OpenJDK 21 or the current shell default Java 11.
+
+The baseline script now prefers `/Applications/Audiveris.app/Contents/MacOS/Audiveris` and falls back to a JDK 25 source checkout only if the app is missing:
 
 ```bash
 audiveris -batch -transcribe -export -output samples/musicxml/audiveris-baseline samples/scores/audiveris-baseline/chula.png
