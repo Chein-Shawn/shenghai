@@ -26,6 +26,26 @@ struct ShenghaiCoreTests {
         #expect(midiData.count > 40)
     }
 
+    @Test func analyzesPitchDeviationWithConfidence() {
+        let analyzer = PitchDeviationAnalyzer(toleranceCents: 25, minimumConfidence: 0.6)
+        let samples = [
+            PitchSample(time: 0.0, frequencyHz: 440.0, confidence: 0.95),
+            PitchSample(time: 0.5, frequencyHz: 452.0, confidence: 0.90),
+            PitchSample(time: 1.0, frequencyHz: nil, confidence: 0.20)
+        ]
+        let targets = [
+            TargetPitchPoint(time: 0.0, midi: 69),
+            TargetPitchPoint(time: 0.5, midi: 69),
+            TargetPitchPoint(time: 1.0, midi: 69)
+        ]
+
+        let deviations = analyzer.analyze(sung: samples, against: targets)
+
+        #expect(deviations[0].quality == .inTune)
+        #expect(deviations[1].quality == .sharp)
+        #expect(deviations[2].quality == .lowConfidence)
+    }
+
     private static let twinkleMusicXML = """
     <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     <score-partwise version="4.0">

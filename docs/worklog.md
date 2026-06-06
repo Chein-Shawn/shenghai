@@ -24,6 +24,10 @@
 - Implemented Swift `ScoreDocument`, `MusicXMLImporter`, and `MIDIWriter` as the first shared Apple-platform core.
 - Added Swift tests for simple MusicXML import and MIDI generation.
 - Re-ran the Python prototype and confirmed it still writes `samples/musicxml/twinkle.scoredocument.json` and `samples/audio/twinkle.mid`.
+- Researched singing pedagogy, real-time visual feedback, singing pitch tracking, pitch contour smoothing, Basic Pitch, Onsets and Frames, VocalSet, and breath-guided singing interfaces.
+- Added Google-Docs-ready research tab content in `docs/google-doc-research-tab-2026-06-06.md`.
+- Added `docs/research-findings-2026-06-06.md` as the repo-side research log.
+- Added Swift `PitchAnalysis` primitives for confidence-aware pitch feedback and future replaceable pitch trackers.
 
 ### Current Prototype
 
@@ -50,3 +54,23 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - SwiftPM tests could not run inside the current Codex sandbox because SwiftPM attempted to use blocked user-level caches and nested sandboxing. An escalated local `swift test` request was rejected by the current usage limit, so Swift validation is pending.
 - GitHub remote backup is one commit behind local until network/push permission is available again.
 - Google Doc appendix has been prepared locally, but appending it to the end of the existing Google Doc still needs a confirmed editor cursor location or a working Google Docs editing connector.
+
+## Codex 實作工作日誌｜2026-06-06
+
+### Done
+
+- Confirmed local `main` is two commits ahead of GitHub remote.
+- Confirmed GitHub CLI token is currently invalid and needs `gh auth login`.
+- Added research notes that can become a separate Google Doc tab named `研究與演算法筆記`.
+- Converted research into app architecture decisions:
+  - pitch tracking must be swappable
+  - feedback must include confidence
+  - pitch contours should be smoothed before user-facing red marks
+  - phrase/melody practice matters more than single-note tuner behavior
+
+### Pending
+
+- Re-authenticate GitHub CLI and push local commits.
+- Append or import the research tab into Google Doc after Google Docs editing access is available.
+- Run SwiftPM tests outside the current sandbox.
+- Resolve Audiveris with stable release or JDK 25.

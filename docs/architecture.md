@@ -55,7 +55,8 @@ ios-app/ShenghaiCore/
 ├── Sources/ShenghaiCore/
 │   ├── ScoreDocument.swift
 │   ├── MusicXMLImporter.swift
-│   └── MIDIWriter.swift
+│   ├── MIDIWriter.swift
+│   └── PitchAnalysis.swift
 └── Tests/ShenghaiCoreTests/
     └── ShenghaiCoreTests.swift
 ```
@@ -67,6 +68,16 @@ This package is intentionally UI-free. It should be embedded into future app tar
 - Shared `ShenghaiCore`: import, correction, playback timeline, and data persistence logic.
 
 The app layer should focus on file picking, score preview/correction UI, practice mode, and playback controls. The core package should own parsing and playback timeline generation.
+
+## Research-Driven Audio Analysis Interfaces
+
+The singing research notes point to a replaceable audio-analysis architecture:
+
+- `PitchTracking`: abstraction for YIN, pYIN, CREPE, Basic Pitch, or future Core ML models.
+- `PitchContourSmoothing`: filters octave jumps, low-confidence frames, and jitter before showing feedback.
+- `PitchDeviationAnalyzer`: compares sung pitch samples against score targets and labels in-tune/sharp/flat/low-confidence states.
+
+This keeps the MVP honest: if the pitch detector is uncertain, the UI can show uncertainty instead of presenting a false red error.
 
 ## MVP Boundary
 

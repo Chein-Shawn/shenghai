@@ -53,6 +53,7 @@ open ios-app/ShenghaiCore/Package.swift
 - `ScoreDocument` models for the internal Shenghai wrapper.
 - `MusicXMLImporter` for MusicXML to ScoreDocument parsing.
 - `MIDIWriter` for MIDI event timeline and `.mid` data generation.
+- `PitchAnalysis` primitives for confidence-aware pitch feedback.
 - Swift tests covering the Twinkle sample import and MIDI output path.
 
 The package targets iOS 17+ and macOS 14+, so the same core code can later be embedded in iPhone, iPad, and macOS app targets.
