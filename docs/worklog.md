@@ -111,3 +111,15 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added non-destructive edit proposals for pitch shift and timing correction.
 - Added docs in `docs/youtube-score-audio-alignment-plan-2026-06-06.md`.
 - Validated with `env CLANG_MODULE_CACHE_PATH=.build/ModuleCache swift test --disable-sandbox --scratch-path .build/spm`.
+
+### Product Operations Update
+
+- Added a GitHub Pages-ready support site under `docs/site`.
+- Added app Support view with manual, changelog, GitHub Issue, and mail draft actions.
+- Added app Usage view with local usage time by feature and day.
+- Added `UsageAnalyticsLedger` in ShenghaiCore and `UsageTrackingStore` in the app.
+- Added C4 architecture documentation in `docs/c4-architecture-2026-06-06.md`.
+- Added localization strategy in `docs/localization-strategy-2026-06-06.md`.
+- Added third-party algorithm and launch-license audit in `docs/third-party-algorithm-and-license-audit-2026-06-06.md`.
+- Validated with `env CLANG_MODULE_CACHE_PATH=.build/ModuleCache-ops swift test --disable-sandbox --scratch-path .build/spm-ops`; 9 tests passed.
+- Xcode build still fails inside the sandbox because the Observation macro/plugin server cannot access required services. A non-sandbox Xcode build attempt hung and was terminated. SwiftPM successfully compiled the app target and tests.

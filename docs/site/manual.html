@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shenghai User Manual</title>
+  <style>
+    body { max-width: 900px; margin: 0 auto; padding: 40px 24px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
+    h1, h2 { line-height: 1.2; }
+    nav a { margin-right: 16px; }
+    code { padding: 2px 4px; border-radius: 4px; background: color-mix(in srgb, CanvasText 10%, transparent); }
+    li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">Support Home</a>
+    <a href="changelog.html">Changelog</a>
+  </nav>
+
+  <h1>Shenghai User Manual</h1>
+  <p>聲海目前是 Alpha prototype，核心目標是把樂譜變成可練習、可聽、可追蹤的聲樂/合唱訓練工作台。</p>
+
+  <h2>1. Import Score</h2>
+  <ol>
+    <li>Open the app and go to <strong>Score</strong>.</li>
+    <li>Use MusicXML import first. PDF/image score recognition is still an OMR research path.</li>
+    <li>After import, select the voice part you want to practice.</li>
+  </ol>
+
+  <h2>2. Playback And Export</h2>
+  <ol>
+    <li>Use playback to hear the selected part.</li>
+    <li>Export MIDI when you need an intermediate audio proof.</li>
+    <li>Future versions will add richer sampler sounds and local audio comparison.</li>
+  </ol>
+
+  <h2>3. Practice</h2>
+  <ol>
+    <li>Go to <strong>Practice</strong>.</li>
+    <li>Use metronome, piano, and tuning fork tools to prepare pitch and rhythm.</li>
+    <li>Live microphone pitch tracking is experimental and should be treated as feedback, not diagnosis.</li>
+  </ol>
+
+  <h2>4. Score Annotation</h2>
+  <p>Score annotation uses vector strokes, so zooming should preserve clear lines better than pixel-only drawing. Export and persistence are planned for future builds.</p>
+
+  <h2>5. Score / Audio Alignment</h2>
+  <p>Current safe design: compare MusicXML against local audio, user recordings, or licensed rehearsal tracks. YouTube links can be used as reference metadata, but the app should not download YouTube videos as MP3.</p>
+
+  <h2>6. Feedback</h2>
+  <ol>
+    <li>Go to <strong>Support</strong>.</li>
+    <li>Choose Bug, Feature, Usability, or Research.</li>
+    <li>Use GitHub Issue for invited internal testers, or Mail Draft as fallback.</li>
+  </ol>
+
+  <h2>7. Usage Stats</h2>
+  <p>Go to <strong>Usage</strong> to inspect local usage time by day and by feature. The current version stores this locally through UserDefaults.</p>
+</body>
+</html>

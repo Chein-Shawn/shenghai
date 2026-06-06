@@ -122,6 +122,25 @@ struct ShenghaiCoreTests {
         #expect(differences.isEmpty)
     }
 
+    @Test func summarizesUsageByDayAndFeature() {
+        var ledger = UsageAnalyticsLedger()
+        let start = Date(timeIntervalSince1970: 1_788_000_000)
+
+        ledger.switchTo(.scoreWorkspace, at: start)
+        ledger.switchTo(.practice, at: start.addingTimeInterval(120))
+        ledger.closeActiveEvent(at: start.addingTimeInterval(300))
+
+        let summaries = ledger.dailySummaries(calendar: Calendar(identifier: .gregorian))
+        let featureDurations = ledger.featureDurationsIncludingActive(now: start.addingTimeInterval(300))
+
+        #expect(summaries.count == 1)
+        #expect(summaries[0].totalDuration == 300)
+        #expect(summaries[0].featureDurations[.scoreWorkspace] == 120)
+        #expect(summaries[0].featureDurations[.practice] == 180)
+        #expect(featureDurations[.scoreWorkspace] == 120)
+        #expect(featureDurations[.practice] == 180)
+    }
+
     @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
         let sampleRate = 44_100.0
         let frequency = 440.0

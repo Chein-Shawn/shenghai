@@ -11,9 +11,13 @@ struct ContentView: View {
                 .navigationTitle(workspace.selectedSection.title)
         }
         .onAppear {
+            workspace.usageTracking.switchTo(workspace.selectedSection.usageFeature)
             if workspace.score == nil {
                 workspace.loadDemoScore()
             }
+        }
+        .onDisappear {
+            workspace.usageTracking.closeActiveSession()
         }
     }
 
@@ -28,6 +32,10 @@ struct ContentView: View {
             PracticeView(workspace: workspace)
         case .researchStatus:
             ResearchStatusView()
+        case .support:
+            SupportView(workspace: workspace)
+        case .usageStats:
+            UsageStatsView(usageTracking: workspace.usageTracking)
         }
     }
 }

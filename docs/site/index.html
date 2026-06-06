@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shenghai Support</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+    }
+    body {
+      margin: 0;
+      padding: 48px 24px;
+      background: Canvas;
+      color: CanvasText;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: clamp(2rem, 6vw, 4rem);
+      line-height: 1.05;
+      margin: 0 0 16px;
+    }
+    .lead {
+      font-size: 1.2rem;
+      color: color-mix(in srgb, CanvasText 72%, transparent);
+      max-width: 720px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 32px;
+    }
+    a.card {
+      display: block;
+      padding: 20px;
+      border: 1px solid color-mix(in srgb, CanvasText 16%, transparent);
+      border-radius: 8px;
+      color: inherit;
+      text-decoration: none;
+      background: color-mix(in srgb, CanvasText 5%, transparent);
+    }
+    a.card:hover {
+      border-color: LinkText;
+    }
+    .label {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    footer {
+      margin-top: 48px;
+      color: color-mix(in srgb, CanvasText 60%, transparent);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Shenghai Support</h1>
+    <p class="lead">聲海計畫的使用手冊、更新日誌與內測支援入口。這個網站可以用 GitHub Pages 發佈，不需要購買網域。</p>
+
+    <section class="grid" aria-label="Support links">
+      <a class="card" href="manual.html">
+        <div class="label">User Manual</div>
+        <p>快速了解匯入譜面、練習、標註、播放與回饋流程。</p>
+      </a>
+      <a class="card" href="changelog.html">
+        <div class="label">Changelog</div>
+        <p>查看新功能、錯誤修復、已知限制與下一步。</p>
+      </a>
+      <a class="card" href="https://github.com/Chein-Shawn/shenghai/issues/new">
+        <div class="label">Feedback</div>
+        <p>內測者可透過 GitHub Issue 回報錯誤或提出功能建議。</p>
+      </a>
+    </section>
+
+    <footer>
+      Shenghai Alpha. Documentation last updated: 2026-06-06.
+    </footer>
+  </main>
+</body>
+</html>

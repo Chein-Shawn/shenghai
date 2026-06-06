@@ -27,6 +27,9 @@
 		101000000000000000000012 /* OMRPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000013 /* OMRPipeline.swift */; };
 		101000000000000000000013 /* YINPitchTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000014 /* YINPitchTracker.swift */; };
 		101000000000000000000014 /* LivePitchCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000015 /* LivePitchCaptureService.swift */; };
+		101000000000000000000015 /* UsageTrackingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000016 /* UsageTrackingStore.swift */; };
+		101000000000000000000016 /* SupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000017 /* SupportView.swift */; };
+		101000000000000000000017 /* UsageAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000018 /* UsageAnalytics.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +54,9 @@
 		102000000000000000000013 /* OMRPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMRPipeline.swift; sourceTree = "<group>"; };
 		102000000000000000000014 /* YINPitchTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YINPitchTracker.swift; sourceTree = "<group>"; };
 		102000000000000000000015 /* LivePitchCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LivePitchCaptureService.swift; sourceTree = "<group>"; };
+		102000000000000000000016 /* UsageTrackingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTrackingStore.swift; sourceTree = "<group>"; };
+		102000000000000000000017 /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
+		102000000000000000000018 /* UsageAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAnalytics.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +115,7 @@
 			children = (
 				102000000000000000000003 /* MIDIPlaybackService.swift */,
 				102000000000000000000015 /* LivePitchCaptureService.swift */,
+				102000000000000000000016 /* UsageTrackingStore.swift */,
 			);
 			name = Services;
 			path = ShenghaiCore/Sources/ShenghaiApp/Services;
@@ -143,6 +150,7 @@
 				10200000000000000000000B /* ScoreWorkspaceView.swift */,
 				10200000000000000000000C /* SharedComponents.swift */,
 				10200000000000000000000D /* SidebarView.swift */,
+				102000000000000000000017 /* SupportView.swift */,
 			);
 			name = Views;
 			path = ShenghaiCore/Sources/ShenghaiApp/Views;
@@ -156,6 +164,7 @@
 				102000000000000000000013 /* OMRPipeline.swift */,
 				102000000000000000000010 /* PitchAnalysis.swift */,
 				102000000000000000000011 /* ScoreDocument.swift */,
+				102000000000000000000018 /* UsageAnalytics.swift */,
 				102000000000000000000014 /* YINPitchTracker.swift */,
 			);
 			name = ShenghaiCore;
@@ -258,8 +267,11 @@
 				101000000000000000000012 /* OMRPipeline.swift in Sources */,
 				101000000000000000000010 /* PitchAnalysis.swift in Sources */,
 				101000000000000000000011 /* ScoreDocument.swift in Sources */,
+				101000000000000000000017 /* UsageAnalytics.swift in Sources */,
 				101000000000000000000013 /* YINPitchTracker.swift in Sources */,
 				101000000000000000000014 /* LivePitchCaptureService.swift in Sources */,
+				101000000000000000000015 /* UsageTrackingStore.swift in Sources */,
+				101000000000000000000016 /* SupportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,7 +7,11 @@ import ShenghaiCore
 @MainActor
 @Observable
 final class ShenghaiWorkspace {
-    var selectedSection: AppSection = .dashboard
+    var selectedSection: AppSection = .dashboard {
+        didSet {
+            usageTracking.switchTo(selectedSection.usageFeature)
+        }
+    }
     var score: ScoreDocument?
     var selectedPartID: String?
     var statusMessage = "Ready for MusicXML prototype testing."
@@ -15,6 +19,7 @@ final class ShenghaiWorkspace {
     var exportedMIDIURL: URL?
     var isImportingScore = false
     var isPlaying = false
+    let usageTracking = UsageTrackingStore()
 
     private let importer = MusicXMLImporter()
     private let playbackService = MIDIPlaybackService()

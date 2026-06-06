@@ -57,6 +57,8 @@ The `Shenghai` scheme is the first Alpha app shell for iPhone, iPad, and macOS. 
 - MIDI playback and share/export.
 - Practice lab preview for pitch deviation states.
 - Research/status view for algorithm decisions and blockers.
+- Support view with manual, changelog, GitHub Issue, and mail draft links.
+- Local usage tracking by day and by app feature.
 
 The shared Apple-platform core can also be opened directly in Xcode:
 
@@ -70,6 +72,8 @@ open ios-app/ShenghaiCore/Package.swift
 - `MusicXMLImporter` for MusicXML to ScoreDocument parsing.
 - `MIDIWriter` for MIDI event timeline and `.mid` data generation.
 - `PitchAnalysis` primitives for confidence-aware pitch feedback.
+- `ScoreAudioAlignmentAnalyzer` for score/audio pitch and timing differences.
+- `UsageAnalyticsLedger` for local usage-time summaries.
 - Swift tests covering the Twinkle sample import and MIDI output path.
 
 The package targets iOS 17+ and macOS 14+, so the same core code is shared by the iPhone, iPad, and macOS app surfaces.
@@ -107,3 +111,30 @@ Audiveris remains the preferred OMR baseline, but the local source build current
 ```text
 Manual MusicXML import from MuseScore / Audiveris / other OMR tool -> ScoreDocument -> MIDI playback
 ```
+
+## Support Site
+
+Static support-site files live in:
+
+```text
+docs/site/
+```
+
+They are intended for GitHub Pages, with no custom domain required:
+
+```text
+https://chein-shawn.github.io/shenghai/
+```
+
+Current app links point to:
+
+- `manual.html`
+- `changelog.html`
+- GitHub Issues for tester feedback
+
+## Planning And Review Docs
+
+- `docs/c4-architecture-2026-06-06.md`
+- `docs/localization-strategy-2026-06-06.md`
+- `docs/third-party-algorithm-and-license-audit-2026-06-06.md`
+- `docs/youtube-score-audio-alignment-plan-2026-06-06.md`
