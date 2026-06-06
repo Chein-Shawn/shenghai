@@ -30,6 +30,8 @@
 		101000000000000000000015 /* UsageTrackingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000016 /* UsageTrackingStore.swift */; };
 		101000000000000000000016 /* SupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000017 /* SupportView.swift */; };
 		101000000000000000000017 /* UsageAnalytics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000018 /* UsageAnalytics.swift */; };
+		101000000000000000000018 /* MusicXMLComposer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000019 /* MusicXMLComposer.swift */; };
+		101000000000000000000019 /* ScoreComposerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10200000000000000000001A /* ScoreComposerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +59,8 @@
 		102000000000000000000016 /* UsageTrackingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTrackingStore.swift; sourceTree = "<group>"; };
 		102000000000000000000017 /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
 		102000000000000000000018 /* UsageAnalytics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageAnalytics.swift; sourceTree = "<group>"; };
+		102000000000000000000019 /* MusicXMLComposer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicXMLComposer.swift; sourceTree = "<group>"; };
+		10200000000000000000001A /* ScoreComposerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreComposerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,6 +151,7 @@
 				102000000000000000000008 /* DashboardView.swift */,
 				102000000000000000000009 /* PracticeView.swift */,
 				10200000000000000000000A /* ResearchStatusView.swift */,
+				10200000000000000000001A /* ScoreComposerView.swift */,
 				10200000000000000000000B /* ScoreWorkspaceView.swift */,
 				10200000000000000000000C /* SharedComponents.swift */,
 				10200000000000000000000D /* SidebarView.swift */,
@@ -160,6 +165,7 @@
 			isa = PBXGroup;
 			children = (
 				10200000000000000000000E /* MIDIWriter.swift */,
+				102000000000000000000019 /* MusicXMLComposer.swift */,
 				10200000000000000000000F /* MusicXMLImporter.swift */,
 				102000000000000000000013 /* OMRPipeline.swift */,
 				102000000000000000000010 /* PitchAnalysis.swift */,
@@ -259,10 +265,12 @@
 				101000000000000000000008 /* DashboardView.swift in Sources */,
 				101000000000000000000009 /* PracticeView.swift in Sources */,
 				10100000000000000000000A /* ResearchStatusView.swift in Sources */,
+				101000000000000000000019 /* ScoreComposerView.swift in Sources */,
 				10100000000000000000000B /* ScoreWorkspaceView.swift in Sources */,
 				10100000000000000000000C /* SharedComponents.swift in Sources */,
 				10100000000000000000000D /* SidebarView.swift in Sources */,
 				10100000000000000000000E /* MIDIWriter.swift in Sources */,
+				101000000000000000000018 /* MusicXMLComposer.swift in Sources */,
 				10100000000000000000000F /* MusicXMLImporter.swift in Sources */,
 				101000000000000000000012 /* OMRPipeline.swift in Sources */,
 				101000000000000000000010 /* PitchAnalysis.swift in Sources */,

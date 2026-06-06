@@ -23,6 +23,7 @@ struct DashboardView: View {
 
                 VStack(alignment: .leading, spacing: 12) {
                     SectionTitle("MVP Chain")
+                    PipelineRow(title: "MusicXML composer", state: .ready)
                     PipelineRow(title: "MusicXML import", state: .ready)
                     PipelineRow(title: "ScoreDocument wrapper", state: .ready)
                     PipelineRow(title: "MIDI event timeline", state: .ready)
@@ -35,6 +36,12 @@ struct DashboardView: View {
             .frame(maxWidth: 980, alignment: .leading)
         }
         .toolbar {
+            Button {
+                workspace.selectedSection = .scoreComposer
+            } label: {
+                Label("Compose", systemImage: "square.and.pencil")
+            }
+
             Button {
                 workspace.selectedSection = .scoreWorkspace
             } label: {

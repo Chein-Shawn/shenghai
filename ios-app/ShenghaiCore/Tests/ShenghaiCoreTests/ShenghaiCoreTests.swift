@@ -3,6 +3,39 @@ import Testing
 @testable import ShenghaiCore
 
 struct ShenghaiCoreTests {
+    @Test func composesMusicXMLAndImportsItBack() throws {
+        let composed = ComposedScore(
+            title: "Shenghai Draft",
+            partName: "Alto",
+            tempoBPM: 88,
+            beats: 4,
+            beatType: 4,
+            notes: [
+                ComposedScoreNote(pitch: ComposedPitch(step: .C, octave: 4), value: .quarter),
+                ComposedScoreNote(pitch: ComposedPitch(step: .D, alter: 1, octave: 4), value: .quarter),
+                ComposedScoreNote(pitch: nil, value: .half),
+                ComposedScoreNote(pitch: ComposedPitch(step: .E, octave: 4), value: .whole)
+            ]
+        )
+
+        let generated = MusicXMLComposer.makeScoreDocument(from: composed)
+        let xml = MusicXMLComposer.makeMusicXML(from: composed)
+        let imported = try MusicXMLImporter().importDocument(data: Data(xml.utf8))
+
+        #expect(xml.contains("<work-title>Shenghai Draft</work-title>"))
+        #expect(generated.sourceFormat == "Shenghai Composer")
+        #expect(generated.parts[0].measures.count == 2)
+        #expect(generated.parts[0].measures[0].notes[0].midi == 60)
+        #expect(generated.parts[0].measures[0].notes[2].isRest)
+        #expect(imported.tempoBPM == 88)
+        #expect(imported.parts[0].name == "Alto")
+        #expect(imported.parts[0].measures.count == 2)
+        #expect(imported.parts[0].measures[0].notes.map(\.midi) == [60, 63, nil])
+        #expect(imported.parts[0].measures[0].notes[2].isRest)
+        #expect(imported.parts[0].measures[1].notes.first?.midi == 64)
+        #expect(imported.parts[0].measures[1].notes[0].durationTick == 1_920)
+    }
+
     @Test func importsSimpleMusicXML() throws {
         let score = try MusicXMLImporter().importDocument(data: Data(Self.twinkleMusicXML.utf8))
 

@@ -2,6 +2,7 @@ import Foundation
 
 public enum UsageFeature: String, CaseIterable, Codable, Sendable {
     case dashboard
+    case scoreComposer
     case scoreWorkspace
     case practice
     case researchStatus
@@ -12,6 +13,8 @@ public enum UsageFeature: String, CaseIterable, Codable, Sendable {
         switch self {
         case .dashboard:
             return "Overview"
+        case .scoreComposer:
+            return "Compose"
         case .scoreWorkspace:
             return "Score"
         case .practice:

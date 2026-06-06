@@ -17,6 +17,7 @@ final class ShenghaiWorkspace {
     var statusMessage = "Ready for MusicXML prototype testing."
     var errorMessage: String?
     var exportedMIDIURL: URL?
+    var exportedMusicXMLURL: URL?
     var isImportingScore = false
     var isPlaying = false
     var selectedOMRProvider: OMRProvider = .homr
@@ -91,6 +92,35 @@ final class ShenghaiWorkspace {
         }
     }
 
+    func loadComposedScore(_ composedScore: ComposedScore) {
+        let generatedScore = MusicXMLComposer.makeScoreDocument(from: composedScore)
+        setScore(generatedScore)
+        statusMessage = "Created \(composedScore.notes.count) notes from Compose."
+        errorMessage = nil
+        selectedSection = .scoreWorkspace
+    }
+
+    func exportMusicXML(_ composedScore: ComposedScore) {
+        do {
+            let fileName = composedScore.title
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+                .isEmpty ? "Shenghai-Composition" : composedScore.title
+            let safeName = fileName
+                .components(separatedBy: CharacterSet.alphanumerics.inverted)
+                .filter { !$0.isEmpty }
+                .joined(separator: "-")
+            let url = FileManager.default.temporaryDirectory
+                .appending(path: "\(safeName.isEmpty ? "Shenghai-Composition" : safeName).musicxml")
+            let xml = MusicXMLComposer.makeMusicXML(from: composedScore)
+            try xml.write(to: url, atomically: true, encoding: .utf8)
+            exportedMusicXMLURL = url
+            statusMessage = "Exported MusicXML: \(url.lastPathComponent)."
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     func playOrStop() {
         if isPlaying {
             playbackService.stop()
@@ -123,6 +153,7 @@ final class ShenghaiWorkspace {
         score = newScore
         selectedPartID = newScore.parts.first?.id
         exportedMIDIURL = nil
+        exportedMusicXMLURL = nil
     }
 }
 

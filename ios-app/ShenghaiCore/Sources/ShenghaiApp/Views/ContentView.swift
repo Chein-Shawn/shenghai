@@ -26,6 +26,8 @@ struct ContentView: View {
         switch workspace.selectedSection {
         case .dashboard:
             DashboardView(workspace: workspace)
+        case .scoreComposer:
+            ScoreComposerView(workspace: workspace)
         case .scoreWorkspace:
             ScoreWorkspaceView(workspace: workspace)
         case .practice:

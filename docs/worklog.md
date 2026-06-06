@@ -131,3 +131,11 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added Score workspace OMR Review picker so users can choose homr or oemer.
 - Updated Research view to treat homr/oemer as external MusicXML-producing OMR providers and Audiveris as a benchmark path.
 - Updated user manual and changelog to explain that homr/oemer currently run outside the app, then MusicXML is imported into Shenghai.
+
+### MusicXML Compose Update
+
+- Added a first-pass Compose section for creating simple single-part MusicXML scores inside the app.
+- Added `MusicXMLComposer` for turning composed notes/rests into both `ScoreDocument` and MusicXML export text.
+- Added note-entry controls for pitch step, accidental, octave, duration, rests, undo, clear, load into Score, and MusicXML sharing.
+- Updated user-facing site/manual/changelog with the new Compose workflow.
+- Added a round-trip test for `ComposedScore -> MusicXML -> MusicXMLImporter`.

@@ -5,6 +5,7 @@ import ShenghaiCore
 
 enum AppSection: String, CaseIterable, Identifiable {
     case dashboard
+    case scoreComposer
     case scoreWorkspace
     case practice
     case researchStatus
@@ -17,6 +18,8 @@ enum AppSection: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard:
             return "Overview"
+        case .scoreComposer:
+            return "Compose"
         case .scoreWorkspace:
             return "Score"
         case .practice:
@@ -34,6 +37,8 @@ enum AppSection: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard:
             return "gauge.with.dots.needle.67percent"
+        case .scoreComposer:
+            return "square.and.pencil"
         case .scoreWorkspace:
             return "music.note.list"
         case .practice:
@@ -51,6 +56,8 @@ enum AppSection: String, CaseIterable, Identifiable {
         switch self {
         case .dashboard:
             return .dashboard
+        case .scoreComposer:
+            return .scoreComposer
         case .scoreWorkspace:
             return .scoreWorkspace
         case .practice:
