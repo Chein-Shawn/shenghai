@@ -1,3 +1,5 @@
+import AVFoundation
+import Observation
 import SwiftUI
 #if canImport(ShenghaiCore)
 import ShenghaiCore
@@ -6,6 +8,7 @@ import ShenghaiCore
 struct PracticeView: View {
     @Bindable var workspace: ShenghaiWorkspace
     @State private var livePitchCapture = LivePitchCaptureService()
+    @State private var practiceAudio = PracticeAudioService()
     @State private var selectedMode: PracticeMode = .scoreReading
     @State private var targetPitch: Double = 261.63
 
@@ -36,6 +39,7 @@ struct PracticeView: View {
                         workspace: workspace,
                         selectedMode: selectedMode,
                         livePitchCapture: livePitchCapture,
+                        practiceAudio: practiceAudio,
                         targetPitch: $targetPitch
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -45,6 +49,7 @@ struct PracticeView: View {
                     PracticeInspector(
                         workspace: workspace,
                         livePitchCapture: livePitchCapture,
+                        practiceAudio: practiceAudio,
                         targetPitch: $targetPitch,
                         mockDeviations: mockDeviations
                     )
@@ -59,11 +64,13 @@ struct PracticeView: View {
                             workspace: workspace,
                             selectedMode: selectedMode,
                             livePitchCapture: livePitchCapture,
+                            practiceAudio: practiceAudio,
                             targetPitch: $targetPitch
                         )
                         PracticeInspector(
                             workspace: workspace,
                             livePitchCapture: livePitchCapture,
+                            practiceAudio: practiceAudio,
                             targetPitch: $targetPitch,
                             mockDeviations: mockDeviations
                         )
@@ -146,6 +153,7 @@ private struct PracticeStage: View {
     @Bindable var workspace: ShenghaiWorkspace
     var selectedMode: PracticeMode
     @Bindable var livePitchCapture: LivePitchCaptureService
+    @Bindable var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
 
     var body: some View {
@@ -174,10 +182,12 @@ private struct PracticeStage: View {
 
                 TargetPitchCanvas(livePitchCapture: livePitchCapture, targetPitch: targetPitch)
 
+                PianoKeyboardPanel(practiceAudio: practiceAudio, targetPitch: $targetPitch)
+
                 if selectedMode == .memorization {
                     MemoryCueStrip()
                 } else if selectedMode == .pitchDrill {
-                    PitchDrillStrip(targetPitch: $targetPitch)
+                    PitchDrillStrip(practiceAudio: practiceAudio, targetPitch: $targetPitch)
                 }
 
                 if let part = workspace.selectedPart {
@@ -194,6 +204,7 @@ private struct PracticeStage: View {
 private struct PracticeInspector: View {
     @Bindable var workspace: ShenghaiWorkspace
     @Bindable var livePitchCapture: LivePitchCaptureService
+    @Bindable var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
     var mockDeviations: [PitchDeviation]
 
@@ -205,8 +216,30 @@ private struct PracticeInspector: View {
                 VStack(alignment: .leading, spacing: 10) {
                     ValuePill(title: "Reference", value: String(format: "%.1f Hz", targetPitch), systemImage: "waveform")
                     Slider(value: $targetPitch, in: 196...523.25, step: 0.1)
+                    HStack {
+                        Button {
+                            practiceAudio.playReferenceTone(frequency: targetPitch)
+                        } label: {
+                            Label("Play", systemImage: "speaker.wave.2.fill")
+                        }
+
+                        Button {
+                            if practiceAudio.isTuningForkRunning {
+                                practiceAudio.stopTuningFork()
+                            } else {
+                                practiceAudio.startTuningFork(frequency: targetPitch)
+                            }
+                        } label: {
+                            Label(practiceAudio.isTuningForkRunning ? "Stop Fork" : "Fork", systemImage: "tuningfork")
+                        }
+                    }
+                    .buttonStyle(.bordered)
                 }
             }
+
+            MetronomePanel(practiceAudio: practiceAudio)
+
+            TuningForkPanel(practiceAudio: practiceAudio, targetPitch: $targetPitch)
 
             StudioPanel(title: "Pitch States", systemImage: "chart.xyaxis.line") {
                 ForEach(Array(mockDeviations.enumerated()), id: \.offset) { _, deviation in
@@ -326,17 +359,127 @@ private struct MemoryCueStrip: View {
 }
 
 private struct PitchDrillStrip: View {
+    @Bindable var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
 
     var body: some View {
         StudioPanel(title: "Pitch Drill", systemImage: "scope") {
             HStack {
-                Button("C4") { targetPitch = 261.63 }
-                Button("E4") { targetPitch = 329.63 }
-                Button("G4") { targetPitch = 392.00 }
-                Button("A4") { targetPitch = 440.00 }
+                ForEach(PianoKey.pitchDrillKeys) { key in
+                    Button(key.name) {
+                        targetPitch = key.frequency
+                        practiceAudio.playPianoKey(key)
+                    }
+                }
             }
             .buttonStyle(.bordered)
+        }
+    }
+}
+
+private struct PianoKeyboardPanel: View {
+    @Bindable var practiceAudio: PracticeAudioService
+    @Binding var targetPitch: Double
+
+    private let keys = PianoKey.practiceKeys
+
+    var body: some View {
+        StudioPanel(title: "Piano", systemImage: "pianokeys") {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 52), spacing: 8)], spacing: 8) {
+                ForEach(keys) { key in
+                    Button {
+                        targetPitch = key.frequency
+                        practiceAudio.playPianoKey(key)
+                    } label: {
+                        VStack(spacing: 3) {
+                            Text(key.name)
+                                .font(.subheadline.weight(.semibold))
+                            Text(String(format: "%.0f", key.frequency))
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: key.isAccidental ? 46 : 58)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(key.isAccidental ? .secondary : .accentColor)
+                    .accessibilityLabel("Play \(key.name)")
+                }
+            }
+        }
+    }
+}
+
+private struct MetronomePanel: View {
+    @Bindable var practiceAudio: PracticeAudioService
+
+    var body: some View {
+        StudioPanel(title: "Metronome", systemImage: "metronome") {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    ValuePill(title: "Tempo", value: "\(practiceAudio.metronomeBPM) bpm", systemImage: "speedometer")
+                    ValuePill(title: "Beat", value: "\(practiceAudio.currentBeat)/\(practiceAudio.beatsPerMeasure)", systemImage: "number")
+                }
+
+                Stepper("BPM \(practiceAudio.metronomeBPM)", value: $practiceAudio.metronomeBPM, in: 40...220, step: 2)
+
+                Picker("Meter", selection: $practiceAudio.beatsPerMeasure) {
+                    Text("2/4").tag(2)
+                    Text("3/4").tag(3)
+                    Text("4/4").tag(4)
+                    Text("6/8").tag(6)
+                }
+                .pickerStyle(.segmented)
+
+                Button {
+                    practiceAudio.toggleMetronome()
+                } label: {
+                    Label(
+                        practiceAudio.isMetronomeRunning ? "Stop Metronome" : "Start Metronome",
+                        systemImage: practiceAudio.isMetronomeRunning ? "stop.fill" : "play.fill"
+                    )
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+    }
+}
+
+private struct TuningForkPanel: View {
+    @Bindable var practiceAudio: PracticeAudioService
+    @Binding var targetPitch: Double
+
+    var body: some View {
+        StudioPanel(title: "Tuning Fork", systemImage: "tuningfork") {
+            VStack(alignment: .leading, spacing: 12) {
+                ValuePill(title: "Fork", value: String(format: "%.1f Hz", practiceAudio.tuningForkFrequency), systemImage: "waveform")
+
+                HStack {
+                    ForEach(PianoKey.forkKeys) { key in
+                        Button(key.name) {
+                            targetPitch = key.frequency
+                            practiceAudio.tuningForkFrequency = key.frequency
+                            practiceAudio.startTuningFork(frequency: key.frequency)
+                        }
+                    }
+                }
+                .buttonStyle(.bordered)
+
+                HStack {
+                    Button {
+                        practiceAudio.startTuningFork(frequency: practiceAudio.tuningForkFrequency)
+                    } label: {
+                        Label("Start", systemImage: "waveform")
+                    }
+
+                    Button {
+                        practiceAudio.stopTuningFork()
+                    } label: {
+                        Label("Stop", systemImage: "stop.fill")
+                    }
+                    .disabled(!practiceAudio.isTuningForkRunning)
+                }
+                .buttonStyle(.bordered)
+            }
         }
     }
 }
@@ -363,6 +506,229 @@ private struct PracticeMeasureList: View {
                 }
             }
         }
+    }
+}
+
+private struct PianoKey: Identifiable, Equatable {
+    var midi: Int
+    var name: String
+    var isAccidental: Bool
+
+    var id: Int { midi }
+
+    var frequency: Double {
+        440.0 * pow(2.0, Double(midi - 69) / 12.0)
+    }
+
+    static let practiceKeys: [PianoKey] = [
+        PianoKey(midi: 60, name: "C4", isAccidental: false),
+        PianoKey(midi: 61, name: "C#4", isAccidental: true),
+        PianoKey(midi: 62, name: "D4", isAccidental: false),
+        PianoKey(midi: 63, name: "Eb4", isAccidental: true),
+        PianoKey(midi: 64, name: "E4", isAccidental: false),
+        PianoKey(midi: 65, name: "F4", isAccidental: false),
+        PianoKey(midi: 66, name: "F#4", isAccidental: true),
+        PianoKey(midi: 67, name: "G4", isAccidental: false),
+        PianoKey(midi: 68, name: "Ab4", isAccidental: true),
+        PianoKey(midi: 69, name: "A4", isAccidental: false),
+        PianoKey(midi: 70, name: "Bb4", isAccidental: true),
+        PianoKey(midi: 71, name: "B4", isAccidental: false),
+        PianoKey(midi: 72, name: "C5", isAccidental: false)
+    ]
+
+    static let pitchDrillKeys: [PianoKey] = [
+        PianoKey(midi: 60, name: "C4", isAccidental: false),
+        PianoKey(midi: 64, name: "E4", isAccidental: false),
+        PianoKey(midi: 67, name: "G4", isAccidental: false),
+        PianoKey(midi: 69, name: "A4", isAccidental: false)
+    ]
+
+    static let forkKeys: [PianoKey] = [
+        PianoKey(midi: 60, name: "C4", isAccidental: false),
+        PianoKey(midi: 67, name: "G4", isAccidental: false),
+        PianoKey(midi: 69, name: "A4", isAccidental: false),
+        PianoKey(midi: 72, name: "C5", isAccidental: false)
+    ]
+}
+
+@MainActor
+@Observable
+private final class PracticeAudioService {
+    var metronomeBPM = 72 {
+        didSet {
+            if isMetronomeRunning {
+                restartMetronome()
+            }
+        }
+    }
+    var beatsPerMeasure = 4 {
+        didSet {
+            currentBeat = min(currentBeat, beatsPerMeasure)
+        }
+    }
+    var currentBeat = 1
+    var isMetronomeRunning = false
+    var tuningForkFrequency = 440.0
+    var isTuningForkRunning = false
+
+    private let engine = AVAudioEngine()
+    private let transientPlayer = AVAudioPlayerNode()
+    private let dronePlayer = AVAudioPlayerNode()
+    private var isEnginePrepared = false
+    private var metronomeTimer: Timer?
+
+    func toggleMetronome() {
+        if isMetronomeRunning {
+            stopMetronome()
+        } else {
+            startMetronome()
+        }
+    }
+
+    func startMetronome() {
+        stopMetronome()
+        isMetronomeRunning = true
+        currentBeat = 1
+        playMetronomeBeat()
+        scheduleMetronomeTimer()
+    }
+
+    func stopMetronome() {
+        metronomeTimer?.invalidate()
+        metronomeTimer = nil
+        isMetronomeRunning = false
+        currentBeat = 1
+    }
+
+    func playPianoKey(_ key: PianoKey) {
+        playTone(frequency: key.frequency, duration: 0.85, gain: 0.24)
+    }
+
+    func playReferenceTone(frequency: Double) {
+        playTone(frequency: frequency, duration: 1.15, gain: 0.22)
+    }
+
+    func startTuningFork(frequency: Double) {
+        tuningForkFrequency = frequency
+        prepareEngineIfNeeded()
+        dronePlayer.stop()
+        let buffer = makeToneBuffer(frequency: frequency, duration: 1.4, gain: 0.12, attack: 0.03, release: 0.08)
+        dronePlayer.scheduleBuffer(buffer, at: nil, options: [.loops])
+        startEngineIfNeeded()
+        dronePlayer.play()
+        isTuningForkRunning = true
+    }
+
+    func stopTuningFork() {
+        dronePlayer.stop()
+        isTuningForkRunning = false
+    }
+
+    private func restartMetronome() {
+        metronomeTimer?.invalidate()
+        scheduleMetronomeTimer()
+    }
+
+    private func scheduleMetronomeTimer() {
+        let interval = 60.0 / Double(max(metronomeBPM, 1))
+        metronomeTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.advanceMetronome()
+            }
+        }
+    }
+
+    private func advanceMetronome() {
+        currentBeat = currentBeat >= beatsPerMeasure ? 1 : currentBeat + 1
+        playMetronomeBeat()
+    }
+
+    private func playMetronomeBeat() {
+        let accent = currentBeat == 1
+        playTone(
+            frequency: accent ? 1_320 : 880,
+            duration: accent ? 0.09 : 0.065,
+            gain: accent ? 0.34 : 0.22
+        )
+    }
+
+    private func playTone(frequency: Double, duration: Double, gain: Double) {
+        prepareEngineIfNeeded()
+        let buffer = makeToneBuffer(frequency: frequency, duration: duration, gain: gain, attack: 0.012, release: 0.18)
+        transientPlayer.scheduleBuffer(buffer)
+        startEngineIfNeeded()
+        if !transientPlayer.isPlaying {
+            transientPlayer.play()
+        }
+    }
+
+    private func prepareEngineIfNeeded() {
+        guard !isEnginePrepared else {
+            return
+        }
+
+        #if os(iOS)
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .mixWithOthers])
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            // The audio tools still try to play through AVAudioEngine if the session setup fails.
+        }
+        #endif
+
+        engine.attach(transientPlayer)
+        engine.attach(dronePlayer)
+        let mixer = engine.mainMixerNode
+        engine.connect(transientPlayer, to: mixer, format: nil)
+        engine.connect(dronePlayer, to: mixer, format: nil)
+        engine.prepare()
+        isEnginePrepared = true
+    }
+
+    private func startEngineIfNeeded() {
+        guard !engine.isRunning else {
+            return
+        }
+
+        do {
+            try engine.start()
+        } catch {
+            isMetronomeRunning = false
+            isTuningForkRunning = false
+        }
+    }
+
+    private func makeToneBuffer(
+        frequency: Double,
+        duration: Double,
+        gain: Double,
+        attack: Double,
+        release: Double
+    ) -> AVAudioPCMBuffer {
+        let sampleRate = 44_100.0
+        let frameCount = AVAudioFrameCount(max(duration * sampleRate, 1))
+        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+
+        guard let channel = buffer.floatChannelData?[0] else {
+            return buffer
+        }
+
+        let attackFrames = max(Int(attack * sampleRate), 1)
+        let releaseFrames = max(Int(release * sampleRate), 1)
+        let totalFrames = Int(frameCount)
+        let angularStep = 2.0 * Double.pi * frequency / sampleRate
+
+        for frame in 0..<totalFrames {
+            let attackEnvelope = min(Double(frame) / Double(attackFrames), 1)
+            let releaseEnvelope = min(Double(max(totalFrames - frame, 0)) / Double(releaseFrames), 1)
+            let envelope = min(attackEnvelope, releaseEnvelope)
+            let sample = sin(Double(frame) * angularStep) * gain * envelope
+            channel[frame] = Float(sample)
+        }
+
+        return buffer
     }
 }
 
