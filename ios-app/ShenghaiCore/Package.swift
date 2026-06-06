@@ -12,10 +12,18 @@ let package = Package(
         .library(
             name: "ShenghaiCore",
             targets: ["ShenghaiCore"]
+        ),
+        .executable(
+            name: "ShenghaiApp",
+            targets: ["ShenghaiApp"]
         )
     ],
     targets: [
         .target(name: "ShenghaiCore"),
+        .executableTarget(
+            name: "ShenghaiApp",
+            dependencies: ["ShenghaiCore"]
+        ),
         .testTarget(
             name: "ShenghaiCoreTests",
             dependencies: ["ShenghaiCore"]

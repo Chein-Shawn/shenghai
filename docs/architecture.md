@@ -47,11 +47,25 @@ flowchart TD
 
 ## Current Xcode Implementation
 
-The first Xcode-facing module is a Swift package:
+The current Xcode-facing app is:
+
+```text
+ios-app/Shenghai.xcodeproj
+└── Shenghai scheme
+```
+
+It compiles the shared core and SwiftUI app shell into one Alpha app target for iPhone, iPad, and macOS. The same source also remains available as a Swift package product for fast core/app iteration:
 
 ```text
 ios-app/ShenghaiCore/
 ├── Package.swift
+├── Sources/ShenghaiApp/
+│   ├── App/
+│   ├── Models/
+│   ├── Services/
+│   ├── Stores/
+│   ├── Support/
+│   └── Views/
 ├── Sources/ShenghaiCore/
 │   ├── ScoreDocument.swift
 │   ├── MusicXMLImporter.swift
@@ -61,13 +75,16 @@ ios-app/ShenghaiCore/
     └── ShenghaiCoreTests.swift
 ```
 
-This package is intentionally UI-free. It should be embedded into future app targets:
+The Alpha app layer currently owns:
 
-- `Shenghai iOS`: iPhone and iPad SwiftUI app.
-- `Shenghai macOS`: Mac SwiftUI app for richer score correction.
-- Shared `ShenghaiCore`: import, correction, playback timeline, and data persistence logic.
+- file picking for MusicXML
+- demo score loading
+- score summary and measure/note inspection
+- MIDI playback/export actions
+- pitch-feedback preview states
+- research and blocker status
 
-The app layer should focus on file picking, score preview/correction UI, practice mode, and playback controls. The core package should own parsing and playback timeline generation.
+The core package still owns parsing, pitch analysis primitives, and playback timeline generation.
 
 ## Research-Driven Audio Analysis Interfaces
 
@@ -88,4 +105,5 @@ First, prove the pipeline after MusicXML. Then add OMR automation.
 3. Generate playable MIDI.
 4. Add repeat expansion.
 5. Integrate Audiveris OMR.
-6. Build Xcode UI for review and correction.
+6. Add score correction UI.
+7. Add live microphone pitch tracking.

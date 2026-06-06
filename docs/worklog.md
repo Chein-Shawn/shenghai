@@ -74,3 +74,13 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Append or import the research tab into Google Doc after Google Docs editing access is available.
 - Run SwiftPM tests outside the current sandbox.
 - Resolve Audiveris with stable release or JDK 25.
+
+### App Shell Build Update
+
+- Added `ios-app/Shenghai.xcodeproj` with a `Shenghai` SwiftUI app scheme.
+- Added `Sources/ShenghaiApp` with dashboard, score workspace, practice preview, and research/status views.
+- Added MusicXML import UI, built-in demo loading, MIDI playback, and MIDI share/export actions.
+- Validated `swift build --product ShenghaiApp`.
+- Validated macOS app build with `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
+- Installed the missing iOS 26.5 simulator platform with `xcodebuild -downloadPlatform iOS`.
+- Validated iPhone/iPad simulator build with `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform='iOS Simulator' -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.

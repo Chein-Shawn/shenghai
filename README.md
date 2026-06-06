@@ -42,13 +42,29 @@ shenghai/
 
 ## Xcode Development
 
-Open the shared Apple-platform core in Xcode:
+Open the full app project in Xcode:
+
+```bash
+open ios-app/Shenghai.xcodeproj
+```
+
+The `Shenghai` scheme is the first Alpha app shell for iPhone, iPad, and macOS. It currently includes:
+
+- Overview dashboard for MVP status.
+- Score workspace with demo MusicXML loading.
+- MusicXML file import.
+- ScoreDocument inspection by part, measure, and note.
+- MIDI playback and share/export.
+- Practice lab preview for pitch deviation states.
+- Research/status view for algorithm decisions and blockers.
+
+The shared Apple-platform core can also be opened directly in Xcode:
 
 ```bash
 open ios-app/ShenghaiCore/Package.swift
 ```
 
-`ShenghaiCore` is the first app-facing implementation layer. It currently includes:
+`ShenghaiCore` includes:
 
 - `ScoreDocument` models for the internal Shenghai wrapper.
 - `MusicXMLImporter` for MusicXML to ScoreDocument parsing.
@@ -56,7 +72,19 @@ open ios-app/ShenghaiCore/Package.swift
 - `PitchAnalysis` primitives for confidence-aware pitch feedback.
 - Swift tests covering the Twinkle sample import and MIDI output path.
 
-The package targets iOS 17+ and macOS 14+, so the same core code can later be embedded in iPhone, iPad, and macOS app targets.
+The package targets iOS 17+ and macOS 14+, so the same core code is shared by the iPhone, iPad, and macOS app surfaces.
+
+Build the current macOS app target:
+
+```bash
+xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO
+```
+
+If iPhone/iPad destinations do not appear in Xcode, install the matching iOS platform in Xcode Settings > Components, or run:
+
+```bash
+xcodebuild -downloadPlatform iOS
+```
 
 ## Prototype
 
