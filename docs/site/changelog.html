@@ -3,39 +3,74 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shenghai Changelog</title>
+  <title>聲海更新日誌</title>
   <style>
-    body { max-width: 900px; margin: 0 auto; padding: 40px 24px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
-    h1, h2 { line-height: 1.2; }
-    nav a { margin-right: 16px; }
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, LinkText 18%, transparent); font-size: 0.85rem; }
+    :root {
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.68;
+      --muted: color-mix(in srgb, CanvasText 68%, transparent);
+      --line: color-mix(in srgb, CanvasText 14%, transparent);
+      --surface: color-mix(in srgb, CanvasText 5%, transparent);
+      --accent: #2f7dd3;
+    }
+    body { margin: 0; background: Canvas; color: CanvasText; }
+    nav, main, footer { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    nav { display: flex; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 16px; }
+    nav a:first-child { margin-left: 0; color: CanvasText; font-weight: 800; }
+    h1 { font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.08; margin: 42px 0 14px; }
+    h2 { margin-top: 34px; line-height: 1.2; }
+    .release { padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 18px 0; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 18%, transparent); font-size: 0.85rem; color: CanvasText; }
+    li { margin: 9px 0; }
+    .muted { color: var(--muted); }
+    footer { padding-top: 40px; padding-bottom: 48px; color: var(--muted); }
   </style>
 </head>
 <body>
   <nav>
-    <a href="index.html">Support Home</a>
-    <a href="manual.html">Manual</a>
+    <a href="index.html">聲海 Shenghai</a>
+    <div>
+      <a href="manual.html">使用手冊</a>
+      <a href="changelog.html">更新日誌</a>
+    </div>
   </nav>
 
-  <h1>Shenghai Changelog</h1>
+  <main>
+    <h1>聲海更新日誌</h1>
+    <p class="muted">這裡只記錄使用者需要知道的新功能、改善與目前限制。更細的工程紀錄會留在開發文件中。</p>
 
-  <h2>2026-06-06 <span class="tag">Alpha</span></h2>
-  <ul>
-    <li>Added Support screen with manual, changelog, GitHub Issue, and mail draft links.</li>
-    <li>Added local usage tracking by feature and day.</li>
-    <li>Added score/audio alignment core for local or licensed audio.</li>
-    <li>Added blue performance-difference model and non-destructive edit proposals.</li>
-    <li>Added vector score annotation prototype.</li>
-    <li>Added metronome, piano, and tuning fork practice tools.</li>
-    <li>Added MusicXML target pitch timeline with basic repeat expansion.</li>
-  </ul>
+    <section class="release">
+      <h2>2026-06-06 <span class="tag">Alpha</span></h2>
+      <h3>新功能</h3>
+      <ul>
+        <li><strong>支援頁面</strong>：可以從 App 內開啟使用手冊、更新日誌，並送出錯誤或功能建議。</li>
+        <li><strong>使用時間統計</strong>：可以查看每日使用趨勢，以及各功能花費的時間。</li>
+        <li><strong>譜面標註</strong>：加入向量筆跡標註，適合記錄換氣、音準、節奏與排練提醒。</li>
+        <li><strong>練習工具</strong>：加入節拍器、鋼琴音與標準音，幫助開始練習前建立音高和節奏基準。</li>
+        <li><strong>樂譜播放與匯出</strong>：MusicXML 樂譜可以轉成播放時間線，並輸出 MIDI。</li>
+      </ul>
 
-  <h2>Known Limitations</h2>
-  <ul>
-    <li>PDF/image OMR is not yet available inside the app.</li>
-    <li>YouTube MP3 downloading is intentionally not implemented.</li>
-    <li>Usage statistics are local-only and not yet exportable.</li>
-    <li>Localization strategy is documented but app strings are not fully extracted into a String Catalog yet.</li>
-  </ul>
+      <h3>練習回饋</h3>
+      <ul>
+        <li>聲海現在能建立譜面目標音高時間線，讓未來的即時音準回饋更精準。</li>
+        <li>加入本機或授權音檔的比對基礎，可標出音高或節奏和譜面不一致的地方。</li>
+        <li>藍色標記代表「參考音檔與譜面不同，等待確認」；紅色保留給「使用者練習時唱錯」。</li>
+      </ul>
+
+      <h3>目前限制</h3>
+      <ul>
+        <li>PDF/圖片樂譜辨識仍在開發中，目前最穩定的方式是匯入 MusicXML。</li>
+        <li>聲海不提供 YouTube MP3 自動下載功能。若要做音檔比對，請使用你擁有或已授權的音檔。</li>
+        <li>使用時間目前儲存在本機，尚未支援雲端同步或匯出。</li>
+        <li>多語言版本尚未正式上線，目前會先整理英文與繁體中文內容。</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    想回報問題或建議功能，請從 App 內 Support 頁面送出回饋。
+  </footer>
 </body>
 </html>

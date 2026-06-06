@@ -3,59 +3,122 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shenghai User Manual</title>
+  <title>聲海使用手冊</title>
   <style>
-    body { max-width: 900px; margin: 0 auto; padding: 40px 24px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.65; }
-    h1, h2 { line-height: 1.2; }
-    nav a { margin-right: 16px; }
-    code { padding: 2px 4px; border-radius: 4px; background: color-mix(in srgb, CanvasText 10%, transparent); }
+    :root {
+      color-scheme: light dark;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.68;
+      --muted: color-mix(in srgb, CanvasText 68%, transparent);
+      --line: color-mix(in srgb, CanvasText 14%, transparent);
+      --surface: color-mix(in srgb, CanvasText 5%, transparent);
+      --accent: #2f7dd3;
+    }
+    body { margin: 0; background: Canvas; color: CanvasText; }
+    nav, main, footer { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    nav { display: flex; justify-content: space-between; gap: 16px; padding-top: 22px; padding-bottom: 22px; }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 16px; }
+    nav a:first-child { margin-left: 0; color: CanvasText; font-weight: 800; }
+    h1 { font-size: clamp(2.1rem, 6vw, 4rem); line-height: 1.08; margin: 42px 0 14px; }
+    h2 { margin-top: 38px; line-height: 1.2; }
+    p.lead { color: var(--muted); font-size: 1.16rem; max-width: 760px; }
+    .panel { padding: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin: 14px 0; }
+    .panel h3 { margin: 0 0 8px; }
     li { margin: 8px 0; }
+    .tip { border-left: 4px solid var(--accent); padding-left: 14px; color: var(--muted); }
+    footer { padding-top: 40px; padding-bottom: 48px; color: var(--muted); }
   </style>
 </head>
 <body>
   <nav>
-    <a href="index.html">Support Home</a>
-    <a href="changelog.html">Changelog</a>
+    <a href="index.html">聲海 Shenghai</a>
+    <div>
+      <a href="manual.html">使用手冊</a>
+      <a href="changelog.html">更新日誌</a>
+    </div>
   </nav>
 
-  <h1>Shenghai User Manual</h1>
-  <p>聲海目前是 Alpha prototype，核心目標是把樂譜變成可練習、可聽、可追蹤的聲樂/合唱訓練工作台。</p>
+  <main>
+    <h1>聲海使用手冊</h1>
+    <p class="lead">這份手冊給第一次使用聲海的歌者、合唱團員與內測者。你不需要懂工程或演算法，只要照著流程，就能開始把樂譜變成可練習、可追蹤的聲音訓練。</p>
 
-  <h2>1. Import Score</h2>
-  <ol>
-    <li>Open the app and go to <strong>Score</strong>.</li>
-    <li>Use MusicXML import first. PDF/image score recognition is still an OMR research path.</li>
-    <li>After import, select the voice part you want to practice.</li>
-  </ol>
+    <h2>第一步：載入樂譜</h2>
+    <div class="panel">
+      <h3>目前建議格式：MusicXML</h3>
+      <ol>
+        <li>打開 App，進入 <strong>Score</strong>。</li>
+        <li>載入示範樂譜，或匯入自己的 MusicXML 檔案。</li>
+        <li>確認樂譜標題、聲部、小節與音符數量是否看起來合理。</li>
+      </ol>
+      <p class="tip">如果你手上是 PDF 或圖片樂譜，之後版本會逐步支援辨識。現階段可以先用 MuseScore、掃譜工具或其他 OMR 工具轉成 MusicXML。</p>
+    </div>
 
-  <h2>2. Playback And Export</h2>
-  <ol>
-    <li>Use playback to hear the selected part.</li>
-    <li>Export MIDI when you need an intermediate audio proof.</li>
-    <li>Future versions will add richer sampler sounds and local audio comparison.</li>
-  </ol>
+    <h2>第二步：選擇聲部</h2>
+    <div class="panel">
+      <h3>讓練習聚焦在你要唱的線條</h3>
+      <ol>
+        <li>在 Score 頁面選擇你的聲部或旋律線。</li>
+        <li>用播放功能聽目標音高與節奏。</li>
+        <li>反覆確認容易進錯、容易偏音或需要換氣的段落。</li>
+      </ol>
+    </div>
 
-  <h2>3. Practice</h2>
-  <ol>
-    <li>Go to <strong>Practice</strong>.</li>
-    <li>Use metronome, piano, and tuning fork tools to prepare pitch and rhythm.</li>
-    <li>Live microphone pitch tracking is experimental and should be treated as feedback, not diagnosis.</li>
-  </ol>
+    <h2>第三步：使用練習工具</h2>
+    <div class="panel">
+      <h3>建立音高與節奏基準</h3>
+      <ul>
+        <li><strong>Metronome</strong>：練習速度穩定、切分與進入點。</li>
+        <li><strong>Piano</strong>：快速確認目標音、音程與聲部起音。</li>
+        <li><strong>Tuning Fork</strong>：建立標準音中心，避免一開始就唱偏。</li>
+        <li><strong>Live Pitch</strong>：用麥克風追蹤音高，協助你理解自己偏高或偏低。</li>
+      </ul>
+      <p class="tip">Live Pitch 是練習回饋，不是醫療或聲帶診斷。請把它當成「幫你看見練習趨勢」的工具。</p>
+    </div>
 
-  <h2>4. Score Annotation</h2>
-  <p>Score annotation uses vector strokes, so zooming should preserve clear lines better than pixel-only drawing. Export and persistence are planned for future builds.</p>
+    <h2>第四步：在譜上做標註</h2>
+    <div class="panel">
+      <h3>把排練提醒留在樂譜上</h3>
+      <ul>
+        <li>標記換氣、子音、母音、重音、漸強漸弱、指揮提醒。</li>
+        <li>使用向量筆跡，放大檢視時線條仍然清楚。</li>
+        <li>可用不同筆跡粗細與工具區分音準、節奏、文字提醒。</li>
+      </ul>
+    </div>
 
-  <h2>5. Score / Audio Alignment</h2>
-  <p>Current safe design: compare MusicXML against local audio, user recordings, or licensed rehearsal tracks. YouTube links can be used as reference metadata, but the app should not download YouTube videos as MP3.</p>
+    <h2>第五步：理解藍色與紅色標記</h2>
+    <div class="panel">
+      <h3>不同顏色代表不同問題</h3>
+      <ul>
+        <li><strong>紅色</strong>：練習時你唱出的音與譜面目標不一致。</li>
+        <li><strong>藍色</strong>：參考音檔或錄音和譜面不一致，等待你確認是否修改。</li>
+      </ul>
+      <p class="tip">聲海不會自動替你改掉音樂判斷。它會提出差異與建議，最後仍由使用者決定。</p>
+    </div>
 
-  <h2>6. Feedback</h2>
-  <ol>
-    <li>Go to <strong>Support</strong>.</li>
-    <li>Choose Bug, Feature, Usability, or Research.</li>
-    <li>Use GitHub Issue for invited internal testers, or Mail Draft as fallback.</li>
-  </ol>
+    <h2>第六步：查看使用時間</h2>
+    <div class="panel">
+      <h3>把練習變成可追蹤的習慣</h3>
+      <ol>
+        <li>進入 <strong>Usage</strong>。</li>
+        <li>查看每日使用趨勢。</li>
+        <li>比較自己花在 Score、Practice、Research、Support 等功能的時間。</li>
+      </ol>
+      <p class="tip">目前使用資料儲存在本機，不會自動上傳。</p>
+    </div>
 
-  <h2>7. Usage Stats</h2>
-  <p>Go to <strong>Usage</strong> to inspect local usage time by day and by feature. The current version stores this locally through UserDefaults.</p>
+    <h2>第七步：回報問題或建議</h2>
+    <div class="panel">
+      <h3>內測者的回饋很重要</h3>
+      <ol>
+        <li>進入 <strong>Support</strong>。</li>
+        <li>選擇 Bug、Feature、Usability 或 Research。</li>
+        <li>描述你遇到的情況、期待的功能，或哪個步驟讓你困惑。</li>
+      </ol>
+    </div>
+  </main>
+
+  <footer>
+    聲海仍在 Alpha 內測階段。這份手冊會隨 App 功能持續更新。
+  </footer>
 </body>
 </html>

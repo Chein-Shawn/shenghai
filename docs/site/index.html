@@ -3,85 +3,239 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Shenghai Support</title>
+  <title>聲海 Shenghai</title>
+  <meta name="description" content="聲海是為聲樂與合唱練習打造的智慧練習工具，協助歌者匯入樂譜、練聲部、追蹤音準與回顧練習。">
   <style>
     :root {
       color-scheme: light dark;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.6;
+      --muted: color-mix(in srgb, CanvasText 68%, transparent);
+      --line: color-mix(in srgb, CanvasText 14%, transparent);
+      --surface: color-mix(in srgb, CanvasText 5%, transparent);
+      --accent: #2f7dd3;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 48px 24px;
       background: Canvas;
       color: CanvasText;
     }
-    main {
-      max-width: 920px;
+    header, main, footer {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 24px;
+      max-width: 1080px;
       margin: 0 auto;
     }
+    nav a {
+      color: inherit;
+      text-decoration: none;
+      margin-left: 16px;
+      color: var(--muted);
+    }
+    nav a:hover { color: CanvasText; }
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+    .hero {
+      padding: 60px 24px 42px;
+    }
     h1 {
-      font-size: clamp(2rem, 6vw, 4rem);
-      line-height: 1.05;
-      margin: 0 0 16px;
+      font-size: clamp(2.4rem, 7vw, 5.2rem);
+      line-height: 1.02;
+      margin: 0 0 18px;
+      letter-spacing: 0;
+      max-width: 900px;
     }
     .lead {
-      font-size: 1.2rem;
-      color: color-mix(in srgb, CanvasText 72%, transparent);
-      max-width: 720px;
+      font-size: clamp(1.08rem, 2vw, 1.35rem);
+      color: var(--muted);
+      max-width: 760px;
+      margin: 0 0 28px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: inherit;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    section {
+      padding: 34px 0;
+      border-top: 1px solid var(--line);
+    }
+    h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      line-height: 1.15;
+      margin: 0 0 18px;
     }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-top: 32px;
+      gap: 14px;
     }
-    a.card {
-      display: block;
+    .card {
       padding: 20px;
-      border: 1px solid color-mix(in srgb, CanvasText 16%, transparent);
+      border: 1px solid var(--line);
       border-radius: 8px;
-      color: inherit;
-      text-decoration: none;
-      background: color-mix(in srgb, CanvasText 5%, transparent);
+      background: var(--surface);
     }
-    a.card:hover {
-      border-color: LinkText;
-    }
-    .label {
-      font-weight: 700;
+    .card h3 {
+      margin: 0 0 8px;
       font-size: 1.1rem;
     }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .flow {
+      display: grid;
+      gap: 10px;
+      counter-reset: step;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: white;
+      font-weight: 800;
+    }
+    .step strong { display: block; }
+    .step span { color: var(--muted); }
     footer {
-      margin-top: 48px;
-      color: color-mix(in srgb, CanvasText 60%, transparent);
-      font-size: 0.92rem;
+      padding: 36px 24px 48px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
     }
   </style>
 </head>
 <body>
-  <main>
-    <h1>Shenghai Support</h1>
-    <p class="lead">聲海計畫的使用手冊、更新日誌與內測支援入口。這個網站可以用 GitHub Pages 發佈，不需要購買網域。</p>
+  <nav aria-label="Main navigation">
+    <a class="brand" href="index.html">聲海 Shenghai</a>
+    <div>
+      <a href="manual.html">使用手冊</a>
+      <a href="changelog.html">更新日誌</a>
+      <a href="https://github.com/Chein-Shawn/shenghai/issues/new">回饋</a>
+    </div>
+  </nav>
 
-    <section class="grid" aria-label="Support links">
-      <a class="card" href="manual.html">
-        <div class="label">User Manual</div>
-        <p>快速了解匯入譜面、練習、標註、播放與回饋流程。</p>
-      </a>
-      <a class="card" href="changelog.html">
-        <div class="label">Changelog</div>
-        <p>查看新功能、錯誤修復、已知限制與下一步。</p>
-      </a>
-      <a class="card" href="https://github.com/Chein-Shawn/shenghai/issues/new">
-        <div class="label">Feedback</div>
-        <p>內測者可透過 GitHub Issue 回報錯誤或提出功能建議。</p>
-      </a>
+  <header class="hero">
+    <h1>為聲樂與合唱練習打造的智慧練習工作台</h1>
+    <p class="lead">聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。</p>
+    <div class="actions">
+      <a class="button primary" href="manual.html">開始使用</a>
+      <a class="button" href="changelog.html">查看新功能</a>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>聲海能幫你做什麼</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>匯入樂譜</h3>
+          <p>以 MusicXML 作為第一版主要格式，把樂譜轉成可播放、可分析、可練習的資料。</p>
+        </article>
+        <article class="card">
+          <h3>選擇聲部練習</h3>
+          <p>合唱團員可以專注自己的聲部，也能搭配播放與節拍工具練習進入點。</p>
+        </article>
+        <article class="card">
+          <h3>音準與節奏回饋</h3>
+          <p>透過目標音高時間線與麥克風追蹤，逐步建立唱準、唱穩、回顧錯誤的能力。</p>
+        </article>
+        <article class="card">
+          <h3>清楚標註譜面</h3>
+          <p>使用向量筆跡標註譜面，放大時仍保持清晰，適合記錄呼吸、換氣、咬字與指揮提醒。</p>
+        </article>
+        <article class="card">
+          <h3>練習工具</h3>
+          <p>內建節拍器、鋼琴音、標準音，讓你在練聲部前快速建立音高與節奏中心。</p>
+        </article>
+        <article class="card">
+          <h3>練習時間統計</h3>
+          <p>查看每日使用趨勢與各功能使用時間，幫助你知道自己是否穩定練習。</p>
+        </article>
+      </div>
     </section>
 
-    <footer>
-      Shenghai Alpha. Documentation last updated: 2026-06-06.
-    </footer>
+    <section>
+      <h2>新手使用流程</h2>
+      <div class="flow">
+        <div class="step">
+          <div><strong>匯入或載入樂譜</strong><span>先使用 MusicXML，之後版本會逐步強化 PDF/圖片樂譜辨識。</span></div>
+        </div>
+        <div class="step">
+          <div><strong>選擇要練的聲部</strong><span>例如 Soprano、Alto、Tenor、Bass，或你的獨唱旋律線。</span></div>
+        </div>
+        <div class="step">
+          <div><strong>播放、標註、練習</strong><span>用播放、節拍器、鋼琴與標準音建立練習基準，再把提醒寫在譜上。</span></div>
+        </div>
+        <div class="step">
+          <div><strong>追蹤表現與回饋</strong><span>查看音準偏差、練習時間與待修正處，讓下一次練習更有效。</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>目前適合誰</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>合唱團員</h3>
+          <p>快速過譜、熟悉聲部、記錄排練提醒。</p>
+        </article>
+        <article class="card">
+          <h3>聲樂初學者</h3>
+          <p>建立音準意識，追蹤每天練習習慣。</p>
+        </article>
+        <article class="card">
+          <h3>音樂學習者</h3>
+          <p>把視唱、音程、譜面標註與聲音回顧放在同一個工作流。</p>
+        </article>
+      </div>
+    </section>
   </main>
+
+  <footer>
+    聲海目前仍在 Alpha 內測階段。功能會持續更新，若遇到問題或有想法，歡迎送出回饋。
+  </footer>
 </body>
 </html>
