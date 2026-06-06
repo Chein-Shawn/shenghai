@@ -6,6 +6,8 @@ import ShenghaiCore
 struct PracticeView: View {
     @Bindable var workspace: ShenghaiWorkspace
     @State private var livePitchCapture = LivePitchCaptureService()
+    @State private var selectedMode: PracticeMode = .scoreReading
+    @State private var targetPitch: Double = 261.63
 
     private let analyzer = PitchDeviationAnalyzer()
 
@@ -21,35 +23,203 @@ struct PracticeView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                HeaderBand(
-                    title: "Practice Lab",
-                    subtitle: "Pitch feedback model preview",
-                    systemImage: "waveform.and.mic"
-                )
+        GeometryReader { proxy in
+            if proxy.size.width >= 980 {
+                HStack(alignment: .top, spacing: 0) {
+                    PracticeModeRail(selectedMode: $selectedMode)
+                        .frame(width: 230)
+                        .padding()
 
-                StatusStrip(workspace: workspace)
+                    Divider()
 
-                LivePitchPanel(livePitchCapture: livePitchCapture)
+                    PracticeStage(
+                        workspace: workspace,
+                        selectedMode: selectedMode,
+                        livePitchCapture: livePitchCapture,
+                        targetPitch: $targetPitch
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionTitle("Pitch Feedback States")
-                    ForEach(Array(mockDeviations.enumerated()), id: \.offset) { _, deviation in
-                        PitchDeviationRow(deviation: deviation)
-                    }
+                    Divider()
+
+                    PracticeInspector(
+                        workspace: workspace,
+                        livePitchCapture: livePitchCapture,
+                        targetPitch: $targetPitch,
+                        mockDeviations: mockDeviations
+                    )
+                    .frame(width: 320)
+                    .padding()
                 }
-
-                VStack(alignment: .leading, spacing: 12) {
-                    SectionTitle("Next Build Items")
-                    PipelineRow(title: "Microphone permission and live capture", state: .planned)
-                    PipelineRow(title: "Replaceable pitch tracker adapter", state: .planned)
-                    PipelineRow(title: "Score-aligned target pitch timeline", state: .planned)
-                    PipelineRow(title: "Red mark overlay on score view", state: .planned)
+            } else {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        PracticeModeRail(selectedMode: $selectedMode)
+                        PracticeStage(
+                            workspace: workspace,
+                            selectedMode: selectedMode,
+                            livePitchCapture: livePitchCapture,
+                            targetPitch: $targetPitch
+                        )
+                        PracticeInspector(
+                            workspace: workspace,
+                            livePitchCapture: livePitchCapture,
+                            targetPitch: $targetPitch,
+                            mockDeviations: mockDeviations
+                        )
+                    }
+                    .padding()
                 }
             }
-            .padding()
-            .frame(maxWidth: 980, alignment: .leading)
+        }
+    }
+}
+
+private enum PracticeMode: String, CaseIterable, Identifiable {
+    case scoreReading = "Score"
+    case memorization = "Memory"
+    case pitchDrill = "Pitch"
+    case commuteReview = "Review"
+
+    var id: String { rawValue }
+
+    var systemImage: String {
+        switch self {
+        case .scoreReading:
+            return "book.pages"
+        case .memorization:
+            return "eye.slash"
+        case .pitchDrill:
+            return "scope"
+        case .commuteReview:
+            return "tram"
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .scoreReading:
+            return "follow score"
+        case .memorization:
+            return "hide cues"
+        case .pitchDrill:
+            return "intonation"
+        case .commuteReview:
+            return "offline pass"
+        }
+    }
+}
+
+private struct PracticeModeRail: View {
+    @Binding var selectedMode: PracticeMode
+
+    var body: some View {
+        StudioPanel(title: "Modes", systemImage: "rectangle.grid.1x2") {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(PracticeMode.allCases) { mode in
+                    Button {
+                        selectedMode = mode
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: mode.systemImage)
+                                .frame(width: 22)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(mode.rawValue)
+                                    .font(.subheadline.weight(.semibold))
+                                Text(mode.caption)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                        }
+                        .padding(8)
+                        .background(selectedMode == mode ? Color.accentColor.opacity(0.14) : .clear, in: RoundedRectangle(cornerRadius: 8))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+}
+
+private struct PracticeStage: View {
+    @Bindable var workspace: ShenghaiWorkspace
+    var selectedMode: PracticeMode
+    @Bindable var livePitchCapture: LivePitchCaptureService
+    @Binding var targetPitch: Double
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(workspace.scoreSummary.title)
+                            .font(.title2.bold())
+                        Text(selectedMode.rawValue)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        if livePitchCapture.isRunning {
+                            livePitchCapture.stop()
+                        } else {
+                            livePitchCapture.start()
+                        }
+                    } label: {
+                        Label(livePitchCapture.isRunning ? "Stop" : "Start", systemImage: livePitchCapture.isRunning ? "stop.fill" : "mic.fill")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                TargetPitchCanvas(livePitchCapture: livePitchCapture, targetPitch: targetPitch)
+
+                if selectedMode == .memorization {
+                    MemoryCueStrip()
+                } else if selectedMode == .pitchDrill {
+                    PitchDrillStrip(targetPitch: $targetPitch)
+                }
+
+                if let part = workspace.selectedPart {
+                    PracticeMeasureList(part: part)
+                }
+            }
+            .padding(24)
+            .frame(maxWidth: 860, alignment: .leading)
+        }
+        .background(.quaternary.opacity(0.16))
+    }
+}
+
+private struct PracticeInspector: View {
+    @Bindable var workspace: ShenghaiWorkspace
+    @Bindable var livePitchCapture: LivePitchCaptureService
+    @Binding var targetPitch: Double
+    var mockDeviations: [PitchDeviation]
+
+    var body: some View {
+        VStack(spacing: 14) {
+            LivePitchPanel(livePitchCapture: livePitchCapture)
+
+            StudioPanel(title: "Target", systemImage: "target") {
+                VStack(alignment: .leading, spacing: 10) {
+                    ValuePill(title: "Reference", value: String(format: "%.1f Hz", targetPitch), systemImage: "waveform")
+                    Slider(value: $targetPitch, in: 196...523.25, step: 0.1)
+                }
+            }
+
+            StudioPanel(title: "Pitch States", systemImage: "chart.xyaxis.line") {
+                ForEach(Array(mockDeviations.enumerated()), id: \.offset) { _, deviation in
+                    PitchDeviationRow(deviation: deviation)
+                }
+            }
+
+            StudioPanel(title: "Build Queue", systemImage: "hammer") {
+                PipelineRow(title: "Microphone capture", state: .ready)
+                PipelineRow(title: "YIN tracker adapter", state: .ready)
+                PipelineRow(title: "Score-aligned target timeline", state: .planned)
+                PipelineRow(title: "Red mark overlay", state: .planned)
+            }
         }
     }
 }
@@ -58,24 +228,9 @@ private struct LivePitchPanel: View {
     @Bindable var livePitchCapture: LivePitchCaptureService
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        StudioPanel(title: "Live Pitch", systemImage: "waveform.and.mic") {
             HStack {
-                SectionTitle("Live Microphone Prototype")
-                Spacer()
-                Button {
-                    if livePitchCapture.isRunning {
-                        livePitchCapture.stop()
-                    } else {
-                        livePitchCapture.start()
-                    }
-                } label: {
-                    Label(livePitchCapture.isRunning ? "Stop" : "Start", systemImage: livePitchCapture.isRunning ? "stop.fill" : "mic.fill")
-                }
-                .buttonStyle(.borderedProminent)
-            }
-
-            if let latestSample = livePitchCapture.latestSample {
-                HStack(spacing: 12) {
+                if let latestSample = livePitchCapture.latestSample {
                     MetricTile(
                         title: "Frequency",
                         value: latestSample.frequencyHz.map { String(format: "%.1f Hz", $0) } ?? "No pitch",
@@ -86,10 +241,11 @@ private struct LivePitchPanel: View {
                         value: String(format: "%.2f", latestSample.confidence),
                         systemImage: "checkmark.seal"
                     )
+                } else {
+                    Text(livePitchCapture.isRunning ? "Listening..." : "Mic idle")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
                 }
-            } else {
-                Text("Start the microphone to collect YIN-based pitch samples. The current prototype is monophonic and intended for solo singing tests.")
-                    .foregroundStyle(.secondary)
             }
 
             if let errorMessage = livePitchCapture.errorMessage {
@@ -97,8 +253,116 @@ private struct LivePitchPanel: View {
                     .foregroundStyle(.red)
             }
         }
-        .padding(12)
-        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+private struct TargetPitchCanvas: View {
+    @Bindable var livePitchCapture: LivePitchCaptureService
+    var targetPitch: Double
+
+    private var latestFrequency: Double? {
+        livePitchCapture.latestSample?.frequencyHz
+    }
+
+    var body: some View {
+        StudioPanel(title: "Intonation Trace", systemImage: "waveform.path.ecg") {
+            GeometryReader { proxy in
+                ZStack(alignment: .leading) {
+                    Rectangle()
+                        .fill(.quaternary.opacity(0.22))
+                    Path { path in
+                        let midY = proxy.size.height * 0.5
+                        path.move(to: CGPoint(x: 0, y: midY))
+                        path.addLine(to: CGPoint(x: proxy.size.width, y: midY))
+                    }
+                    .stroke(.green, style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
+
+                    if let latestFrequency {
+                        Circle()
+                            .fill(abs(latestFrequency - targetPitch) < 3 ? .green : .red)
+                            .frame(width: 24, height: 24)
+                            .position(
+                                x: proxy.size.width * 0.74,
+                                y: yPosition(frequency: latestFrequency, height: proxy.size.height)
+                            )
+                    }
+
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Text("flat")
+                            Spacer()
+                            Text("target")
+                            Spacer()
+                            Text("sharp")
+                        }
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .padding(8)
+                    }
+                }
+            }
+            .frame(height: 210)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+    }
+
+    private func yPosition(frequency: Double, height: CGFloat) -> CGFloat {
+        let ratio = log2(max(frequency, 1) / max(targetPitch, 1))
+        let clamped = min(max(ratio, -0.15), 0.15)
+        return height * (0.5 - clamped / 0.3)
+    }
+}
+
+private struct MemoryCueStrip: View {
+    var body: some View {
+        StudioPanel(title: "Memory Cues", systemImage: "eye.slash") {
+            HStack {
+                ValuePill(title: "Visible", value: "Rhythm", systemImage: "metronome")
+                ValuePill(title: "Hidden", value: "Pitch names", systemImage: "eye.slash")
+            }
+        }
+    }
+}
+
+private struct PitchDrillStrip: View {
+    @Binding var targetPitch: Double
+
+    var body: some View {
+        StudioPanel(title: "Pitch Drill", systemImage: "scope") {
+            HStack {
+                Button("C4") { targetPitch = 261.63 }
+                Button("E4") { targetPitch = 329.63 }
+                Button("G4") { targetPitch = 392.00 }
+                Button("A4") { targetPitch = 440.00 }
+            }
+            .buttonStyle(.bordered)
+        }
+    }
+}
+
+private struct PracticeMeasureList: View {
+    var part: ScorePart
+
+    var body: some View {
+        StudioPanel(title: "Current Passage", systemImage: "music.note.list") {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], spacing: 10) {
+                ForEach(part.measures.prefix(8)) { measure in
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("M \(measure.number)")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(.secondary)
+                        Text(measure.notes.prefix(5).map(ScoreFormatting.noteName).joined(separator: " "))
+                            .font(.subheadline.weight(.semibold))
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading)
+                    .background(.quaternary.opacity(0.28), in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
     }
 }
 
