@@ -174,6 +174,31 @@ struct ShenghaiCoreTests {
         #expect(featureDurations[.practice] == 180)
     }
 
+    @Test func experimentalSingingSupportFeatureKeepsMedicalSafetyBoundaries() {
+        let feature = ExperimentalFeatureCatalog.singingSupportLab
+        let sessionPlan = ExperimentalFeatureCatalog.makeSingingSupportSessionPlan()
+
+        #expect(feature.id == "singing-support-lab")
+        #expect(feature.status == .prototype)
+        #expect(feature.safetyNotice.localizedCaseInsensitiveContains("not a cure"))
+        #expect(feature.notIntendedUse.contains("Curing autism or any disease."))
+        #expect(feature.protocolSteps.map(\.id) == [
+            "consent",
+            "baseline",
+            "hum",
+            "listen",
+            "respond",
+            "feedback",
+            "post"
+        ])
+        #expect(feature.trackedMetrics.contains("sensoryComfort"))
+        #expect(feature.evidenceReferences.contains { $0.domain == .autismCommunication })
+        #expect(feature.evidenceReferences.contains { $0.domain == .respiratoryHealth })
+        #expect(sessionPlan.protocolName == "Gentle Call-and-Response")
+        #expect(sessionPlan.estimatedDurationSeconds > 0)
+        #expect(sessionPlan.requiredConsentPrompts.count == 3)
+    }
+
     @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
         let sampleRate = 44_100.0
         let frequency = 440.0

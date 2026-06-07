@@ -5,6 +5,7 @@ public enum UsageFeature: String, CaseIterable, Codable, Sendable {
     case scoreComposer
     case scoreWorkspace
     case practice
+    case experimentalFeatures
     case researchStatus
     case support
     case usageStats
@@ -19,6 +20,8 @@ public enum UsageFeature: String, CaseIterable, Codable, Sendable {
             return "Score"
         case .practice:
             return "Practice"
+        case .experimentalFeatures:
+            return "Experimental"
         case .researchStatus:
             return "Research"
         case .support:

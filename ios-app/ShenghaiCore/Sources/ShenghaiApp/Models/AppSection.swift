@@ -8,6 +8,7 @@ enum AppSection: String, CaseIterable, Identifiable {
     case scoreComposer
     case scoreWorkspace
     case practice
+    case experimentalFeatures
     case researchStatus
     case support
     case usageStats
@@ -24,6 +25,8 @@ enum AppSection: String, CaseIterable, Identifiable {
             return "Score"
         case .practice:
             return "Practice"
+        case .experimentalFeatures:
+            return "Experimental"
         case .researchStatus:
             return "Research"
         case .support:
@@ -43,6 +46,8 @@ enum AppSection: String, CaseIterable, Identifiable {
             return "music.note.list"
         case .practice:
             return "waveform.and.mic"
+        case .experimentalFeatures:
+            return "testtube.2"
         case .researchStatus:
             return "book.pages"
         case .support:
@@ -62,6 +67,8 @@ enum AppSection: String, CaseIterable, Identifiable {
             return .scoreWorkspace
         case .practice:
             return .practice
+        case .experimentalFeatures:
+            return .experimentalFeatures
         case .researchStatus:
             return .researchStatus
         case .support:

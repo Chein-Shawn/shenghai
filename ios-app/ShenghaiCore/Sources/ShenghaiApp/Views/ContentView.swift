@@ -32,6 +32,8 @@ struct ContentView: View {
             ScoreWorkspaceView(workspace: workspace)
         case .practice:
             PracticeView(workspace: workspace)
+        case .experimentalFeatures:
+            ExperimentalFeaturesView()
         case .researchStatus:
             ResearchStatusView()
         case .support:
