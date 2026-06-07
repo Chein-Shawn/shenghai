@@ -145,6 +145,149 @@ public struct SingingSupportSessionPlan: Codable, Equatable, Sendable {
     }
 }
 
+public struct SingToDismissAlarmPlan: Codable, Equatable, Sendable {
+    public var featureID: String
+    public var alarmName: String
+    public var songTitle: String
+    public var scheduledHour: Int
+    public var scheduledMinute: Int
+    public var challengeTargetCoverageRatio: Double
+    public var requiredInTuneRatio: Double
+    public var minimumConfidence: Double
+    public var pitchToleranceCents: Double
+    public var platformLimitation: String
+    public var dismissalPolicy: String
+    public var targetTimeline: [TargetPitchPoint]
+    public var requiredConsentPrompts: [String]
+
+    public init(
+        featureID: String,
+        alarmName: String,
+        songTitle: String,
+        scheduledHour: Int,
+        scheduledMinute: Int,
+        challengeTargetCoverageRatio: Double,
+        requiredInTuneRatio: Double,
+        minimumConfidence: Double,
+        pitchToleranceCents: Double,
+        platformLimitation: String,
+        dismissalPolicy: String,
+        targetTimeline: [TargetPitchPoint],
+        requiredConsentPrompts: [String]
+    ) {
+        self.featureID = featureID
+        self.alarmName = alarmName
+        self.songTitle = songTitle
+        self.scheduledHour = scheduledHour
+        self.scheduledMinute = scheduledMinute
+        self.challengeTargetCoverageRatio = challengeTargetCoverageRatio
+        self.requiredInTuneRatio = requiredInTuneRatio
+        self.minimumConfidence = minimumConfidence
+        self.pitchToleranceCents = pitchToleranceCents
+        self.platformLimitation = platformLimitation
+        self.dismissalPolicy = dismissalPolicy
+        self.targetTimeline = targetTimeline
+        self.requiredConsentPrompts = requiredConsentPrompts
+    }
+}
+
+public struct SingToDismissAlarmEvaluation: Codable, Equatable, Sendable {
+    public var isDismissalUnlocked: Bool
+    public var coveredTargetRatio: Double
+    public var inTuneRatio: Double
+    public var coveredNoteCount: Int
+    public var requiredNoteCount: Int
+    public var attemptedSampleCount: Int
+    public var summary: String
+
+    public init(
+        isDismissalUnlocked: Bool,
+        coveredTargetRatio: Double,
+        inTuneRatio: Double,
+        coveredNoteCount: Int,
+        requiredNoteCount: Int,
+        attemptedSampleCount: Int,
+        summary: String
+    ) {
+        self.isDismissalUnlocked = isDismissalUnlocked
+        self.coveredTargetRatio = coveredTargetRatio
+        self.inTuneRatio = inTuneRatio
+        self.coveredNoteCount = coveredNoteCount
+        self.requiredNoteCount = requiredNoteCount
+        self.attemptedSampleCount = attemptedSampleCount
+        self.summary = summary
+    }
+}
+
+public struct SingToDismissAlarmEvaluator: Sendable {
+    public init() {}
+
+    public func evaluate(samples: [PitchSample], against plan: SingToDismissAlarmPlan) -> SingToDismissAlarmEvaluation {
+        let validSamples = samples.filter { $0.confidence >= plan.minimumConfidence && $0.frequencyHz != nil }
+        let targets = plan.targetTimeline
+
+        guard !targets.isEmpty else {
+            return SingToDismissAlarmEvaluation(
+                isDismissalUnlocked: false,
+                coveredTargetRatio: 0,
+                inTuneRatio: 0,
+                coveredNoteCount: 0,
+                requiredNoteCount: 0,
+                attemptedSampleCount: validSamples.count,
+                summary: "No target song is configured."
+            )
+        }
+
+        var coveredNoteCount = 0
+        var inTuneNoteCount = 0
+
+        for target in targets {
+            let noteDuration = max(target.duration, 0.25)
+            let windowStart = target.time - 0.12
+            let windowEnd = target.time + noteDuration + 0.12
+            let samplesInWindow = validSamples.filter { sample in
+                sample.time >= windowStart && sample.time <= windowEnd
+            }
+
+            guard !samplesInWindow.isEmpty else {
+                continue
+            }
+
+            coveredNoteCount += 1
+
+            if samplesInWindow.contains(where: { sample in
+                guard let frequencyHz = sample.frequencyHz else {
+                    return false
+                }
+                return abs(PitchDeviationAnalyzer.centsDifference(frequencyHz: frequencyHz, targetMidi: target.midi)) <= plan.pitchToleranceCents
+            }) {
+                inTuneNoteCount += 1
+            }
+        }
+
+        let targetCount = targets.count
+        let coveredTargetRatio = Double(coveredNoteCount) / Double(targetCount)
+        let inTuneRatio = coveredNoteCount == 0 ? 0 : Double(inTuneNoteCount) / Double(coveredNoteCount)
+        let requiredNoteCount = Int(ceil(plan.challengeTargetCoverageRatio * Double(targetCount)))
+        let isDismissalUnlocked = coveredTargetRatio >= plan.challengeTargetCoverageRatio
+            && inTuneRatio >= plan.requiredInTuneRatio
+
+        let summary = isDismissalUnlocked
+            ? "Dismissal unlocked after a complete enough full-song performance."
+            : "Keep singing: the app-level alarm remains unresolved until coverage and pitch targets are met."
+
+        return SingToDismissAlarmEvaluation(
+            isDismissalUnlocked: isDismissalUnlocked,
+            coveredTargetRatio: coveredTargetRatio,
+            inTuneRatio: inTuneRatio,
+            coveredNoteCount: coveredNoteCount,
+            requiredNoteCount: requiredNoteCount,
+            attemptedSampleCount: validSamples.count,
+            summary: summary
+        )
+    }
+}
+
 public enum ExperimentalFeatureCatalog {
     public static let singingSupportLab = ExperimentalFeature(
         id: "singing-support-lab",
@@ -270,8 +413,77 @@ public enum ExperimentalFeatureCatalog {
         ]
     )
 
+    public static let singToDismissAlarm = ExperimentalFeature(
+        id: "sing-to-dismiss-alarm",
+        title: "Sing-to-Dismiss Alarm",
+        subtitle: "A wake-up challenge that asks the user to sing a whole song before Shenghai marks the alarm resolved.",
+        status: .concept,
+        safetyNotice: "Experimental only. Shenghai can schedule an alert and run the singing challenge after the app opens, but it cannot guarantee an alarm keeps ringing, records, or remains impossible to stop while the app is closed, locked, powered off, muted, or blocked by system settings.",
+        intendedUse: [
+            "Motivational wake-up practice for users who want singing to be part of their morning routine.",
+            "A full-song pitch and coverage challenge inside Shenghai before the app-level alarm state is marked resolved.",
+            "Future AlarmKit exploration on newer iOS versions where Apple permits more alarm-like presentations."
+        ],
+        notIntendedUse: [
+            "Life-critical alarms, medication reminders, safety reminders, or emergency wake-up use.",
+            "Preventing the user from silencing the device, powering off the device, disabling notifications, or using system-level dismissal controls.",
+            "Continuous background microphone listening while the app is closed.",
+            "Punitive practice, sleep deprivation, or forcing singing when the user feels unwell."
+        ],
+        protocolSteps: [
+            ExperimentalProtocolStep(
+                id: "schedule",
+                title: "Schedule wake-up challenge",
+                instruction: "Choose a wake time, song template, and difficulty threshold.",
+                targetMetric: "alarmScheduled"
+            ),
+            ExperimentalProtocolStep(
+                id: "notify",
+                title: "Receive alert",
+                instruction: "Use a system notification now; evaluate AlarmKit later for iOS versions that support it.",
+                targetMetric: "alarmAlertDelivered"
+            ),
+            ExperimentalProtocolStep(
+                id: "open",
+                title: "Open Shenghai challenge",
+                instruction: "The user opens Shenghai from the alert and starts the singing challenge.",
+                targetMetric: "challengeStarted"
+            ),
+            ExperimentalProtocolStep(
+                id: "sing",
+                title: "Sing the whole song",
+                instruction: "Sing the selected song while Shenghai tracks note coverage and pitch closeness.",
+                targetMetric: "songCoverage"
+            ),
+            ExperimentalProtocolStep(
+                id: "unlock",
+                title: "Unlock app-level dismissal",
+                instruction: "Mark the alarm resolved only when the sung performance reaches the configured coverage and pitch thresholds.",
+                targetMetric: "dismissalUnlocked"
+            ),
+            ExperimentalProtocolStep(
+                id: "bypass",
+                title: "Emergency bypass",
+                instruction: "Keep a deliberate bypass path for safety, accessibility, illness, and shared-device situations.",
+                targetMetric: "emergencyBypassUsed"
+            )
+        ],
+        trackedMetrics: [
+            "alarmScheduled",
+            "alarmAlertDelivered",
+            "challengeStarted",
+            "songCoverage",
+            "inTuneRatio",
+            "attemptCount",
+            "dismissalUnlocked",
+            "emergencyBypassUsed"
+        ],
+        evidenceReferences: []
+    )
+
     public static let all: [ExperimentalFeature] = [
-        singingSupportLab
+        singingSupportLab,
+        singToDismissAlarm
     ]
 
     public static func makeSingingSupportSessionPlan(comfortLevel: String = "low") -> SingingSupportSessionPlan {
@@ -287,5 +499,56 @@ public enum ExperimentalFeatureCatalog {
                 "I will stop if I feel distress, dizziness, pain, panic, sensory overload, or breathing difficulty."
             ]
         )
+    }
+
+    public static func makeSingToDismissAlarmPlan(
+        scheduledHour: Int = 7,
+        scheduledMinute: Int = 30,
+        challengeTargetCoverageRatio: Double = 0.92,
+        requiredInTuneRatio: Double = 0.72
+    ) -> SingToDismissAlarmPlan {
+        SingToDismissAlarmPlan(
+            featureID: singToDismissAlarm.id,
+            alarmName: "Morning Singing Alarm",
+            songTitle: "Happy Birthday",
+            scheduledHour: scheduledHour,
+            scheduledMinute: scheduledMinute,
+            challengeTargetCoverageRatio: challengeTargetCoverageRatio,
+            requiredInTuneRatio: requiredInTuneRatio,
+            minimumConfidence: 0.58,
+            pitchToleranceCents: 80,
+            platformLimitation: "On iOS 17/macOS 14, Shenghai can use notifications and in-app pitch tracking, but cannot force microphone tracking or unstoppable ringing while the app is closed or the screen is off.",
+            dismissalPolicy: "The app-level alarm is resolved only after the user covers the full song and reaches the configured in-tune ratio. A safety bypass remains available.",
+            targetTimeline: happyBirthdayTargetTimeline(),
+            requiredConsentPrompts: [
+                "I understand this is a motivational challenge, not a life-critical alarm.",
+                "I understand the system alert can still be affected by notification, Focus, mute, battery, and OS settings.",
+                "I can use the emergency bypass if singing is unsafe, uncomfortable, or impossible."
+            ]
+        )
+    }
+
+    private static func happyBirthdayTargetTimeline() -> [TargetPitchPoint] {
+        let notes: [(midi: Int, duration: TimeInterval)] = [
+            (60, 0.38), (60, 0.38), (62, 0.72), (60, 0.72), (65, 0.72), (64, 1.10),
+            (60, 0.38), (60, 0.38), (62, 0.72), (60, 0.72), (67, 0.72), (65, 1.10),
+            (60, 0.38), (60, 0.38), (72, 0.72), (69, 0.72), (65, 0.72), (64, 0.72), (62, 1.10),
+            (70, 0.38), (70, 0.38), (69, 0.72), (65, 0.72), (67, 0.72), (65, 1.25)
+        ]
+
+        var time: TimeInterval = 0
+        return notes.enumerated().map { index, note in
+            defer { time += note.duration }
+            return TargetPitchPoint(
+                time: time,
+                midi: note.midi,
+                duration: note.duration,
+                partID: "happy-birthday",
+                measureNumber: String(index / 4 + 1),
+                noteID: "happy-birthday-\(index + 1)",
+                startTick: Int((time * 960).rounded()),
+                durationTick: Int((note.duration * 960).rounded())
+            )
+        }
     }
 }

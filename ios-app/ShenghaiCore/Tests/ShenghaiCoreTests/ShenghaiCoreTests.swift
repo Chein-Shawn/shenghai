@@ -199,6 +199,65 @@ struct ShenghaiCoreTests {
         #expect(sessionPlan.requiredConsentPrompts.count == 3)
     }
 
+    @Test func experimentalSingToDismissAlarmStatesPlatformBoundaries() {
+        let feature = ExperimentalFeatureCatalog.singToDismissAlarm
+        let plan = ExperimentalFeatureCatalog.makeSingToDismissAlarmPlan()
+
+        #expect(feature.id == "sing-to-dismiss-alarm")
+        #expect(ExperimentalFeatureCatalog.all.map(\.id).contains("sing-to-dismiss-alarm"))
+        #expect(feature.status == .concept)
+        #expect(feature.safetyNotice.localizedCaseInsensitiveContains("cannot guarantee"))
+        #expect(feature.notIntendedUse.contains("Life-critical alarms, medication reminders, safety reminders, or emergency wake-up use."))
+        #expect(feature.notIntendedUse.contains("Continuous background microphone listening while the app is closed."))
+        #expect(feature.protocolSteps.map(\.id) == [
+            "schedule",
+            "notify",
+            "open",
+            "sing",
+            "unlock",
+            "bypass"
+        ])
+        #expect(plan.songTitle == "Happy Birthday")
+        #expect(plan.targetTimeline.count == 25)
+        #expect(plan.platformLimitation.localizedCaseInsensitiveContains("cannot force"))
+        #expect(plan.requiredConsentPrompts.count == 3)
+    }
+
+    @Test func singToDismissAlarmRequiresFullSongCoverage() {
+        let plan = ExperimentalFeatureCatalog.makeSingToDismissAlarmPlan(
+            challengeTargetCoverageRatio: 0.90,
+            requiredInTuneRatio: 0.70
+        )
+        let evaluator = SingToDismissAlarmEvaluator()
+
+        let partialSamples = plan.targetTimeline.prefix(6).map { target in
+            PitchSample(
+                time: target.time + min(target.duration / 2, 0.2),
+                frequencyHz: PitchDeviationAnalyzer.frequencyHz(forMIDI: target.midi),
+                confidence: 0.92
+            )
+        }
+        let partialEvaluation = evaluator.evaluate(samples: partialSamples, against: plan)
+
+        #expect(!partialEvaluation.isDismissalUnlocked)
+        #expect(partialEvaluation.coveredNoteCount == 6)
+        #expect(partialEvaluation.coveredTargetRatio < 0.90)
+
+        let completeSamples = plan.targetTimeline.map { target in
+            PitchSample(
+                time: target.time + min(target.duration / 2, 0.2),
+                frequencyHz: PitchDeviationAnalyzer.frequencyHz(forMIDI: target.midi),
+                confidence: 0.96
+            )
+        }
+        let completeEvaluation = evaluator.evaluate(samples: completeSamples, against: plan)
+
+        #expect(completeEvaluation.isDismissalUnlocked)
+        #expect(completeEvaluation.coveredNoteCount == plan.targetTimeline.count)
+        #expect(completeEvaluation.inTuneRatio == 1)
+        #expect(completeEvaluation.requiredNoteCount == Int(ceil(0.90 * Double(plan.targetTimeline.count))))
+    }
+
     @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
         let sampleRate = 44_100.0
         let frequency = 440.0

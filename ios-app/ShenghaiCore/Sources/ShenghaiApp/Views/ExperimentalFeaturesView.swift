@@ -6,6 +6,8 @@ import ShenghaiCore
 struct ExperimentalFeaturesView: View {
     private let feature = ExperimentalFeatureCatalog.singingSupportLab
     private let sessionPlan = ExperimentalFeatureCatalog.makeSingingSupportSessionPlan()
+    private let alarmFeature = ExperimentalFeatureCatalog.singToDismissAlarm
+    private let alarmPlan = ExperimentalFeatureCatalog.makeSingToDismissAlarmPlan()
 
     var body: some View {
         ScrollView {
@@ -20,6 +22,7 @@ struct ExperimentalFeaturesView: View {
                 featureSummary
                 protocolPanel
                 metricPanel
+                alarmPanel
                 evidencePanel
             }
             .padding()
@@ -111,6 +114,53 @@ struct ExperimentalFeaturesView: View {
         }
     }
 
+    private var alarmPanel: some View {
+        StudioPanel(title: alarmFeature.title, systemImage: "alarm") {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(alarmFeature.subtitle)
+                    .foregroundStyle(.secondary)
+
+                Text(alarmFeature.safetyNotice)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.orange)
+
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
+                    ValuePill(title: "Demo song", value: alarmPlan.songTitle, systemImage: "music.note")
+                    ValuePill(title: "Wake time", value: formattedWakeTime, systemImage: "clock")
+                    ValuePill(title: "Coverage", value: "\(Int(alarmPlan.challengeTargetCoverageRatio * 100))%", systemImage: "checklist")
+                    ValuePill(title: "Pitch target", value: "\(Int(alarmPlan.requiredInTuneRatio * 100))%", systemImage: "waveform.path.ecg")
+                }
+
+                SectionTitle("How dismissal works")
+                Text(alarmPlan.dismissalPolicy)
+                    .foregroundStyle(.secondary)
+
+                SectionTitle("Platform boundary")
+                Text(alarmPlan.platformLimitation)
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(alarmFeature.notIntendedUse, id: \.self) { item in
+                        Label(item, systemImage: "xmark.shield")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                SectionTitle("Prototype flow")
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(alarmFeature.protocolSteps) { step in
+                        Label(step.title, systemImage: "checkmark.circle")
+                            .font(.subheadline.weight(.semibold))
+                        Text(step.instruction)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .padding(.leading, 26)
+                    }
+                }
+            }
+        }
+    }
+
     private var evidencePanel: some View {
         StudioPanel(title: "Evidence Notes", systemImage: "books.vertical") {
             VStack(alignment: .leading, spacing: 10) {
@@ -136,6 +186,10 @@ struct ExperimentalFeaturesView: View {
                 }
             }
         }
+    }
+
+    private var formattedWakeTime: String {
+        String(format: "%02d:%02d", alarmPlan.scheduledHour, alarmPlan.scheduledMinute)
     }
 }
 
