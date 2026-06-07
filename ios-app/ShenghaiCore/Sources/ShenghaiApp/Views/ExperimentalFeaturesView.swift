@@ -8,6 +8,8 @@ struct ExperimentalFeaturesView: View {
     private let sessionPlan = ExperimentalFeatureCatalog.makeSingingSupportSessionPlan()
     private let alarmFeature = ExperimentalFeatureCatalog.singToDismissAlarm
     private let alarmPlan = ExperimentalFeatureCatalog.makeSingToDismissAlarmPlan()
+    private let textRhythmFeature = ExperimentalFeatureCatalog.textRhythmSpeechLab
+    private let textRhythmPlan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan()
 
     var body: some View {
         ScrollView {
@@ -23,6 +25,7 @@ struct ExperimentalFeaturesView: View {
                 protocolPanel
                 metricPanel
                 alarmPanel
+                textRhythmPanel
                 evidencePanel
             }
             .padding()
@@ -161,13 +164,59 @@ struct ExperimentalFeaturesView: View {
         }
     }
 
+    private var textRhythmPanel: some View {
+        StudioPanel(title: textRhythmFeature.title, systemImage: "text.quote") {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(textRhythmFeature.subtitle)
+                    .foregroundStyle(.secondary)
+
+                Text(textRhythmFeature.safetyNotice)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.orange)
+
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
+                    ValuePill(title: "Category", value: textRhythmPlan.prompt.category.displayName, systemImage: "tray.full")
+                    ValuePill(title: "Tempo", value: "\(textRhythmPlan.tempoBPM) bpm", systemImage: "metronome")
+                    ValuePill(title: "Words", value: "\(textRhythmPlan.cues.count)", systemImage: "textformat")
+                    ValuePill(title: "Guide", value: textRhythmPlan.rhythmEnabled ? "On" : "Off", systemImage: "waveform")
+                }
+
+                SectionTitle("Sample prompt")
+                Text(textRhythmPlan.prompt.text)
+                    .font(.body.weight(.medium))
+                Text(textRhythmPlan.prompt.rightsNote)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                SectionTitle("Practice metrics")
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
+                    ForEach(textRhythmFeature.trackedMetrics, id: \.self) { metric in
+                        Text(metric)
+                            .font(.caption.weight(.semibold))
+                            .frame(maxWidth: .infinity, minHeight: 34)
+                            .padding(.horizontal, 10)
+                            .background(.quaternary.opacity(0.28), in: RoundedRectangle(cornerRadius: 8))
+                    }
+                }
+
+                SectionTitle("Boundary")
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(textRhythmFeature.notIntendedUse, id: \.self) { item in
+                        Label(item, systemImage: "xmark.circle")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
     private var evidencePanel: some View {
         StudioPanel(title: "Evidence Notes", systemImage: "books.vertical") {
             VStack(alignment: .leading, spacing: 10) {
                 Text("The evidence is mixed and condition-specific. Shenghai uses this section for cautious prototypes, not medical claims.")
                     .foregroundStyle(.secondary)
 
-                ForEach(feature.evidenceReferences) { reference in
+                ForEach(ExperimentalFeatureCatalog.all.flatMap(\.evidenceReferences)) { reference in
                     VStack(alignment: .leading, spacing: 6) {
                         Text(reference.title)
                             .font(.headline)

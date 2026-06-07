@@ -11,6 +11,7 @@ public enum ExperimentalEvidenceDomain: String, Codable, CaseIterable, Sendable 
     case autismCommunication
     case auditoryMotorMapping
     case aphasiaRehabilitation
+    case speechRhythmAndProsody
     case respiratoryHealth
     case parkinsonVoice
     case moodAndParticipation
@@ -24,6 +25,8 @@ public enum ExperimentalEvidenceDomain: String, Codable, CaseIterable, Sendable 
             return "Auditory-motor mapping"
         case .aphasiaRehabilitation:
             return "Aphasia rehabilitation"
+        case .speechRhythmAndProsody:
+            return "Speech rhythm and prosody"
         case .respiratoryHealth:
             return "Respiratory health"
         case .parkinsonVoice:
@@ -288,6 +291,237 @@ public struct SingToDismissAlarmEvaluator: Sendable {
     }
 }
 
+public enum TextPromptCategory: String, Codable, CaseIterable, Sendable {
+    case fiction
+    case news
+    case science
+    case poem
+    case random
+
+    public var displayName: String {
+        switch self {
+        case .fiction:
+            return "Fiction"
+        case .news:
+            return "News"
+        case .science:
+            return "Science"
+        case .poem:
+            return "Poem"
+        case .random:
+            return "Random"
+        }
+    }
+}
+
+public struct TextRhythmPrompt: Codable, Equatable, Sendable, Identifiable {
+    public var id: String
+    public var title: String
+    public var category: TextPromptCategory
+    public var text: String
+    public var rightsNote: String
+
+    public init(id: String, title: String, category: TextPromptCategory, text: String, rightsNote: String) {
+        self.id = id
+        self.title = title
+        self.category = category
+        self.text = text
+        self.rightsNote = rightsNote
+    }
+}
+
+public struct RhythmCue: Codable, Equatable, Sendable, Identifiable {
+    public var id: String
+    public var token: String
+    public var beatIndex: Int
+    public var startTime: TimeInterval
+    public var duration: TimeInterval
+    public var isStrongBeat: Bool
+
+    public init(
+        id: String,
+        token: String,
+        beatIndex: Int,
+        startTime: TimeInterval,
+        duration: TimeInterval,
+        isStrongBeat: Bool
+    ) {
+        self.id = id
+        self.token = token
+        self.beatIndex = beatIndex
+        self.startTime = startTime
+        self.duration = duration
+        self.isStrongBeat = isStrongBeat
+    }
+}
+
+public struct TextRhythmSpeechPlan: Codable, Equatable, Sendable {
+    public var featureID: String
+    public var prompt: TextRhythmPrompt
+    public var tempoBPM: Int
+    public var rhythmEnabled: Bool
+    public var cues: [RhythmCue]
+    public var trackedMetrics: [String]
+    public var requiredConsentPrompts: [String]
+
+    public init(
+        featureID: String,
+        prompt: TextRhythmPrompt,
+        tempoBPM: Int,
+        rhythmEnabled: Bool,
+        cues: [RhythmCue],
+        trackedMetrics: [String],
+        requiredConsentPrompts: [String]
+    ) {
+        self.featureID = featureID
+        self.prompt = prompt
+        self.tempoBPM = tempoBPM
+        self.rhythmEnabled = rhythmEnabled
+        self.cues = cues
+        self.trackedMetrics = trackedMetrics
+        self.requiredConsentPrompts = requiredConsentPrompts
+    }
+}
+
+public struct SpokenToken: Codable, Equatable, Sendable {
+    public var token: String
+    public var startTime: TimeInterval
+    public var duration: TimeInterval
+    public var confidence: Double
+
+    public init(token: String, startTime: TimeInterval, duration: TimeInterval, confidence: Double) {
+        self.token = token
+        self.startTime = startTime
+        self.duration = duration
+        self.confidence = confidence
+    }
+}
+
+public struct TextRhythmSpeechEvaluation: Codable, Equatable, Sendable {
+    public var clarityScore: Double
+    public var rateScore: Double
+    public var rhythmScore: Double
+    public var completionScore: Double
+    public var overallPracticeScore: Double
+    public var wordsPerMinute: Double
+    public var matchedWordCount: Int
+    public var totalWordCount: Int
+    public var summary: String
+
+    public init(
+        clarityScore: Double,
+        rateScore: Double,
+        rhythmScore: Double,
+        completionScore: Double,
+        overallPracticeScore: Double,
+        wordsPerMinute: Double,
+        matchedWordCount: Int,
+        totalWordCount: Int,
+        summary: String
+    ) {
+        self.clarityScore = clarityScore
+        self.rateScore = rateScore
+        self.rhythmScore = rhythmScore
+        self.completionScore = completionScore
+        self.overallPracticeScore = overallPracticeScore
+        self.wordsPerMinute = wordsPerMinute
+        self.matchedWordCount = matchedWordCount
+        self.totalWordCount = totalWordCount
+        self.summary = summary
+    }
+}
+
+public struct TextRhythmSpeechEvaluator: Sendable {
+    public var targetWordsPerMinuteRange: ClosedRange<Double>
+    public var rhythmToleranceSeconds: TimeInterval
+    public var minimumSpeechConfidence: Double
+
+    public init(
+        targetWordsPerMinuteRange: ClosedRange<Double> = 95...155,
+        rhythmToleranceSeconds: TimeInterval = 0.18,
+        minimumSpeechConfidence: Double = 0.55
+    ) {
+        self.targetWordsPerMinuteRange = targetWordsPerMinuteRange
+        self.rhythmToleranceSeconds = rhythmToleranceSeconds
+        self.minimumSpeechConfidence = minimumSpeechConfidence
+    }
+
+    public func evaluate(spokenTokens: [SpokenToken], against plan: TextRhythmSpeechPlan) -> TextRhythmSpeechEvaluation {
+        let expectedTokens = plan.cues.map(\.token)
+        let validTokens = spokenTokens.filter { $0.confidence >= minimumSpeechConfidence }
+        let matchedWordCount = zip(expectedTokens, validTokens).filter { expected, spoken in
+            Self.normalized(expected) == Self.normalized(spoken.token)
+        }.count
+
+        guard !expectedTokens.isEmpty else {
+            return TextRhythmSpeechEvaluation(
+                clarityScore: 0,
+                rateScore: 0,
+                rhythmScore: 0,
+                completionScore: 0,
+                overallPracticeScore: 0,
+                wordsPerMinute: 0,
+                matchedWordCount: 0,
+                totalWordCount: 0,
+                summary: "No text prompt is configured."
+            )
+        }
+
+        let completionScore = Double(min(validTokens.count, expectedTokens.count)) / Double(expectedTokens.count)
+        let clarityScore = Double(matchedWordCount) / Double(expectedTokens.count)
+        let duration = max((validTokens.last?.startTime ?? 0) + (validTokens.last?.duration ?? 0), 1)
+        let wordsPerMinute = Double(validTokens.count) / duration * 60
+        let rateScore = Self.scoreRate(wordsPerMinute, targetRange: targetWordsPerMinuteRange)
+        let rhythmScore = Self.scoreRhythm(validTokens: validTokens, cues: plan.cues, tolerance: rhythmToleranceSeconds)
+        let overallPracticeScore = 0.34 * clarityScore + 0.22 * rateScore + 0.22 * rhythmScore + 0.22 * completionScore
+        let summary = overallPracticeScore >= 0.78
+            ? "Strong practice attempt. Try turning the rhythm guide off and compare whether clarity and rate remain stable."
+            : "Keep practicing with the rhythm guide, then retest without the guide to measure transfer."
+
+        return TextRhythmSpeechEvaluation(
+            clarityScore: clarityScore,
+            rateScore: rateScore,
+            rhythmScore: rhythmScore,
+            completionScore: completionScore,
+            overallPracticeScore: overallPracticeScore,
+            wordsPerMinute: wordsPerMinute,
+            matchedWordCount: matchedWordCount,
+            totalWordCount: expectedTokens.count,
+            summary: summary
+        )
+    }
+
+    private static func normalized(_ token: String) -> String {
+        token
+            .lowercased()
+            .filter { $0.isLetter || $0.isNumber || $0 == "'" }
+    }
+
+    private static func scoreRate(_ wordsPerMinute: Double, targetRange: ClosedRange<Double>) -> Double {
+        if targetRange.contains(wordsPerMinute) {
+            return 1
+        }
+
+        let nearest = wordsPerMinute < targetRange.lowerBound ? targetRange.lowerBound : targetRange.upperBound
+        let distance = abs(wordsPerMinute - nearest)
+        return max(0, 1 - distance / 80)
+    }
+
+    private static func scoreRhythm(validTokens: [SpokenToken], cues: [RhythmCue], tolerance: TimeInterval) -> Double {
+        let pairs = zip(validTokens, cues)
+        var count = 0
+        var accumulatedScore = 0.0
+
+        for (spoken, cue) in pairs {
+            count += 1
+            let offset = abs(spoken.startTime - cue.startTime)
+            accumulatedScore += max(0, 1 - offset / tolerance)
+        }
+
+        return count == 0 ? 0 : accumulatedScore / Double(count)
+    }
+}
+
 public enum ExperimentalFeatureCatalog {
     public static let singingSupportLab = ExperimentalFeature(
         id: "singing-support-lab",
@@ -481,9 +715,104 @@ public enum ExperimentalFeatureCatalog {
         evidenceReferences: []
     )
 
+    public static let textRhythmSpeechLab = ExperimentalFeature(
+        id: "text-rhythm-speech-lab",
+        title: "Text Rhythm Speech Lab",
+        subtitle: "Turn legally usable paragraphs into rhythm-guided chanting or speech practice, then compare clarity, rate, rhythm, and completion with the guide on or off.",
+        status: .concept,
+        safetyNotice: "Experimental only. This is speech and rhythm practice, not a cure, diagnosis, medical device, or replacement for a speech-language pathologist, music therapist, physician, psychologist, or other professional care.",
+        intendedUse: [
+            "Import public-domain, licensed, or user-owned text for rhythm-guided speech practice.",
+            "Practice paragraphs by category, including fiction, news, science, poem, or random prompts.",
+            "Measure practice signals such as clarity proxy, speaking rate, rhythm alignment, completion, and guide-off transfer.",
+            "Support future speech-language or music-therapy research workflows with professional review."
+        ],
+        notIntendedUse: [
+            "Claiming that a user is cured of autism, aphasia, stuttering, dysarthria, or any disease.",
+            "Replacing speech therapy, language therapy, occupational therapy, psychotherapy, medical treatment, or music therapy.",
+            "Using copyrighted articles, books, lyrics, or news text without permission.",
+            "Forcing speech, singing, reading aloud, social behavior, or eye contact."
+        ],
+        protocolSteps: [
+            ExperimentalProtocolStep(
+                id: "rights",
+                title: "Confirm text rights",
+                instruction: "Use only public-domain, licensed, or user-owned text.",
+                targetMetric: "rightsConfirmed"
+            ),
+            ExperimentalProtocolStep(
+                id: "category",
+                title: "Choose category",
+                instruction: "Pick fiction, news, science, poem, or random to shape the reading style.",
+                targetMetric: "promptCategory"
+            ),
+            ExperimentalProtocolStep(
+                id: "rhythm",
+                title: "Generate rhythm guide",
+                instruction: "Convert words into beats with strong-beat accents and optional melodic chanting.",
+                targetMetric: "rhythmGuideGenerated"
+            ),
+            ExperimentalProtocolStep(
+                id: "guided",
+                title: "Practice with guide",
+                instruction: "Speak, chant, hum, or sing the paragraph while following the rhythm.",
+                targetMetric: "guidedAttemptCompleted"
+            ),
+            ExperimentalProtocolStep(
+                id: "unguided",
+                title: "Retest without guide",
+                instruction: "Turn the guide off and compare whether clarity, rate, and rhythm remain stable.",
+                targetMetric: "guideOffTransfer"
+            ),
+            ExperimentalProtocolStep(
+                id: "review",
+                title: "Review scores",
+                instruction: "Show clarity, rate, rhythm alignment, completion, and trend over time.",
+                targetMetric: "practiceFeedback"
+            )
+        ],
+        trackedMetrics: [
+            "clarityScore",
+            "wordsPerMinute",
+            "rateScore",
+            "rhythmAlignment",
+            "completionScore",
+            "guideOffTransfer",
+            "category",
+            "userStoppedOrSkipped"
+        ],
+        evidenceReferences: [
+            ExperimentalEvidenceReference(
+                id: "mit-meta-analysis-2022",
+                title: "Melodic Intonation Therapy for aphasia: multi-level meta-analysis",
+                domain: .aphasiaRehabilitation,
+                finding: "MIT research studies speech, rhythm, intonation, and formulaic language, but transfer and generalization should be interpreted cautiously.",
+                appUse: "Treat rhythm-guided paragraph reading as practice tracking, not proof of clinical recovery.",
+                sourceURL: URL(string: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9804200/")!
+            ),
+            ExperimentalEvidenceReference(
+                id: "rhythm-disordered-speech-entrainment",
+                title: "Rhythm as a Coordinating Device: Entrainment With Disordered Speech",
+                domain: .speechRhythmAndProsody,
+                finding: "External rhythm can coordinate timing in speech tasks, but individual response varies.",
+                appUse: "Offer rhythm scaffolding and guide-off transfer tests instead of a single pass/fail label.",
+                sourceURL: URL(string: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4084711/")!
+            ),
+            ExperimentalEvidenceReference(
+                id: "speech-envelope-entrainment",
+                title: "Speech intelligibility predicted from neural entrainment of the speech envelope",
+                domain: .speechRhythmAndProsody,
+                finding: "Speech intelligibility relates to temporal envelope tracking in perception research.",
+                appUse: "Use rhythm and rate metrics as speech-practice signals while avoiding diagnostic claims.",
+                sourceURL: URL(string: "https://pubmed.ncbi.nlm.nih.gov/29464412/")!
+            )
+        ]
+    )
+
     public static let all: [ExperimentalFeature] = [
         singingSupportLab,
-        singToDismissAlarm
+        singToDismissAlarm,
+        textRhythmSpeechLab
     ]
 
     public static func makeSingingSupportSessionPlan(comfortLevel: String = "low") -> SingingSupportSessionPlan {
@@ -548,6 +877,85 @@ public enum ExperimentalFeatureCatalog {
                 noteID: "happy-birthday-\(index + 1)",
                 startTick: Int((time * 960).rounded()),
                 durationTick: Int((note.duration * 960).rounded())
+            )
+        }
+    }
+
+    public static func makeTextRhythmSpeechPlan(
+        category: TextPromptCategory = .science,
+        tempoBPM: Int = 96,
+        rhythmEnabled: Bool = true
+    ) -> TextRhythmSpeechPlan {
+        let prompt = sampleTextRhythmPrompt(category: category)
+        let secondsPerBeat = 60.0 / Double(max(tempoBPM, 40))
+        let tokens = prompt.text.split(separator: " ").map(String.init)
+        let cues = tokens.enumerated().map { index, token in
+            RhythmCue(
+                id: "cue-\(index + 1)",
+                token: token,
+                beatIndex: index,
+                startTime: Double(index) * secondsPerBeat,
+                duration: secondsPerBeat,
+                isStrongBeat: index.isMultiple(of: 4)
+            )
+        }
+
+        return TextRhythmSpeechPlan(
+            featureID: textRhythmSpeechLab.id,
+            prompt: prompt,
+            tempoBPM: tempoBPM,
+            rhythmEnabled: rhythmEnabled,
+            cues: cues,
+            trackedMetrics: textRhythmSpeechLab.trackedMetrics,
+            requiredConsentPrompts: [
+                "I understand this is experimental practice feedback, not a cure or diagnosis.",
+                "I have permission to use this text.",
+                "I can stop, skip, or turn off the rhythm guide at any time."
+            ]
+        )
+    }
+
+    private static func sampleTextRhythmPrompt(category: TextPromptCategory) -> TextRhythmPrompt {
+        switch category {
+        case .fiction:
+            return TextRhythmPrompt(
+                id: "sample-fiction",
+                title: "A Clear Morning",
+                category: .fiction,
+                text: "The morning light crossed the quiet room and made every small sound feel gentle.",
+                rightsNote: "Original Shenghai sample text."
+            )
+        case .news:
+            return TextRhythmPrompt(
+                id: "sample-news",
+                title: "Local Practice Notice",
+                category: .news,
+                text: "The choir will meet tonight to rehearse entrances dynamics and final consonants.",
+                rightsNote: "Original Shenghai sample text."
+            )
+        case .science:
+            return TextRhythmPrompt(
+                id: "sample-science",
+                title: "Sound and Motion",
+                category: .science,
+                text: "A steady rhythm can help speech movements become easier to plan and repeat.",
+                rightsNote: "Original Shenghai sample text."
+            )
+        case .poem:
+            return TextRhythmPrompt(
+                id: "sample-poem",
+                title: "Small Wave",
+                category: .poem,
+                text: "Voice rises softly then returns like water resting after song.",
+                rightsNote: "Original Shenghai sample text."
+            )
+        case .random:
+            return TextRhythmPrompt(
+                id: "sample-random",
+                title: "Warm Up",
+                category: .random,
+                text: "Read slowly breathe gently follow the pulse then speak freely again.",
+                rightsNote: "Original Shenghai sample text."
             )
         }
     }

@@ -258,6 +258,56 @@ struct ShenghaiCoreTests {
         #expect(completeEvaluation.requiredNoteCount == Int(ceil(0.90 * Double(plan.targetTimeline.count))))
     }
 
+    @Test func textRhythmSpeechLabKeepsRightsAndMedicalBoundaries() {
+        let feature = ExperimentalFeatureCatalog.textRhythmSpeechLab
+        let plan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .science, tempoBPM: 96)
+
+        #expect(feature.id == "text-rhythm-speech-lab")
+        #expect(ExperimentalFeatureCatalog.all.map(\.id).contains("text-rhythm-speech-lab"))
+        #expect(feature.safetyNotice.localizedCaseInsensitiveContains("not a cure"))
+        #expect(feature.notIntendedUse.contains("Claiming that a user is cured of autism, aphasia, stuttering, dysarthria, or any disease."))
+        #expect(feature.notIntendedUse.contains("Using copyrighted articles, books, lyrics, or news text without permission."))
+        #expect(feature.protocolSteps.map(\.id) == [
+            "rights",
+            "category",
+            "rhythm",
+            "guided",
+            "unguided",
+            "review"
+        ])
+        #expect(plan.prompt.category == .science)
+        #expect(plan.tempoBPM == 96)
+        #expect(plan.cues.count == plan.prompt.text.split(separator: " ").count)
+        #expect(plan.cues.first?.isStrongBeat == true)
+        #expect(plan.requiredConsentPrompts.count == 3)
+        #expect(feature.evidenceReferences.contains { $0.domain == .speechRhythmAndProsody })
+    }
+
+    @Test func textRhythmSpeechEvaluatorScoresGuidedReadingAttempt() {
+        let plan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .poem, tempoBPM: 100)
+        let spoken = plan.cues.map { cue in
+            SpokenToken(
+                token: cue.token,
+                startTime: cue.startTime + 0.03,
+                duration: cue.duration * 0.65,
+                confidence: 0.88
+            )
+        }
+        let evaluation = TextRhythmSpeechEvaluator().evaluate(spokenTokens: spoken, against: plan)
+
+        #expect(evaluation.clarityScore == 1)
+        #expect(evaluation.completionScore == 1)
+        #expect(evaluation.rhythmScore > 0.80)
+        #expect(evaluation.rateScore > 0.60)
+        #expect(evaluation.overallPracticeScore > 0.78)
+
+        let incomplete = Array(spoken.prefix(3))
+        let incompleteEvaluation = TextRhythmSpeechEvaluator().evaluate(spokenTokens: incomplete, against: plan)
+
+        #expect(incompleteEvaluation.completionScore < 0.50)
+        #expect(incompleteEvaluation.overallPracticeScore < evaluation.overallPracticeScore)
+    }
+
     @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
         let sampleRate = 44_100.0
         let frequency = 440.0
