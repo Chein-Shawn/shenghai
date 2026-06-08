@@ -8,7 +8,7 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 20) {
                 HeaderBand(
                     title: "Alpha 0",
-                    subtitle: "MusicXML practice pipeline",
+                    subtitle: "Scan, correct, and practice from editable MusicXML",
                     systemImage: "music.quarternote.3"
                 )
 
@@ -25,13 +25,14 @@ struct DashboardView: View {
                     SectionTitle("MVP Chain")
                     PipelineRow(title: "MusicXML composer", state: .ready)
                     PipelineRow(title: "MusicXML import", state: .ready)
+                    PipelineRow(title: "PDF/image -> editable MusicXML review", state: .ready, detail: "Main workflow gate: check scanned notes, lyrics, directions, repeats, and layout before practice.")
                     PipelineRow(title: "ScoreDocument wrapper", state: .ready)
                     PipelineRow(title: "MIDI event timeline", state: .ready)
                     PipelineRow(title: "MIDI playback/export", state: .ready)
                     PipelineRow(title: "Experimental Singing Support Lab", state: .ready, detail: "Non-medical research prototype with safety guardrails.")
                     PipelineRow(title: "Experimental Sing-to-Dismiss Alarm", state: .planned, detail: "Full-song in-app challenge model exists; OS-level alarm behavior depends on platform APIs.")
                     PipelineRow(title: "Experimental Text Rhythm Speech Lab", state: .planned, detail: "Paragraph rhythm guide and speech-practice scoring model exists.")
-                    PipelineRow(title: "PDF/image OMR", state: .blocked, detail: "Waiting for Audiveris release install or JDK 25.")
+                    PipelineRow(title: "External OMR engine execution", state: .planned, detail: "homr/oemer/Audiveris execution still runs outside the Apple app, then imports MusicXML.")
                     PipelineRow(title: "Real microphone pitch tracking", state: .planned, detail: "Core deviation model exists; live tracker is next.")
                 }
             }

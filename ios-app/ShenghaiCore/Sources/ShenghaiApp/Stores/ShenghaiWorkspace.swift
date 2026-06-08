@@ -21,6 +21,7 @@ final class ShenghaiWorkspace {
     var isImportingScore = false
     var isPlaying = false
     var selectedOMRProvider: OMRProvider = .homr
+    var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
     let usageTracking = UsageTrackingStore()
 
     private let importer = MusicXMLImporter()
@@ -67,6 +68,7 @@ final class ShenghaiWorkspace {
 
             let importedScore = try importer.importDocument(url: url)
             setScore(importedScore)
+            createScanReviewCandidate(sourceName: url.lastPathComponent, inputKind: .musicXML)
             statusMessage = "Imported \(url.lastPathComponent)."
             errorMessage = nil
         } catch {
@@ -90,6 +92,22 @@ final class ShenghaiWorkspace {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func createScanReviewCandidate(sourceName: String = "Current scanned score", inputKind: OMRInputKind = .image) {
+        guard let score else {
+            errorMessage = "Load or import a MusicXML candidate first."
+            return
+        }
+
+        scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
+            sourceName: sourceName,
+            inputKind: inputKind,
+            provider: selectedOMRProvider,
+            score: score
+        )
+        statusMessage = "Created editable MusicXML review candidate."
+        errorMessage = nil
     }
 
     func loadComposedScore(_ composedScore: ComposedScore) {
@@ -154,6 +172,7 @@ final class ShenghaiWorkspace {
         selectedPartID = newScore.parts.first?.id
         exportedMIDIURL = nil
         exportedMusicXMLURL = nil
+        scannedMusicXMLCandidate = nil
     }
 }
 
@@ -176,7 +195,7 @@ struct ScoreSummary {
             return
         }
 
-        title = selectedPart?.name ?? score.parts.first?.name ?? "Imported score"
+        title = score.metadata.title ?? selectedPart?.name ?? score.parts.first?.name ?? "Imported score"
         partCount = score.parts.count
         measureCount = selectedPart?.measures.count ?? 0
         let notes = selectedPart?.measures.flatMap(\.notes) ?? []

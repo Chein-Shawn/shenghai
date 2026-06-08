@@ -83,7 +83,7 @@
     <h1 data-zh="聲海使用手冊" data-en="Shenghai User Guide">聲海使用手冊</h1>
     <p class="lead" data-zh="這份手冊給第一次使用聲海的歌者、合唱團員與內測者。你不需要懂工程或演算法，只要照著流程，就能開始把樂譜變成可練習、可追蹤的聲音訓練。" data-en="This guide is for first-time Shenghai users, choir singers, and testers. You do not need to understand engineering or algorithms; follow the workflow and start turning scores into practice you can hear, track, and improve.">這份手冊給第一次使用聲海的歌者、合唱團員與內測者。你不需要懂工程或演算法，只要照著流程，就能開始把樂譜變成可練習、可追蹤的聲音訓練。</p>
 
-    <h2 data-zh="第一步：建立或載入樂譜" data-en="Step 1: Create or Load a Score">第一步：建立或載入樂譜</h2>
+    <h2 data-zh="第一步：掃描、校正或建立樂譜" data-en="Step 1: Scan, Correct, or Create a Score">第一步：掃描、校正或建立樂譜</h2>
     <div class="panel">
       <h3 data-zh="自己打譜：Compose" data-en="Compose your own score">自己打譜：Compose</h3>
       <ol>
@@ -96,24 +96,26 @@
     </div>
 
     <div class="panel">
-      <h3 data-zh="目前建議格式：MusicXML" data-en="Recommended format: MusicXML">目前建議格式：MusicXML</h3>
+      <h3 data-zh="主要格式：可校正的 MusicXML" data-en="Main format: editable MusicXML">主要格式：可校正的 MusicXML</h3>
       <ol>
         <li data-zh="打開 App，進入 Score。" data-en="Open the app and go to Score.">打開 App，進入 Score。</li>
-        <li data-zh="載入示範樂譜，或匯入自己的 MusicXML 檔案。" data-en="Load the sample score or import your own MusicXML file.">載入示範樂譜，或匯入自己的 MusicXML 檔案。</li>
-        <li data-zh="確認樂譜標題、聲部、小節與音符數量是否合理。" data-en="Check that title, parts, measures, and note counts look reasonable.">確認樂譜標題、聲部、小節與音符數量是否合理。</li>
+        <li data-zh="從 PDF/圖片辨識出的 MusicXML、自己打譜產生的 MusicXML，或既有 MusicXML 檔案開始。" data-en="Start from MusicXML recognized from a PDF/image, MusicXML created in Compose, or an existing MusicXML file.">從 PDF/圖片辨識出的 MusicXML、自己打譜產生的 MusicXML，或既有 MusicXML 檔案開始。</li>
+        <li data-zh="在 Full-Score MusicXML Review 檢查標題、聲部、小節、音符、休止符、歌詞、力度、速度文字、反覆記號與版面。" data-en="Use Full-Score MusicXML Review to check title, parts, measures, notes, rests, lyrics, dynamics, tempo text, repeats, and layout.">在 Full-Score MusicXML Review 檢查標題、聲部、小節、音符、休止符、歌詞、力度、速度文字、反覆記號與版面。</li>
+        <li data-zh="修正 MusicXML 後，再用同一份檔案進行標註、播放、音準回饋與練習紀錄。" data-en="After correcting the MusicXML, use the same file for annotation, playback, pitch feedback, and practice history.">修正 MusicXML 後，再用同一份檔案進行標註、播放、音準回饋與練習紀錄。</li>
       </ol>
-      <p class="tip" data-zh="如果你手上是 PDF 或圖片樂譜，之後版本會逐步支援辨識。現階段可以先用 MuseScore、掃譜工具或其他 OMR 工具轉成 MusicXML。" data-en="If your score is a PDF or image, recognition will improve in later versions. For now, convert it to MusicXML with MuseScore, scanning tools, or external OMR tools.">如果你手上是 PDF 或圖片樂譜，之後版本會逐步支援辨識。現階段可以先用 MuseScore、掃譜工具或其他 OMR 工具轉成 MusicXML。</p>
+      <p class="tip" data-zh="聲海的主流程是先把樂譜變成可校正 MusicXML，再讓使用者確認掃描結果。OMR 可能出錯，所以校正門檻是正式練習前的必要步驟。" data-en="Shenghai's main workflow is to turn the score into editable MusicXML first, then let the user verify the scan. OMR can be wrong, so the correction gate is required before serious practice.">聲海的主流程是先把樂譜變成可校正 MusicXML，再讓使用者確認掃描結果。OMR 可能出錯，所以校正門檻是正式練習前的必要步驟。</p>
     </div>
 
     <div class="panel">
-      <h3 data-zh="PDF/圖片樂譜：選擇 homr 或 oemer" data-en="PDF/image scores: choose homr or oemer">PDF/圖片樂譜：選擇 homr 或 oemer</h3>
+      <h3 data-zh="PDF/圖片樂譜：辨識成完整 MusicXML 候選稿" data-en="PDF/image scores: recognize a full MusicXML candidate">PDF/圖片樂譜：辨識成完整 MusicXML 候選稿</h3>
       <ol>
         <li data-zh="進入 Score 的 OMR Review 區塊。" data-en="Go to the OMR Review section in Score.">進入 Score 的 OMR Review 區塊。</li>
         <li data-zh="選擇 homr 或 oemer。" data-en="Choose homr or oemer.">選擇 homr 或 oemer。</li>
-        <li data-zh="依照 App 顯示的外部流程提示，將樂譜圖片轉成 MusicXML。" data-en="Follow the external workflow hints to convert score images into MusicXML.">依照 App 顯示的外部流程提示，將樂譜圖片轉成 MusicXML。</li>
-        <li data-zh="把產生的 MusicXML 匯入聲海，繼續做聲部練習與播放驗證。" data-en="Import the resulting MusicXML into Shenghai for part practice and playback checks.">把產生的 MusicXML 匯入聲海，繼續做聲部練習與播放驗證。</li>
+        <li data-zh="依照 App 顯示的外部流程提示，將 PDF/圖片轉成 MusicXML 候選稿。" data-en="Follow the external workflow hints to convert the PDF/image into a MusicXML candidate.">依照 App 顯示的外部流程提示，將 PDF/圖片轉成 MusicXML 候選稿。</li>
+        <li data-zh="匯入候選稿後，使用 Full-Score MusicXML Review 檢查所有頁面資訊。" data-en="After importing the candidate, use Full-Score MusicXML Review to check all page information.">匯入候選稿後，使用 Full-Score MusicXML Review 檢查所有頁面資訊。</li>
+        <li data-zh="校正錯誤後，再進入聲部練習、譜面標註、播放驗證與音準追蹤。" data-en="After correcting errors, continue to part practice, score annotation, playback validation, and pitch tracking.">校正錯誤後，再進入聲部練習、譜面標註、播放驗證與音準追蹤。</li>
       </ol>
-      <p class="tip" data-zh="homr/oemer 目前不是直接在 App 內執行；它們是外部辨識流程選項。這樣可以先測辨識品質，同時避免要求所有使用者安裝研究工具。" data-en="homr/oemer are not running inside the app yet; they are external recognition workflow options. This lets us test quality without asking every user to install research tools.">homr/oemer 目前不是直接在 App 內執行；它們是外部辨識流程選項。這樣可以先測辨識品質，同時避免要求所有使用者安裝研究工具。</p>
+      <p class="tip" data-zh="目標不是只辨識音符，而是盡量把 PDF/圖片上的標題、聲部、音符、休止符、歌詞、力度、速度文字、反覆記號與版面資訊都轉成可編輯 MusicXML。" data-en="The goal is not only note recognition. Shenghai should preserve title, parts, notes, rests, lyrics, dynamics, tempo text, repeats, and layout-relevant information as editable MusicXML whenever possible.">目標不是只辨識音符，而是盡量把 PDF/圖片上的標題、聲部、音符、休止符、歌詞、力度、速度文字、反覆記號與版面資訊都轉成可編輯 MusicXML。</p>
     </div>
 
     <h2 data-zh="第二步：選擇聲部" data-en="Step 2: Choose a Part">第二步：選擇聲部</h2>

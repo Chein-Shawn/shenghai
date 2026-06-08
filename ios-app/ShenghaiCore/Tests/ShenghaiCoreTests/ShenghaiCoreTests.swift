@@ -47,6 +47,33 @@ struct ShenghaiCoreTests {
         #expect(score.parts[0].measures[1].notes[2].durationTick == 960)
     }
 
+    @Test func importsMusicXMLLyricsMetadataAndDirectionsForScanReview() throws {
+        let score = try MusicXMLImporter().importDocument(data: Data(Self.lyricDirectionMusicXML.utf8))
+
+        #expect(score.metadata.title == "Birthday Scan")
+        #expect(score.metadata.composer == "Traditional")
+        #expect(score.metadata.lyricist == "Public domain")
+        #expect(score.parts[0].measures[0].directions.map(\.value).contains("rit."))
+        #expect(score.parts[0].measures[0].directions.map(\.value).contains("mf"))
+        #expect(score.parts[0].measures[0].notes[0].lyrics.first?.text == "Hap")
+        #expect(score.parts[0].measures[0].notes[0].lyrics.first?.syllabic == "begin")
+        #expect(score.parts[0].measures[0].notes[1].lyrics.first?.text == "py")
+        #expect(score.parts[0].measures[0].notes[1].lyrics.first?.syllabic == "end")
+
+        let candidate = OMRMusicXMLCandidateBuilder.makeCandidate(
+            sourceName: "birthday.png",
+            inputKind: .image,
+            provider: .homr,
+            score: score
+        )
+
+        #expect(candidate.canEnterPracticeWorkflow)
+        #expect(candidate.recognizedElements.first(where: { $0.kind == .metadata })?.count == 3)
+        #expect(candidate.recognizedElements.first(where: { $0.kind == .lyrics })?.count == 2)
+        #expect(candidate.recognizedElements.first(where: { $0.kind == .directions })?.count == 2)
+        #expect(candidate.reviewChecklist.first?.contains("every staff") == true)
+    }
+
     @Test func createsPlaybackEventsAndMIDIData() throws {
         let score = try MusicXMLImporter().importDocument(data: Data(Self.twinkleMusicXML.utf8))
         let events = MIDIWriter.playbackEvents(for: score)
@@ -410,6 +437,49 @@ struct ShenghaiCoreTests {
           <note>
             <pitch><step>G</step><octave>4</octave></pitch>
             <duration>2</duration><type>half</type>
+          </note>
+        </measure>
+      </part>
+    </score-partwise>
+    """
+
+    private static let lyricDirectionMusicXML = """
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <score-partwise version="4.0">
+      <work><work-title>Birthday Scan</work-title></work>
+      <identification>
+        <creator type="composer">Traditional</creator>
+        <creator type="lyricist">Public domain</creator>
+      </identification>
+      <part-list>
+        <score-part id="P1">
+          <part-name>Voice</part-name>
+        </score-part>
+      </part-list>
+      <part id="P1">
+        <measure number="1">
+          <attributes>
+            <divisions>1</divisions>
+            <time>
+              <beats>2</beats>
+              <beat-type>4</beat-type>
+            </time>
+          </attributes>
+          <direction placement="above">
+            <direction-type>
+              <words>rit.</words>
+              <dynamics><mf/></dynamics>
+            </direction-type>
+          </direction>
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+            <lyric number="1"><syllabic>begin</syllabic><text>Hap</text></lyric>
+          </note>
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>1</duration><type>quarter</type>
+            <lyric number="1"><syllabic>end</syllabic><text>py</text></lyric>
           </note>
         </measure>
       </part>

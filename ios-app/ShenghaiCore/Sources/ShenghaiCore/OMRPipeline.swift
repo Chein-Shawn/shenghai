@@ -8,9 +8,11 @@ public enum OMRInputKind: String, Codable, Sendable {
 
 public enum OMRPipelineStage: String, Codable, CaseIterable, Sendable {
     case captureOrImport
+    case fullPageElementCapture
     case imagePreprocessing
     case omrRecognition
     case musicXMLExport
+    case editableMusicXMLReview
     case scoreDocumentImport
     case manualCorrection
     case playbackValidation
@@ -97,9 +99,11 @@ public struct OMRPipelinePlan: Codable, Equatable, Sendable {
             provider: provider,
             stages: [
                 OMRStagePlan(stage: .captureOrImport, status: .ready, note: "Use iOS document/photo import or macOS file import."),
+                OMRStagePlan(stage: .fullPageElementCapture, status: .planned, note: "Capture notes, rests, lyrics, dynamics, tempo text, articulations, repeats, and layout-critical markings into editable MusicXML."),
                 OMRStagePlan(stage: .imagePreprocessing, status: .planned, note: "Prioritize de-skew, contrast normalization, and clean binarization before recognition."),
                 OMRStagePlan(stage: .omrRecognition, status: .planned, note: recognitionNote(for: provider)),
                 OMRStagePlan(stage: .musicXMLExport, status: .ready, note: "MusicXML remains the canonical interchange output."),
+                OMRStagePlan(stage: .editableMusicXMLReview, status: .ready, note: "User checks the scanned MusicXML candidate before using it for notes, playback, and practice feedback."),
                 OMRStagePlan(stage: .scoreDocumentImport, status: .ready, note: "Existing MusicXMLImporter converts the output into ScoreDocument."),
                 OMRStagePlan(stage: .manualCorrection, status: .planned, note: "Needed because OMR accuracy is not perfect, especially with dense scores."),
                 OMRStagePlan(stage: .playbackValidation, status: .ready, note: "Existing MIDIWriter can validate playable notes after import.")
@@ -113,6 +117,135 @@ public struct OMRPipelinePlan: Codable, Equatable, Sendable {
         }
 
         return "Use \(provider.displayName) outside the app, then import its MusicXML output."
+    }
+}
+
+public enum OMRRecognizedElementKind: String, Codable, CaseIterable, Sendable {
+    case metadata
+    case parts
+    case measures
+    case notes
+    case rests
+    case lyrics
+    case directions
+    case repeats
+    case layout
+
+    public var displayName: String {
+        switch self {
+        case .metadata:
+            return "Title and credits"
+        case .parts:
+            return "Parts and staves"
+        case .measures:
+            return "Measures"
+        case .notes:
+            return "Notes"
+        case .rests:
+            return "Rests"
+        case .lyrics:
+            return "Lyrics"
+        case .directions:
+            return "Directions and markings"
+        case .repeats:
+            return "Repeats"
+        case .layout:
+            return "Layout"
+        }
+    }
+}
+
+public struct OMRRecognizedElementSummary: Codable, Equatable, Sendable, Identifiable {
+    public var id: String { kind.rawValue }
+    public var kind: OMRRecognizedElementKind
+    public var count: Int
+    public var needsUserReview: Bool
+    public var note: String
+
+    public init(kind: OMRRecognizedElementKind, count: Int, needsUserReview: Bool, note: String) {
+        self.kind = kind
+        self.count = count
+        self.needsUserReview = needsUserReview
+        self.note = note
+    }
+}
+
+public struct OMRMusicXMLCandidate: Codable, Equatable, Sendable, Identifiable {
+    public var id: String
+    public var sourceName: String
+    public var inputKind: OMRInputKind
+    public var provider: OMRProvider
+    public var score: ScoreDocument
+    public var recognizedElements: [OMRRecognizedElementSummary]
+    public var reviewChecklist: [String]
+    public var canEnterPracticeWorkflow: Bool
+
+    public init(
+        id: String = UUID().uuidString,
+        sourceName: String,
+        inputKind: OMRInputKind,
+        provider: OMRProvider,
+        score: ScoreDocument,
+        recognizedElements: [OMRRecognizedElementSummary],
+        reviewChecklist: [String],
+        canEnterPracticeWorkflow: Bool
+    ) {
+        self.id = id
+        self.sourceName = sourceName
+        self.inputKind = inputKind
+        self.provider = provider
+        self.score = score
+        self.recognizedElements = recognizedElements
+        self.reviewChecklist = reviewChecklist
+        self.canEnterPracticeWorkflow = canEnterPracticeWorkflow
+    }
+}
+
+public enum OMRMusicXMLCandidateBuilder {
+    public static func makeCandidate(
+        sourceName: String,
+        inputKind: OMRInputKind,
+        provider: OMRProvider,
+        score: ScoreDocument
+    ) -> OMRMusicXMLCandidate {
+        let measures = score.parts.flatMap(\.measures)
+        let notes = measures.flatMap(\.notes)
+        let lyricCount = notes.flatMap(\.lyrics).count
+        let directionCount = measures.flatMap(\.directions).count
+        let repeatCount = measures.filter { $0.repeatStart || $0.repeatEnd }.count
+        let metadataCount = [
+            score.metadata.title,
+            score.metadata.composer,
+            score.metadata.lyricist,
+            score.metadata.arranger,
+            score.metadata.copyright
+        ].compactMap { $0 }.count
+
+        let summaries = [
+            OMRRecognizedElementSummary(kind: .metadata, count: metadataCount, needsUserReview: true, note: "Check title, composer, lyricist, arranger, and copyright."),
+            OMRRecognizedElementSummary(kind: .parts, count: score.parts.count, needsUserReview: true, note: "Check SATB/instrument names and staff mapping."),
+            OMRRecognizedElementSummary(kind: .measures, count: measures.count, needsUserReview: true, note: "Check measure count, time signature changes, and barlines."),
+            OMRRecognizedElementSummary(kind: .notes, count: notes.filter { !$0.isRest }.count, needsUserReview: true, note: "Check pitch, octave, rhythm, ties, and voice assignment."),
+            OMRRecognizedElementSummary(kind: .rests, count: notes.filter { $0.isRest }.count, needsUserReview: true, note: "Check rests and empty measures."),
+            OMRRecognizedElementSummary(kind: .lyrics, count: lyricCount, needsUserReview: lyricCount > 0, note: "Check syllables, hyphenation, melisma, and verse numbers."),
+            OMRRecognizedElementSummary(kind: .directions, count: directionCount, needsUserReview: directionCount > 0, note: "Check tempo words, dynamics, rehearsal text, and expressive markings."),
+            OMRRecognizedElementSummary(kind: .repeats, count: repeatCount, needsUserReview: repeatCount > 0, note: "Check repeat starts, endings, D.C./D.S., coda, and expanded playback order."),
+            OMRRecognizedElementSummary(kind: .layout, count: 0, needsUserReview: true, note: "Check page/system layout visually against the source PDF or image.")
+        ]
+
+        return OMRMusicXMLCandidate(
+            sourceName: sourceName,
+            inputKind: inputKind,
+            provider: provider,
+            score: score,
+            recognizedElements: summaries,
+            reviewChecklist: [
+                "Compare every staff, measure, note, rest, lyric, dynamic, tempo word, repeat, and rehearsal marking against the original PDF/image.",
+                "Correct the MusicXML candidate first; then use the corrected file for annotation, playback, pitch tracking, and practice history.",
+                "Do not treat OMR output as final until playback and visual review both pass."
+            ],
+            canEnterPracticeWorkflow: !score.parts.isEmpty && !notes.isEmpty
+        )
     }
 }
 

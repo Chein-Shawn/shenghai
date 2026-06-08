@@ -111,7 +111,7 @@ struct ScoreWorkspaceView: View {
                 ContentUnavailableView(
                     "No Score Loaded",
                     systemImage: "music.note.list",
-                    description: Text("Import a MusicXML file or load the built-in demo.")
+                    description: Text("Import MusicXML, or convert a PDF/image score into an editable MusicXML candidate and review it here.")
                 )
             }
         }
@@ -430,6 +430,70 @@ private struct ScoreInspectorPanel: View {
                 }
             }
 
+            StudioPanel(title: "Full-Score MusicXML Review", systemImage: "doc.badge.magnifyingglass") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Main scan workflow: PDF/image score -> MusicXML candidate -> user correction -> annotations, playback, pitch tracking, and practice history.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    Button {
+                        workspace.createScanReviewCandidate()
+                    } label: {
+                        Label("Create Review Candidate", systemImage: "checklist")
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    let candidate = workspace.scannedMusicXMLCandidate ?? OMRMusicXMLCandidateBuilder.makeCandidate(
+                        sourceName: "Current score",
+                        inputKind: .musicXML,
+                        provider: workspace.selectedOMRProvider,
+                        score: score
+                    )
+
+                    HStack {
+                        ValuePill(title: "Source", value: candidate.inputKind.rawValue, systemImage: "doc")
+                        ValuePill(title: "Provider", value: candidate.provider.displayName, systemImage: "wand.and.stars")
+                    }
+
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 8)], spacing: 8) {
+                        ForEach(candidate.recognizedElements) { item in
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack {
+                                    Text("\(item.count)")
+                                        .font(.headline)
+                                    Spacer()
+                                    Image(systemName: item.needsUserReview ? "exclamationmark.circle" : "checkmark.circle")
+                                        .foregroundStyle(item.needsUserReview ? .orange : .green)
+                                }
+                                Text(item.kind.displayName)
+                                    .font(.caption.weight(.semibold))
+                                Text(item.note)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(3)
+                            }
+                            .padding(8)
+                            .background(.quaternary.opacity(0.25), in: RoundedRectangle(cornerRadius: 8))
+                        }
+                    }
+
+                    SectionTitle("Review checklist")
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(candidate.reviewChecklist, id: \.self) { item in
+                            Label(item, systemImage: "square.and.pencil")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    PipelineRow(
+                        title: "Ready for practice after review",
+                        state: candidate.canEnterPracticeWorkflow ? .ready : .blocked,
+                        detail: candidate.canEnterPracticeWorkflow ? "Candidate has score data; review/correct before practice." : "Candidate has no usable notes."
+                    )
+                }
+            }
+
             StudioPanel(title: "OMR Review", systemImage: "doc.viewfinder") {
                 Picker("Provider", selection: $workspace.selectedOMRProvider) {
                     ForEach(OMRProvider.allCases, id: \.self) { provider in
@@ -442,8 +506,8 @@ private struct ScoreInspectorPanel: View {
                 OMRProviderSummary(provider: workspace.selectedOMRProvider)
 
                 PipelineRow(title: "MusicXML parsed", state: .ready, detail: "\(workspace.scoreSummary.noteCount) notes")
-                PipelineRow(title: "\(workspace.selectedOMRProvider.displayName) external OMR", state: .planned, detail: "Run outside the app, then import generated MusicXML.")
-                PipelineRow(title: "Manual correction layer", state: .planned)
+                PipelineRow(title: "\(workspace.selectedOMRProvider.displayName) full-score OMR", state: .planned, detail: "Run provider, import generated MusicXML, then validate every recognized element.")
+                PipelineRow(title: "Editable MusicXML correction gate", state: .ready, detail: "Correct candidate first; then use it for notes, annotations, playback, and practice.")
                 PipelineRow(title: "Repeat expansion audit", state: .planned)
             }
         }
@@ -651,6 +715,18 @@ private struct StaffMeasureView: View {
                     .foregroundStyle(.secondary)
             }
 
+            if !measure.directions.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(measure.directions) { direction in
+                        Text(direction.value)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(.yellow.opacity(0.22), in: RoundedRectangle(cornerRadius: 6))
+                    }
+                }
+            }
+
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     VStack(spacing: 10) {
@@ -725,6 +801,13 @@ private struct NoteGlyph: View {
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
+            if let lyricText = note.lyrics.first?.text {
+                Text(lyricText)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
         }
         .help(ScoreFormatting.durationLabel(ticks: note.durationTick, ticksPerQuarter: ticksPerQuarter))
     }

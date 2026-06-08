@@ -28,6 +28,8 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
     private var currentPartMeasures: [ScoreMeasure] = []
     private var parts: [ScorePart] = []
     private var expandedMeasureOrder: [ExpandedMeasure] = []
+    private var metadata = ScoreMetadata()
+    private var creatorType: String?
 
     private var globalDivisions = 1
     private var activeDivisions = 1
@@ -40,15 +42,21 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
     private var currentMeasureBeatType: Int?
     private var currentMeasureRepeatStart = false
     private var currentMeasureRepeatEnd = false
+    private var currentMeasureDirections: [ScoreDirection] = []
     private var currentTick = 0
 
     private var inNote = false
+    private var inDirection = false
+    private var directionPlacement: String?
     private var noteStep: String?
     private var noteAlter = 0
     private var noteOctave: Int?
     private var noteDuration = 0
     private var noteType: String?
     private var noteIsRest = false
+    private var noteLyrics: [ScoreLyric] = []
+    private var lyricNumber: String?
+    private var lyricSyllabic: String?
 
     public init(tempoBPM: Int = 96, ticksPerQuarter: Int = 480) {
         self.defaultTempoBPM = tempoBPM
@@ -70,6 +78,7 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         }
 
         return ScoreDocument(
+            metadata: metadata,
             divisions: globalDivisions,
             ticksPerQuarter: ticksPerQuarter,
             tempoBPM: parsedTempoBPM ?? defaultTempoBPM,
@@ -105,10 +114,28 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         case "measure":
             currentMeasureNumber = attributeDict["number"] ?? "\(currentPartMeasures.count + 1)"
             currentMeasureNotes = []
+            currentMeasureDirections = []
             currentMeasureBeats = activeBeats
             currentMeasureBeatType = activeBeatType
             currentMeasureRepeatStart = false
             currentMeasureRepeatEnd = false
+        case "creator":
+            creatorType = attributeDict["type"]
+        case "direction":
+            inDirection = true
+            directionPlacement = attributeDict["placement"]
+        case "p", "pp", "ppp", "f", "ff", "fff", "mp", "mf", "sfz", "fp":
+            if inDirection, isInside("dynamics") {
+                currentMeasureDirections.append(
+                    ScoreDirection(
+                        id: "\(currentPartID ?? "part")-\(currentMeasureNumber ?? "measure")-dynamic-\(currentMeasureDirections.count)",
+                        kind: "dynamics",
+                        value: elementName,
+                        placement: directionPlacement,
+                        tick: currentTick
+                    )
+                )
+            }
         case "note":
             inNote = true
             noteStep = nil
@@ -117,6 +144,14 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             noteDuration = 0
             noteType = nil
             noteIsRest = false
+            noteLyrics = []
+            lyricNumber = nil
+            lyricSyllabic = nil
+        case "lyric":
+            if inNote {
+                lyricNumber = attributeDict["number"]
+                lyricSyllabic = nil
+            }
         case "rest":
             if inNote {
                 noteIsRest = true
@@ -152,6 +187,17 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         let value = textBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
 
         switch elementName {
+        case "work-title", "movement-title":
+            if !value.isEmpty, metadata.title == nil {
+                metadata.title = value
+            }
+        case "creator":
+            assignCreator(value)
+            creatorType = nil
+        case "rights":
+            if !value.isEmpty {
+                metadata.copyright = value
+            }
         case "part-name":
             if let scorePartID, !value.isEmpty {
                 partNames[scorePartID] = value
@@ -191,6 +237,36 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             if inNote {
                 noteType = value.isEmpty ? nil : value
             }
+        case "syllabic":
+            if inNote, isInside("lyric") {
+                lyricSyllabic = value.isEmpty ? nil : value
+            }
+        case "text":
+            if inNote, isInside("lyric"), !value.isEmpty {
+                noteLyrics.append(
+                    ScoreLyric(
+                        id: "\(currentPartID ?? "part")-\(currentMeasureNumber ?? "measure")-lyric-\(currentMeasureNotes.count)-\(noteLyrics.count)",
+                        number: lyricNumber,
+                        syllabic: lyricSyllabic,
+                        text: value
+                    )
+                )
+            }
+        case "words":
+            if inDirection, !value.isEmpty {
+                currentMeasureDirections.append(
+                    ScoreDirection(
+                        id: "\(currentPartID ?? "part")-\(currentMeasureNumber ?? "measure")-direction-\(currentMeasureDirections.count)",
+                        kind: "words",
+                        value: value,
+                        placement: directionPlacement,
+                        tick: currentTick
+                    )
+                )
+            }
+        case "direction":
+            inDirection = false
+            directionPlacement = nil
         case "note":
             finishNote()
         case "measure":
@@ -223,6 +299,8 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         currentPartMeasures = []
         parts = []
         expandedMeasureOrder = []
+        metadata = ScoreMetadata()
+        creatorType = nil
         globalDivisions = 1
         activeDivisions = 1
         parsedTempoBPM = nil
@@ -230,11 +308,18 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         activeBeatType = nil
         currentMeasureNumber = nil
         currentMeasureNotes = []
+        currentMeasureDirections = []
         currentMeasureBeats = nil
         currentMeasureBeatType = nil
         currentMeasureRepeatStart = false
         currentMeasureRepeatEnd = false
         currentTick = 0
+        inNote = false
+        inDirection = false
+        directionPlacement = nil
+        noteLyrics = []
+        lyricNumber = nil
+        lyricSyllabic = nil
     }
 
     private func finishNote() {
@@ -256,11 +341,15 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             isRest: noteIsRest,
             midi: midi,
             startTick: currentTick,
-            durationTick: durationTick
+            durationTick: durationTick,
+            lyrics: noteLyrics
         )
         currentMeasureNotes.append(note)
         currentTick += durationTick
         inNote = false
+        noteLyrics = []
+        lyricNumber = nil
+        lyricSyllabic = nil
     }
 
     private func finishMeasure() {
@@ -272,6 +361,7 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
                 beatType: currentMeasureBeatType,
                 repeatStart: currentMeasureRepeatStart,
                 repeatEnd: currentMeasureRepeatEnd,
+                directions: currentMeasureDirections,
                 notes: currentMeasureNotes
             )
         )
@@ -280,6 +370,7 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         }
         currentMeasureNumber = nil
         currentMeasureNotes = []
+        currentMeasureDirections = []
         currentMeasureBeats = nil
         currentMeasureBeatType = nil
         currentMeasureRepeatStart = false
@@ -319,5 +410,24 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
 
     private func isInside(_ elementName: String) -> Bool {
         elementStack.contains(elementName)
+    }
+
+    private func assignCreator(_ value: String) {
+        guard !value.isEmpty else {
+            return
+        }
+
+        switch creatorType?.lowercased() {
+        case "composer":
+            metadata.composer = value
+        case "lyricist":
+            metadata.lyricist = value
+        case "arranger":
+            metadata.arranger = value
+        default:
+            if metadata.composer == nil {
+                metadata.composer = value
+            }
+        }
     }
 }

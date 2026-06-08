@@ -155,6 +155,7 @@ public enum MusicXMLComposer {
         let expandedOrder = measures.map { ExpandedMeasure(partID: part.id, measureNumber: $0.number) }
         return ScoreDocument(
             sourceFormat: "Shenghai Composer",
+            metadata: ScoreMetadata(title: composedScore.title.trimmedOrFallback("Untitled Shenghai Score")),
             divisions: divisions,
             ticksPerQuarter: ticksPerQuarter,
             tempoBPM: composedScore.tempoBPM,
