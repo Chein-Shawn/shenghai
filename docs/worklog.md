@@ -139,3 +139,49 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added note-entry controls for pitch step, accidental, octave, duration, rests, undo, clear, load into Score, and MusicXML sharing.
 - Updated user-facing site/manual/changelog with the new Compose workflow.
 - Added a round-trip test for `ComposedScore -> MusicXML -> MusicXMLImporter`.
+
+## Codex 實作工作日誌｜2026-06-07
+
+### Done
+
+- Added the `Experimental` area to Shenghai as a place for research-heavy features that are not part of the main MVP loop.
+- Added `Sing-to-Dismiss Alarm` using a full-song completion check rather than a short humming shortcut.
+- Used `Happy Birthday` as the first built-in full-song alarm template.
+- Added `Text Rhythm Speech Lab` for rhythm-guided speech and paragraph-singing practice.
+- Added scoring for clarity, rate, rhythm, completion, and overall practice quality in the experimental speech lab.
+- Added user-facing docs for both experimental features:
+  - `docs/experimental-sing-to-dismiss-alarm-2026-06-07.md`
+  - `docs/experimental-text-rhythm-speech-lab-2026-06-07.md`
+- Updated the public site, manual, and changelog to expose the new experimental features.
+- Validated Swift tests after the experimental feature additions.
+
+### Encountered / Discovered
+
+- Apple platform background rules do not allow Shenghai to guarantee a true "sing to stop alarm" experience while the app is fully closed, the device is locked, or recording is unavailable. The practical first version is notification-driven re-entry into the app, then singing inside Shenghai.
+- The speech-lab feature should be framed as rhythm-guided speech practice and progress tracking, not as diagnosis, treatment, or a cure claim.
+
+## Codex 實作工作日誌｜2026-06-08
+
+### Done
+
+- Expanded the public changelog history so earlier completed work is visible to users.
+- Removed the public-facing `目前限制` section from the changelog as requested.
+- Made `PDF/image -> editable MusicXML review` a main workflow in the app and support site.
+- Added a `Full-Score MusicXML Review` panel so users can inspect recognized score content before relying on it downstream.
+- Extended the core score model and importer to preserve more score information from MusicXML, including:
+  - score metadata
+  - lyrics
+  - direction words such as `rit.`
+  - dynamics
+- Added scan-candidate review summaries for parts, measures, notes, rests, lyrics, directions, repeats, and layout checks.
+- Added `docs/full-score-musicxml-scan-workflow-2026-06-08.md` to describe the intended OMR-to-review pipeline.
+- Extended the paragraph-singing feature to support English, Chinese, and mixed bilingual text in one session.
+- Replaced the old English-only token assumptions with phrase-based segmentation driven by punctuation and line breaks.
+- Added phrase-language detection, phrase-aware rhythm cue generation, phrase-match scoring, and `phrasesPerMinute` evaluation.
+- Updated the Experimental UI, manual, and public site to show bilingual phrase segmentation and phrase-based scoring.
+- Validated Swift tests after the full-score review workflow and bilingual speech-lab changes.
+
+### Encountered / Discovered
+
+- Real PDF/image recognition is still an external OMR step. Shenghai now handles the review, correction, and downstream use of generated MusicXML, but the actual visual recognition still depends on homr, oemer, Audiveris, or another OMR engine.
+- The first phrase-rate thresholds were still too English-biased and under-scored Chinese phrase practice. The evaluator needed recalibration to use a more appropriate phrase-per-minute target range for Chinese and mixed-language sessions.
