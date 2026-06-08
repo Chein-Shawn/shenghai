@@ -172,6 +172,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - `MusicXML 打譜與匯出`
   - `Text Rhythm Speech Lab`
   - `Sing-to-Dismiss Alarm`
+- Merged the duplicate Notion feature `唱歌輔助語言治療` into `Sing to Speech Lab` and moved the old page under the merged feature as a child note to remove it from the active Features database.
 - Made `PDF/image -> editable MusicXML review` a main workflow in the app and support site.
 - Added a `Full-Score MusicXML Review` panel so users can inspect recognized score content before relying on it downstream.
 - Extended the core score model and importer to preserve more score information from MusicXML, including:
