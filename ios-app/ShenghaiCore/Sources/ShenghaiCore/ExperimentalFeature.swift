@@ -314,25 +314,122 @@ public enum TextPromptCategory: String, Codable, CaseIterable, Sendable {
     }
 }
 
+public enum TextLanguageMode: String, Codable, CaseIterable, Sendable {
+    case english
+    case chinese
+    case mixedBilingual
+
+    public var displayName: String {
+        switch self {
+        case .english:
+            return "English"
+        case .chinese:
+            return "Chinese"
+        case .mixedBilingual:
+            return "Mixed bilingual"
+        }
+    }
+}
+
+public enum TextSegmentationMode: String, Codable, CaseIterable, Sendable {
+    case word
+    case character
+    case phrase
+
+    public var displayName: String {
+        switch self {
+        case .word:
+            return "Word"
+        case .character:
+            return "Character"
+        case .phrase:
+            return "Phrase"
+        }
+    }
+}
+
+public enum PhraseBoundaryStrategy: String, Codable, CaseIterable, Sendable {
+    case punctuationAndLineBreaks
+
+    public var displayName: String {
+        switch self {
+        case .punctuationAndLineBreaks:
+            return "Punctuation + line breaks"
+        }
+    }
+}
+
+public enum TextPhraseLanguage: String, Codable, CaseIterable, Sendable {
+    case english
+    case chinese
+    case mixed
+
+    public var displayName: String {
+        switch self {
+        case .english:
+            return "English"
+        case .chinese:
+            return "Chinese"
+        case .mixed:
+            return "Mixed"
+        }
+    }
+}
+
 public struct TextRhythmPrompt: Codable, Equatable, Sendable, Identifiable {
     public var id: String
     public var title: String
     public var category: TextPromptCategory
+    public var languageMode: TextLanguageMode
     public var text: String
     public var rightsNote: String
 
-    public init(id: String, title: String, category: TextPromptCategory, text: String, rightsNote: String) {
+    public init(
+        id: String,
+        title: String,
+        category: TextPromptCategory,
+        languageMode: TextLanguageMode,
+        text: String,
+        rightsNote: String
+    ) {
         self.id = id
         self.title = title
         self.category = category
+        self.languageMode = languageMode
         self.text = text
         self.rightsNote = rightsNote
+    }
+}
+
+public struct TextRhythmPhrase: Codable, Equatable, Sendable, Identifiable {
+    public var id: String
+    public var text: String
+    public var language: TextPhraseLanguage
+    public var startCueIndex: Int
+    public var cueCount: Int
+    public var normalizedText: String
+
+    public init(
+        id: String,
+        text: String,
+        language: TextPhraseLanguage,
+        startCueIndex: Int,
+        cueCount: Int,
+        normalizedText: String
+    ) {
+        self.id = id
+        self.text = text
+        self.language = language
+        self.startCueIndex = startCueIndex
+        self.cueCount = cueCount
+        self.normalizedText = normalizedText
     }
 }
 
 public struct RhythmCue: Codable, Equatable, Sendable, Identifiable {
     public var id: String
     public var token: String
+    public var phraseID: String
     public var beatIndex: Int
     public var startTime: TimeInterval
     public var duration: TimeInterval
@@ -341,6 +438,7 @@ public struct RhythmCue: Codable, Equatable, Sendable, Identifiable {
     public init(
         id: String,
         token: String,
+        phraseID: String,
         beatIndex: Int,
         startTime: TimeInterval,
         duration: TimeInterval,
@@ -348,6 +446,7 @@ public struct RhythmCue: Codable, Equatable, Sendable, Identifiable {
     ) {
         self.id = id
         self.token = token
+        self.phraseID = phraseID
         self.beatIndex = beatIndex
         self.startTime = startTime
         self.duration = duration
@@ -358,8 +457,12 @@ public struct RhythmCue: Codable, Equatable, Sendable, Identifiable {
 public struct TextRhythmSpeechPlan: Codable, Equatable, Sendable {
     public var featureID: String
     public var prompt: TextRhythmPrompt
+    public var languageMode: TextLanguageMode
+    public var segmentationMode: TextSegmentationMode
+    public var phraseBoundaryStrategy: PhraseBoundaryStrategy
     public var tempoBPM: Int
     public var rhythmEnabled: Bool
+    public var phrases: [TextRhythmPhrase]
     public var cues: [RhythmCue]
     public var trackedMetrics: [String]
     public var requiredConsentPrompts: [String]
@@ -367,16 +470,24 @@ public struct TextRhythmSpeechPlan: Codable, Equatable, Sendable {
     public init(
         featureID: String,
         prompt: TextRhythmPrompt,
+        languageMode: TextLanguageMode,
+        segmentationMode: TextSegmentationMode,
+        phraseBoundaryStrategy: PhraseBoundaryStrategy,
         tempoBPM: Int,
         rhythmEnabled: Bool,
+        phrases: [TextRhythmPhrase],
         cues: [RhythmCue],
         trackedMetrics: [String],
         requiredConsentPrompts: [String]
     ) {
         self.featureID = featureID
         self.prompt = prompt
+        self.languageMode = languageMode
+        self.segmentationMode = segmentationMode
+        self.phraseBoundaryStrategy = phraseBoundaryStrategy
         self.tempoBPM = tempoBPM
         self.rhythmEnabled = rhythmEnabled
+        self.phrases = phrases
         self.cues = cues
         self.trackedMetrics = trackedMetrics
         self.requiredConsentPrompts = requiredConsentPrompts
@@ -402,10 +513,14 @@ public struct TextRhythmSpeechEvaluation: Codable, Equatable, Sendable {
     public var rateScore: Double
     public var rhythmScore: Double
     public var completionScore: Double
+    public var phraseMatchScore: Double
     public var overallPracticeScore: Double
-    public var wordsPerMinute: Double
-    public var matchedWordCount: Int
-    public var totalWordCount: Int
+    public var phrasesPerMinute: Double
+    public var wordsPerMinute: Double?
+    public var matchedCueCount: Int
+    public var totalCueCount: Int
+    public var matchedPhraseCount: Int
+    public var totalPhraseCount: Int
     public var summary: String
 
     public init(
@@ -413,67 +528,91 @@ public struct TextRhythmSpeechEvaluation: Codable, Equatable, Sendable {
         rateScore: Double,
         rhythmScore: Double,
         completionScore: Double,
+        phraseMatchScore: Double,
         overallPracticeScore: Double,
-        wordsPerMinute: Double,
-        matchedWordCount: Int,
-        totalWordCount: Int,
+        phrasesPerMinute: Double,
+        wordsPerMinute: Double?,
+        matchedCueCount: Int,
+        totalCueCount: Int,
+        matchedPhraseCount: Int,
+        totalPhraseCount: Int,
         summary: String
     ) {
         self.clarityScore = clarityScore
         self.rateScore = rateScore
         self.rhythmScore = rhythmScore
         self.completionScore = completionScore
+        self.phraseMatchScore = phraseMatchScore
         self.overallPracticeScore = overallPracticeScore
+        self.phrasesPerMinute = phrasesPerMinute
         self.wordsPerMinute = wordsPerMinute
-        self.matchedWordCount = matchedWordCount
-        self.totalWordCount = totalWordCount
+        self.matchedCueCount = matchedCueCount
+        self.totalCueCount = totalCueCount
+        self.matchedPhraseCount = matchedPhraseCount
+        self.totalPhraseCount = totalPhraseCount
         self.summary = summary
     }
 }
 
 public struct TextRhythmSpeechEvaluator: Sendable {
     public var targetWordsPerMinuteRange: ClosedRange<Double>
+    public var targetPhrasesPerMinuteRange: ClosedRange<Double>
     public var rhythmToleranceSeconds: TimeInterval
     public var minimumSpeechConfidence: Double
 
     public init(
         targetWordsPerMinuteRange: ClosedRange<Double> = 95...155,
+        targetPhrasesPerMinuteRange: ClosedRange<Double> = 45...130,
         rhythmToleranceSeconds: TimeInterval = 0.18,
         minimumSpeechConfidence: Double = 0.55
     ) {
         self.targetWordsPerMinuteRange = targetWordsPerMinuteRange
+        self.targetPhrasesPerMinuteRange = targetPhrasesPerMinuteRange
         self.rhythmToleranceSeconds = rhythmToleranceSeconds
         self.minimumSpeechConfidence = minimumSpeechConfidence
     }
 
     public func evaluate(spokenTokens: [SpokenToken], against plan: TextRhythmSpeechPlan) -> TextRhythmSpeechEvaluation {
-        let expectedTokens = plan.cues.map(\.token)
         let validTokens = spokenTokens.filter { $0.confidence >= minimumSpeechConfidence }
-        let matchedWordCount = zip(expectedTokens, validTokens).filter { expected, spoken in
-            Self.normalized(expected) == Self.normalized(spoken.token)
+        let expectedCues = plan.cues
+        let matchedCueCount = zip(expectedCues, validTokens).filter { expected, spoken in
+            Self.normalized(expected.token, languageMode: plan.languageMode) == Self.normalized(spoken.token, languageMode: plan.languageMode)
         }.count
 
-        guard !expectedTokens.isEmpty else {
+        guard !plan.phrases.isEmpty, !expectedCues.isEmpty else {
             return TextRhythmSpeechEvaluation(
                 clarityScore: 0,
                 rateScore: 0,
                 rhythmScore: 0,
                 completionScore: 0,
+                phraseMatchScore: 0,
                 overallPracticeScore: 0,
-                wordsPerMinute: 0,
-                matchedWordCount: 0,
-                totalWordCount: 0,
+                phrasesPerMinute: 0,
+                wordsPerMinute: nil,
+                matchedCueCount: 0,
+                totalCueCount: 0,
+                matchedPhraseCount: 0,
+                totalPhraseCount: 0,
                 summary: "No text prompt is configured."
             )
         }
 
-        let completionScore = Double(min(validTokens.count, expectedTokens.count)) / Double(expectedTokens.count)
-        let clarityScore = Double(matchedWordCount) / Double(expectedTokens.count)
+        let completionScore = Double(min(validTokens.count, expectedCues.count)) / Double(expectedCues.count)
+        let clarityScore = Double(matchedCueCount) / Double(expectedCues.count)
+        let matchedPhraseCount = matchedPhraseCount(validTokens: validTokens, plan: plan)
+        let phraseMatchScore = Double(matchedPhraseCount) / Double(plan.phrases.count)
         let duration = max((validTokens.last?.startTime ?? 0) + (validTokens.last?.duration ?? 0), 1)
-        let wordsPerMinute = Double(validTokens.count) / duration * 60
-        let rateScore = Self.scoreRate(wordsPerMinute, targetRange: targetWordsPerMinuteRange)
+        let phrasesPerMinute = Double(matchedPhraseCount) / duration * 60
+        let wordsPerMinute = plan.languageMode == .english ? Double(validTokens.count) / duration * 60 : nil
+        let rateScore = Self.scoreRate(
+            phrasesPerMinute: phrasesPerMinute,
+            wordsPerMinute: wordsPerMinute,
+            languageMode: plan.languageMode,
+            wordTargetRange: targetWordsPerMinuteRange,
+            phraseTargetRange: targetPhrasesPerMinuteRange
+        )
         let rhythmScore = Self.scoreRhythm(validTokens: validTokens, cues: plan.cues, tolerance: rhythmToleranceSeconds)
-        let overallPracticeScore = 0.34 * clarityScore + 0.22 * rateScore + 0.22 * rhythmScore + 0.22 * completionScore
+        let overallPracticeScore = 0.28 * clarityScore + 0.18 * rateScore + 0.18 * rhythmScore + 0.18 * completionScore + 0.18 * phraseMatchScore
         let summary = overallPracticeScore >= 0.78
             ? "Strong practice attempt. Try turning the rhythm guide off and compare whether clarity and rate remain stable."
             : "Keep practicing with the rhythm guide, then retest without the guide to measure transfer."
@@ -483,28 +622,87 @@ public struct TextRhythmSpeechEvaluator: Sendable {
             rateScore: rateScore,
             rhythmScore: rhythmScore,
             completionScore: completionScore,
+            phraseMatchScore: phraseMatchScore,
             overallPracticeScore: overallPracticeScore,
+            phrasesPerMinute: phrasesPerMinute,
             wordsPerMinute: wordsPerMinute,
-            matchedWordCount: matchedWordCount,
-            totalWordCount: expectedTokens.count,
+            matchedCueCount: matchedCueCount,
+            totalCueCount: expectedCues.count,
+            matchedPhraseCount: matchedPhraseCount,
+            totalPhraseCount: plan.phrases.count,
             summary: summary
         )
     }
 
-    private static func normalized(_ token: String) -> String {
-        token
-            .lowercased()
-            .filter { $0.isLetter || $0.isNumber || $0 == "'" }
+    private func matchedPhraseCount(validTokens: [SpokenToken], plan: TextRhythmSpeechPlan) -> Int {
+        plan.phrases.reduce(0) { result, phrase in
+            let startIndex = phrase.startCueIndex
+            let endIndex = phrase.startCueIndex + phrase.cueCount
+            guard startIndex >= 0,
+                  endIndex <= plan.cues.count,
+                  endIndex <= validTokens.count else {
+                return result
+            }
+
+            let spokenSlice = Array(validTokens[startIndex..<endIndex])
+            let spokenText = spokenSlice.map(\.token).joined(separator: phrase.language == .english ? " " : "")
+            let normalizedSpoken = Self.normalized(spokenText, languageMode: languageMode(for: phrase.language))
+            return normalizedSpoken == phrase.normalizedText ? result + 1 : result
+        }
     }
 
-    private static func scoreRate(_ wordsPerMinute: Double, targetRange: ClosedRange<Double>) -> Double {
-        if targetRange.contains(wordsPerMinute) {
+    private static func normalized(_ text: String, languageMode: TextLanguageMode) -> String {
+        switch languageMode {
+        case .english:
+            return text
+                .lowercased()
+                .filter { $0.isLetter || $0.isNumber || $0 == "'" }
+        case .chinese:
+            return text.filter { character in
+                let scalar = character.unicodeScalars.first
+                return scalar?.properties.isIdeographic == true
+            }
+        case .mixedBilingual:
+            return text
+                .lowercased()
+                .filter { character in
+                    if character == "'" {
+                        return true
+                    }
+                    if character.unicodeScalars.allSatisfy({ $0.properties.isIdeographic }) {
+                        return true
+                    }
+                    return character.isLetter || character.isNumber
+                }
+        }
+    }
+
+    private static func scoreRate(
+        phrasesPerMinute: Double,
+        wordsPerMinute: Double?,
+        languageMode: TextLanguageMode,
+        wordTargetRange: ClosedRange<Double>,
+        phraseTargetRange: ClosedRange<Double>
+    ) -> Double {
+        switch languageMode {
+        case .english:
+            if let wordsPerMinute {
+                return boundedRateScore(wordsPerMinute, targetRange: wordTargetRange, falloff: 80)
+            }
+            return 0
+        case .chinese, .mixedBilingual:
+            return boundedRateScore(phrasesPerMinute, targetRange: phraseTargetRange, falloff: 80)
+        }
+    }
+
+    private static func boundedRateScore(_ value: Double, targetRange: ClosedRange<Double>, falloff: Double) -> Double {
+        if targetRange.contains(value) {
             return 1
         }
 
-        let nearest = wordsPerMinute < targetRange.lowerBound ? targetRange.lowerBound : targetRange.upperBound
-        let distance = abs(wordsPerMinute - nearest)
-        return max(0, 1 - distance / 80)
+        let nearest = value < targetRange.lowerBound ? targetRange.lowerBound : targetRange.upperBound
+        let distance = abs(value - nearest)
+        return max(0, 1 - distance / max(falloff, 1))
     }
 
     private static func scoreRhythm(validTokens: [SpokenToken], cues: [RhythmCue], tolerance: TimeInterval) -> Double {
@@ -519,6 +717,17 @@ public struct TextRhythmSpeechEvaluator: Sendable {
         }
 
         return count == 0 ? 0 : accumulatedScore / Double(count)
+    }
+
+    private func languageMode(for phraseLanguage: TextPhraseLanguage) -> TextLanguageMode {
+        switch phraseLanguage {
+        case .english:
+            return .english
+        case .chinese:
+            return .chinese
+        case .mixed:
+            return .mixedBilingual
+        }
     }
 }
 
@@ -718,13 +927,13 @@ public enum ExperimentalFeatureCatalog {
     public static let textRhythmSpeechLab = ExperimentalFeature(
         id: "text-rhythm-speech-lab",
         title: "Text Rhythm Speech Lab",
-        subtitle: "Turn legally usable paragraphs into rhythm-guided chanting or speech practice, then compare clarity, rate, rhythm, and completion with the guide on or off.",
+        subtitle: "Turn legally usable English, Chinese, or mixed bilingual paragraphs into rhythm-guided speech or chanting practice, then compare clarity, rate, rhythm, phrase match, and completion with the guide on or off.",
         status: .concept,
         safetyNotice: "Experimental only. This is speech and rhythm practice, not a cure, diagnosis, medical device, or replacement for a speech-language pathologist, music therapist, physician, psychologist, or other professional care.",
         intendedUse: [
             "Import public-domain, licensed, or user-owned text for rhythm-guided speech practice.",
-            "Practice paragraphs by category, including fiction, news, science, poem, or random prompts.",
-            "Measure practice signals such as clarity proxy, speaking rate, rhythm alignment, completion, and guide-off transfer.",
+            "Practice English, Chinese, and mixed bilingual paragraphs by category, including fiction, news, science, poem, or random prompts.",
+            "Measure practice signals such as clarity proxy, speaking rate, rhythm alignment, phrase match, completion, and guide-off transfer.",
             "Support future speech-language or music-therapy research workflows with professional review."
         ],
         notIntendedUse: [
@@ -749,7 +958,7 @@ public enum ExperimentalFeatureCatalog {
             ExperimentalProtocolStep(
                 id: "rhythm",
                 title: "Generate rhythm guide",
-                instruction: "Convert words into beats with strong-beat accents and optional melodic chanting.",
+                instruction: "Split text by punctuation and line breaks, then convert each phrase into rhythm cues with bilingual-aware timing.",
                 targetMetric: "rhythmGuideGenerated"
             ),
             ExperimentalProtocolStep(
@@ -767,16 +976,18 @@ public enum ExperimentalFeatureCatalog {
             ExperimentalProtocolStep(
                 id: "review",
                 title: "Review scores",
-                instruction: "Show clarity, rate, rhythm alignment, completion, and trend over time.",
+                instruction: "Show clarity, rate, rhythm alignment, phrase match, completion, and trend over time.",
                 targetMetric: "practiceFeedback"
             )
         ],
         trackedMetrics: [
             "clarityScore",
+            "phrasesPerMinute",
             "wordsPerMinute",
             "rateScore",
             "rhythmAlignment",
             "completionScore",
+            "phraseMatchScore",
             "guideOffTransfer",
             "category",
             "userStoppedOrSkipped"
@@ -882,29 +1093,58 @@ public enum ExperimentalFeatureCatalog {
     }
 
     public static func makeTextRhythmSpeechPlan(
-        category: TextPromptCategory = .science,
+        category: TextPromptCategory = .random,
         tempoBPM: Int = 96,
         rhythmEnabled: Bool = true
     ) -> TextRhythmSpeechPlan {
         let prompt = sampleTextRhythmPrompt(category: category)
         let secondsPerBeat = 60.0 / Double(max(tempoBPM, 40))
-        let tokens = prompt.text.split(separator: " ").map(String.init)
-        let cues = tokens.enumerated().map { index, token in
-            RhythmCue(
-                id: "cue-\(index + 1)",
-                token: token,
-                beatIndex: index,
-                startTime: Double(index) * secondsPerBeat,
-                duration: secondsPerBeat,
-                isStrongBeat: index.isMultiple(of: 4)
+        let segmentationMode: TextSegmentationMode = prompt.languageMode == .english ? .word : .phrase
+        let phraseBoundaryStrategy: PhraseBoundaryStrategy = .punctuationAndLineBreaks
+        let segmentedPhrases = splitPhrases(from: prompt.text)
+
+        var beatIndex = 0
+        let phrases: [TextRhythmPhrase] = segmentedPhrases.enumerated().map { index, phraseText in
+            let phraseLanguage = detectLanguage(for: phraseText)
+            let phraseCueTokens = cueTokens(for: phraseText, language: phraseLanguage)
+            let phrase = TextRhythmPhrase(
+                id: "phrase-\(index + 1)",
+                text: phraseText,
+                language: phraseLanguage,
+                startCueIndex: beatIndex,
+                cueCount: max(phraseCueTokens.count, 1),
+                normalizedText: normalizedPhraseText(phraseText, language: phraseLanguage)
             )
+            beatIndex += max(phraseCueTokens.count, 1)
+            return phrase
+        }
+
+        let cues = phrases.flatMap { phrase in
+            let phraseCueTokens = cueTokens(for: phrase.text, language: phrase.language)
+            let tokens = phraseCueTokens.isEmpty ? [phrase.text] : phraseCueTokens
+            return tokens.enumerated().map { offset, token in
+                let absoluteBeatIndex = phrase.startCueIndex + offset
+                return RhythmCue(
+                    id: "cue-\(absoluteBeatIndex + 1)",
+                    token: token,
+                    phraseID: phrase.id,
+                    beatIndex: absoluteBeatIndex,
+                    startTime: Double(absoluteBeatIndex) * secondsPerBeat,
+                    duration: secondsPerBeat,
+                    isStrongBeat: absoluteBeatIndex.isMultiple(of: 4)
+                )
+            }
         }
 
         return TextRhythmSpeechPlan(
             featureID: textRhythmSpeechLab.id,
             prompt: prompt,
+            languageMode: prompt.languageMode,
+            segmentationMode: segmentationMode,
+            phraseBoundaryStrategy: phraseBoundaryStrategy,
             tempoBPM: tempoBPM,
             rhythmEnabled: rhythmEnabled,
+            phrases: phrases,
             cues: cues,
             trackedMetrics: textRhythmSpeechLab.trackedMetrics,
             requiredConsentPrompts: [
@@ -922,6 +1162,7 @@ public enum ExperimentalFeatureCatalog {
                 id: "sample-fiction",
                 title: "A Clear Morning",
                 category: .fiction,
+                languageMode: .english,
                 text: "The morning light crossed the quiet room and made every small sound feel gentle.",
                 rightsNote: "Original Shenghai sample text."
             )
@@ -930,6 +1171,7 @@ public enum ExperimentalFeatureCatalog {
                 id: "sample-news",
                 title: "Local Practice Notice",
                 category: .news,
+                languageMode: .english,
                 text: "The choir will meet tonight to rehearse entrances dynamics and final consonants.",
                 rightsNote: "Original Shenghai sample text."
             )
@@ -938,25 +1180,90 @@ public enum ExperimentalFeatureCatalog {
                 id: "sample-science",
                 title: "Sound and Motion",
                 category: .science,
+                languageMode: .english,
                 text: "A steady rhythm can help speech movements become easier to plan and repeat.",
                 rightsNote: "Original Shenghai sample text."
             )
         case .poem:
             return TextRhythmPrompt(
-                id: "sample-poem",
-                title: "Small Wave",
+                id: "sample-poem-zh",
+                title: "微光",
                 category: .poem,
-                text: "Voice rises softly then returns like water resting after song.",
+                languageMode: .chinese,
+                text: "微光落在窗邊，聲音沿著呼吸慢慢回來。停一下，再把下一句唱清楚。",
                 rightsNote: "Original Shenghai sample text."
             )
         case .random:
             return TextRhythmPrompt(
-                id: "sample-random",
-                title: "Warm Up",
+                id: "sample-random-mixed",
+                title: "Warm Up / 暖身",
                 category: .random,
-                text: "Read slowly breathe gently follow the pulse then speak freely again.",
+                languageMode: .mixedBilingual,
+                text: "Read the first line slowly, 然後把第二句唱清楚。Hello 你好 一起收尾。",
                 rightsNote: "Original Shenghai sample text."
             )
+        }
+    }
+
+    private static func splitPhrases(from text: String) -> [String] {
+        let separators = CharacterSet(charactersIn: ",.;:!?，。；：！？\n")
+        return text
+            .components(separatedBy: separators)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+
+    private static func detectLanguage(for phrase: String) -> TextPhraseLanguage {
+        let scalarValues = phrase.unicodeScalars
+        let hanCount = scalarValues.filter { $0.properties.isIdeographic }.count
+        let latinCount = scalarValues.filter { scalar in
+            CharacterSet.letters.contains(scalar) && !scalar.properties.isIdeographic
+        }.count
+
+        if hanCount > 0 && latinCount == 0 {
+            return .chinese
+        }
+        if latinCount > 0 && hanCount == 0 {
+            return .english
+        }
+        return .mixed
+    }
+
+    private static func cueTokens(for phrase: String, language: TextPhraseLanguage) -> [String] {
+        switch language {
+        case .english:
+            return phrase.split(whereSeparator: \.isWhitespace).map(String.init)
+        case .chinese, .mixed:
+            return [phrase]
+        }
+    }
+
+    private static func normalizedPhraseText(_ phrase: String, language: TextPhraseLanguage) -> String {
+        switch language {
+        case .english:
+            return phrase
+                .lowercased()
+                .split(whereSeparator: \.isWhitespace)
+                .joined(separator: " ")
+                .filter { $0.isLetter || $0.isNumber || $0.isWhitespace || $0 == "'" }
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        case .chinese:
+            return phrase.filter { character in
+                character.unicodeScalars.contains { $0.properties.isIdeographic }
+            }
+        case .mixed:
+            return phrase
+                .lowercased()
+                .filter { character in
+                    if character == "'" || character.isWhitespace {
+                        return true
+                    }
+                    if character.unicodeScalars.contains(where: { $0.properties.isIdeographic }) {
+                        return true
+                    }
+                    return character.isLetter || character.isNumber
+                }
+                .trimmingCharacters(in: .whitespacesAndNewlines)
         }
     }
 }

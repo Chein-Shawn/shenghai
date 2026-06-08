@@ -10,6 +10,17 @@ struct ExperimentalFeaturesView: View {
     private let alarmPlan = ExperimentalFeatureCatalog.makeSingToDismissAlarmPlan()
     private let textRhythmFeature = ExperimentalFeatureCatalog.textRhythmSpeechLab
     private let textRhythmPlan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan()
+    private let textRhythmEvaluation = TextRhythmSpeechEvaluator().evaluate(
+        spokenTokens: ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan().cues.map { cue in
+            SpokenToken(
+                token: cue.token,
+                startTime: cue.startTime + 0.02,
+                duration: cue.duration * 0.72,
+                confidence: 0.9
+            )
+        },
+        against: ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan()
+    )
 
     var body: some View {
         ScrollView {
@@ -177,7 +188,8 @@ struct ExperimentalFeaturesView: View {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
                     ValuePill(title: "Category", value: textRhythmPlan.prompt.category.displayName, systemImage: "tray.full")
                     ValuePill(title: "Tempo", value: "\(textRhythmPlan.tempoBPM) bpm", systemImage: "metronome")
-                    ValuePill(title: "Words", value: "\(textRhythmPlan.cues.count)", systemImage: "textformat")
+                    ValuePill(title: "Language", value: textRhythmPlan.languageMode.displayName, systemImage: "globe")
+                    ValuePill(title: "Phrases", value: "\(textRhythmPlan.phrases.count)", systemImage: "textformat")
                     ValuePill(title: "Guide", value: textRhythmPlan.rhythmEnabled ? "On" : "Off", systemImage: "waveform")
                 }
 
@@ -188,15 +200,43 @@ struct ExperimentalFeaturesView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
+                SectionTitle("Segmentation")
+                Text("v1 uses \(textRhythmPlan.phraseBoundaryStrategy.displayName.lowercased()) to split bilingual text into phrase units. English keeps word-level cue timing inside each phrase; Chinese and mixed phrases stay phrase-based.")
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(textRhythmPlan.phrases) { phrase in
+                        HStack(alignment: .top, spacing: 10) {
+                            Text(phrase.language.displayName)
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 3)
+                                .background(.quaternary.opacity(0.28), in: RoundedRectangle(cornerRadius: 6))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(phrase.text)
+                                    .font(.subheadline.weight(.semibold))
+                                Text("Cue span: \(phrase.startCueIndex + 1)-\(phrase.startCueIndex + phrase.cueCount)")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+
                 SectionTitle("Practice metrics")
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
-                    ForEach(textRhythmFeature.trackedMetrics, id: \.self) { metric in
-                        Text(metric)
-                            .font(.caption.weight(.semibold))
-                            .frame(maxWidth: .infinity, minHeight: 34)
-                            .padding(.horizontal, 10)
-                            .background(.quaternary.opacity(0.28), in: RoundedRectangle(cornerRadius: 8))
-                    }
+                    ValuePill(title: "Clarity", value: "\(Int(textRhythmEvaluation.clarityScore * 100))%", systemImage: "waveform")
+                    ValuePill(title: "Rate", value: "\(Int(textRhythmEvaluation.rateScore * 100))%", systemImage: "speedometer")
+                    ValuePill(title: "Rhythm", value: "\(Int(textRhythmEvaluation.rhythmScore * 100))%", systemImage: "metronome")
+                    ValuePill(title: "Completion", value: "\(Int(textRhythmEvaluation.completionScore * 100))%", systemImage: "checkmark.circle")
+                    ValuePill(title: "Phrase match", value: "\(Int(textRhythmEvaluation.phraseMatchScore * 100))%", systemImage: "text.quote")
+                    ValuePill(title: "Phrases/min", value: String(format: "%.1f", textRhythmEvaluation.phrasesPerMinute), systemImage: "timer")
+                }
+
+                if let wordsPerMinute = textRhythmEvaluation.wordsPerMinute {
+                    Text("English-only sessions can also report words/min: \(String(format: "%.1f", wordsPerMinute)).")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 SectionTitle("Boundary")

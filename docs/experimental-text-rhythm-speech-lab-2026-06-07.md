@@ -7,19 +7,28 @@ The feature is designed for practice tracking, not medical claims. It can help u
 
 ## User flow
 1. User imports or selects a legal text prompt.
-2. User chooses a category: fiction, news, science, poem, or random.
-3. Shenghai converts words into beat cues.
-4. User practices with the rhythm guide on.
-5. User turns the rhythm guide off and repeats the paragraph.
-6. Shenghai compares the attempts across clarity, rate, rhythm alignment, and completion.
+2. User chooses a category and a paragraph that may be English, Chinese, or mixed Chinese/English.
+3. Shenghai splits the text into phrases using punctuation and line breaks.
+4. Shenghai generates rhythm cues phrase by phrase.
+5. User practices with the rhythm guide on.
+6. User turns the rhythm guide off and repeats the paragraph.
+7. Shenghai compares the attempts across clarity, rate, rhythm alignment, phrase match, and completion.
 
 ## Metrics
-- `clarityScore`: proxy based on recognized words matching the expected text.
-- `wordsPerMinute`: speaking rate.
+- `clarityScore`: proxy based on expected cue text matching the spoken/sung result.
+- `phrasesPerMinute`: speaking or singing rate for phrase-based sessions.
+- `wordsPerMinute`: retained only for English-only sessions.
 - `rateScore`: score against a comfortable target rate range.
 - `rhythmAlignment`: timing closeness to the generated beat guide.
+- `phraseMatchScore`: whether each expected phrase was reproduced correctly.
 - `completionScore`: how much of the paragraph was attempted.
 - `guideOffTransfer`: whether performance stays stable after turning off the guide.
+
+## Language and segmentation
+- English-only paragraphs can still use word-oriented cue timing inside each phrase.
+- Chinese paragraphs use phrase-based scoring rather than whitespace splitting.
+- Mixed bilingual paragraphs are supported in a single session.
+- v1 phrase boundaries come from punctuation and line breaks, not AI linguistic parsing.
 
 ## Copyright and text rights
 Do not import copyrighted articles, books, lyrics, news text, or poems unless the user owns the text or has permission.
@@ -36,7 +45,7 @@ This feature is not a cure, diagnosis, medical device, or replacement for a spee
 The correct product language is:
 - "practice support"
 - "speech rhythm practice"
-- "clarity/rate/rhythm tracking"
+- "clarity/rate/rhythm/phrase tracking"
 - "guided vs unguided comparison"
 
 Avoid:
@@ -53,6 +62,8 @@ Avoid:
 
 ## Implementation
 - Core model: `TextRhythmPrompt`
+- Language/segmentation metadata: `TextLanguageMode`, `TextSegmentationMode`, `PhraseBoundaryStrategy`
+- Phrase abstraction: `TextRhythmPhrase`
 - Rhythm guide: `RhythmCue`
 - Practice plan: `TextRhythmSpeechPlan`
 - Spoken input abstraction: `SpokenToken`
@@ -66,4 +77,3 @@ Avoid:
 4. Add rhythm audio clicks or soft chant guide.
 5. Add guided/unguided comparison charts.
 6. Add trend history by prompt category.
-

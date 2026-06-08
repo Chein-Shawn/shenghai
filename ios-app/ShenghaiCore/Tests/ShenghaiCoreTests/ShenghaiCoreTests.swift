@@ -287,7 +287,7 @@ struct ShenghaiCoreTests {
 
     @Test func textRhythmSpeechLabKeepsRightsAndMedicalBoundaries() {
         let feature = ExperimentalFeatureCatalog.textRhythmSpeechLab
-        let plan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .science, tempoBPM: 96)
+        let plan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .random, tempoBPM: 96)
 
         #expect(feature.id == "text-rhythm-speech-lab")
         #expect(ExperimentalFeatureCatalog.all.map(\.id).contains("text-rhythm-speech-lab"))
@@ -302,9 +302,14 @@ struct ShenghaiCoreTests {
             "unguided",
             "review"
         ])
-        #expect(plan.prompt.category == .science)
+        #expect(plan.prompt.category == .random)
+        #expect(plan.languageMode == .mixedBilingual)
+        #expect(plan.segmentationMode == .phrase)
+        #expect(plan.phraseBoundaryStrategy == .punctuationAndLineBreaks)
         #expect(plan.tempoBPM == 96)
-        #expect(plan.cues.count == plan.prompt.text.split(separator: " ").count)
+        #expect(plan.phrases.count == 3)
+        #expect(plan.phrases.map(\.language) == [.english, .chinese, .mixed])
+        #expect(plan.cues.count == 7)
         #expect(plan.cues.first?.isStrongBeat == true)
         #expect(plan.requiredConsentPrompts.count == 3)
         #expect(feature.evidenceReferences.contains { $0.domain == .speechRhythmAndProsody })
@@ -324,15 +329,38 @@ struct ShenghaiCoreTests {
 
         #expect(evaluation.clarityScore == 1)
         #expect(evaluation.completionScore == 1)
+        #expect(evaluation.phraseMatchScore == 1)
         #expect(evaluation.rhythmScore > 0.80)
         #expect(evaluation.rateScore > 0.60)
         #expect(evaluation.overallPracticeScore > 0.78)
+        #expect(evaluation.wordsPerMinute == nil)
+        #expect(evaluation.totalPhraseCount == plan.phrases.count)
 
-        let incomplete = Array(spoken.prefix(3))
+        let incomplete = Array(spoken.prefix(1))
         let incompleteEvaluation = TextRhythmSpeechEvaluator().evaluate(spokenTokens: incomplete, against: plan)
 
         #expect(incompleteEvaluation.completionScore < 0.50)
         #expect(incompleteEvaluation.overallPracticeScore < evaluation.overallPracticeScore)
+    }
+
+    @Test func textRhythmSpeechPlanSupportsEnglishChineseAndMixedPhrases() {
+        let englishPlan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .science, tempoBPM: 96)
+        let chinesePlan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .poem, tempoBPM: 96)
+        let mixedPlan = ExperimentalFeatureCatalog.makeTextRhythmSpeechPlan(category: .random, tempoBPM: 96)
+
+        #expect(englishPlan.languageMode == .english)
+        #expect(englishPlan.segmentationMode == .word)
+        #expect(englishPlan.phrases.allSatisfy { $0.language == .english })
+        #expect(englishPlan.cues.count > englishPlan.phrases.count)
+
+        #expect(chinesePlan.languageMode == .chinese)
+        #expect(chinesePlan.segmentationMode == .phrase)
+        #expect(chinesePlan.phrases.allSatisfy { $0.language == .chinese })
+        #expect(chinesePlan.cues.count == chinesePlan.phrases.count)
+
+        #expect(mixedPlan.languageMode == .mixedBilingual)
+        #expect(mixedPlan.phrases.map(\.language) == [.english, .chinese, .mixed])
+        #expect(mixedPlan.cues.count == 7)
     }
 
     @Test func yinPitchTrackerDetectsSyntheticA4() async throws {
