@@ -166,6 +166,12 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 - Expanded the public changelog history so earlier completed work is visible to users.
 - Removed the public-facing `目前限制` section from the changelog as requested.
+- Updated the Notion `Features` database pages with implementation process, difficulties, and related filenames for the currently implemented and in-progress feature set.
+- Added new Notion feature rows for:
+  - `全譜 MusicXML 掃描審查`
+  - `MusicXML 打譜與匯出`
+  - `Text Rhythm Speech Lab`
+  - `Sing-to-Dismiss Alarm`
 - Made `PDF/image -> editable MusicXML review` a main workflow in the app and support site.
 - Added a `Full-Score MusicXML Review` panel so users can inspect recognized score content before relying on it downstream.
 - Extended the core score model and importer to preserve more score information from MusicXML, including:
