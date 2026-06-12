@@ -757,23 +757,23 @@ private struct PitchDeviationRow: View {
     private var title: String {
         switch deviation.quality {
         case .inTune:
-            return "In tune"
+            return L10n.tr("In tune")
         case .sharp:
-            return "Sharp"
+            return L10n.tr("Sharp")
         case .flat:
-            return "Flat"
+            return L10n.tr("Flat")
         case .lowConfidence:
-            return "Low confidence"
+            return L10n.tr("Low confidence")
         case .missingTarget:
-            return "Missing target"
+            return L10n.tr("Missing target")
         }
     }
 
     private var detail: String {
         if let cents = deviation.cents {
-            return String(format: "%.1f cents, confidence %.2f", cents, deviation.confidence)
+            return L10n.tr("%.1f cents, confidence %.2f", cents, deviation.confidence)
         }
-        return String(format: "confidence %.2f", deviation.confidence)
+        return L10n.tr("confidence %.2f", deviation.confidence)
     }
 
     private var iconName: String {

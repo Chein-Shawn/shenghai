@@ -138,11 +138,11 @@ private enum ScoreAnnotationTool: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .pen:
-            return "Pen"
+            return L10n.tr("Pen")
         case .highlighter:
-            return "Highlighter"
+            return L10n.tr("Highlighter")
         case .eraser:
-            return "Eraser"
+            return L10n.tr("Eraser")
         }
     }
 

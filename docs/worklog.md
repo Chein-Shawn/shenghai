@@ -222,3 +222,6 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - preview macro failure for `#Preview`
   - `.xcodeproj` drift where newer Swift files existed on disk but were not registered in the project
 - The current localization architecture is now in place, but full coverage across every deep experimental/research text block will still require iterative expansion of the translation table.
+- Pushed commit `bb595b5` to GitHub `main`.
+- Continued the localization pass for experimental-feature UI labels, pitch-state labels, and score-annotation tool names.
+- Added `docs/localization-architecture-2026-06-12.md` to document the multi-language structure and long-term migration path.
