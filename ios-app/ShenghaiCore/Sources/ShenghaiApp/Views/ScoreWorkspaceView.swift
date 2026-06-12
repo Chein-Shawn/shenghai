@@ -5,7 +5,7 @@ import ShenghaiCore
 #endif
 
 struct ScoreWorkspaceView: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
     @State private var pageScale = 1.0
     @State private var showPitchOverlay = true
     @State private var showMeasureNumbers = true
@@ -109,9 +109,9 @@ struct ScoreWorkspaceView: View {
                 }
             } else {
                 ContentUnavailableView(
-                    "No Score Loaded",
+                    L10n.tr("No Score Loaded"),
                     systemImage: "music.note.list",
-                    description: Text("Import MusicXML, or convert a PDF/image score into an editable MusicXML candidate and review it here.")
+                    description: Text(L10n.tr("Import MusicXML, or convert a PDF/image score into an editable MusicXML candidate and review it here."))
                 )
             }
         }
@@ -167,26 +167,26 @@ private struct ScoreAnnotationStroke: Identifiable {
 }
 
 private struct ScoreToolbar: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("Shenghai Studio")
+            Text(L10n.tr("Shenghai Studio"))
                 .font(.headline)
                 .foregroundStyle(.secondary)
 
             Spacer()
 
-            ToolIconButton(title: "Import MusicXML", systemImage: "square.and.arrow.down") {
+            ToolIconButton(title: L10n.tr("Import MusicXML"), systemImage: "square.and.arrow.down") {
                 workspace.isImportingScore = true
             }
 
-            ToolIconButton(title: "Load Demo", systemImage: "sparkles") {
+            ToolIconButton(title: L10n.tr("Load Demo"), systemImage: "sparkles") {
                 workspace.loadDemoScore()
             }
 
             ToolIconButton(
-                title: workspace.isPlaying ? "Stop Playback" : "Play Selected Part",
+                title: workspace.isPlaying ? L10n.tr("Stop Playback") : L10n.tr("Play Selected Part"),
                 systemImage: workspace.isPlaying ? "stop.fill" : "play.fill",
                 isProminent: true
             ) {
@@ -194,19 +194,19 @@ private struct ScoreToolbar: View {
             }
             .disabled(workspace.score == nil)
 
-            ToolIconButton(title: "Export MIDI", systemImage: "square.and.arrow.up") {
+            ToolIconButton(title: L10n.tr("Export MIDI"), systemImage: "square.and.arrow.up") {
                 workspace.exportMIDI()
             }
             .disabled(workspace.score == nil)
 
             if let exportedMIDIURL = workspace.exportedMIDIURL {
                 ShareLink(item: exportedMIDIURL) {
-                    Label("Share MIDI", systemImage: "arrowshape.turn.up.right")
+                    Label(L10n.tr("Share MIDI"), systemImage: "arrowshape.turn.up.right")
                         .labelStyle(.iconOnly)
                         .frame(width: 34, height: 34)
                 }
                 .buttonStyle(.bordered)
-                .help("Share MIDI")
+                .help(L10n.tr("Share MIDI"))
             }
         }
         .padding(.horizontal, 14)
@@ -215,11 +215,11 @@ private struct ScoreToolbar: View {
 }
 
 private struct ScoreNavigatorPanel: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
     var score: ScoreDocument
 
     var body: some View {
-        StudioPanel(title: "Parts", systemImage: "rectangle.split.3x1") {
+        StudioPanel(title: L10n.tr("Parts"), systemImage: "rectangle.split.3x1") {
             VStack(alignment: .leading, spacing: 10) {
                 ForEach(score.parts) { part in
                     Button {
@@ -231,7 +231,7 @@ private struct ScoreNavigatorPanel: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(part.name)
                                     .font(.subheadline.weight(.semibold))
-                                Text("\(part.measures.count) measures")
+                                Text(L10n.tr("%d measures", part.measures.count))
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -246,16 +246,16 @@ private struct ScoreNavigatorPanel: View {
             Divider()
 
             VStack(alignment: .leading, spacing: 8) {
-                ValuePill(title: "Measures", value: "\(workspace.scoreSummary.measureCount)", systemImage: "number")
-                ValuePill(title: "Playable Notes", value: "\(workspace.scoreSummary.playableNoteCount)", systemImage: "music.note")
-                ValuePill(title: "Tempo", value: "\(score.tempoBPM) bpm", systemImage: "metronome")
+                ValuePill(title: L10n.tr("Measures"), value: "\(workspace.scoreSummary.measureCount)", systemImage: "number")
+                ValuePill(title: L10n.tr("Playable Notes"), value: "\(workspace.scoreSummary.playableNoteCount)", systemImage: "music.note")
+                ValuePill(title: L10n.tr("Tempo"), value: "\(score.tempoBPM) bpm", systemImage: "metronome")
             }
         }
     }
 }
 
 private struct ScoreReaderPanel: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
     var score: ScoreDocument
     var pageScale: Double
     var showPitchOverlay: Bool
@@ -273,12 +273,12 @@ private struct ScoreReaderPanel: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(workspace.scoreSummary.title)
                             .font(.title2.bold())
-                        Text("MusicXML preview")
+                        Text(L10n.tr("MusicXML preview"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Label(isAnnotating ? "Annotation mode" : "Voice practice", systemImage: isAnnotating ? "pencil.tip" : "waveform.and.mic")
+                    Label(isAnnotating ? L10n.tr("Annotation mode") : L10n.tr("Voice practice"), systemImage: isAnnotating ? "pencil.tip" : "waveform.and.mic")
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -294,7 +294,7 @@ private struct ScoreReaderPanel: View {
                             )
                         }
                     } else {
-                        ContentUnavailableView("No Part Selected", systemImage: "music.note")
+                        ContentUnavailableView(L10n.tr("No Part Selected"), systemImage: "music.note")
                     }
                 }
             }
@@ -320,7 +320,7 @@ private struct ScoreReaderPanel: View {
 }
 
 private struct ScoreInspectorPanel: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
     var score: ScoreDocument
     @Binding var pageScale: Double
     @Binding var showPitchOverlay: Bool
@@ -336,12 +336,12 @@ private struct ScoreInspectorPanel: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            StudioPanel(title: "Practice Display", systemImage: "slider.horizontal.3") {
+            StudioPanel(title: L10n.tr("Practice Display"), systemImage: "slider.horizontal.3") {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Pitch overlay", isOn: $showPitchOverlay)
-                    Toggle("Measure numbers", isOn: $showMeasureNumbers)
+                    Toggle(L10n.tr("Pitch overlay"), isOn: $showPitchOverlay)
+                    Toggle(L10n.tr("Measure numbers"), isOn: $showMeasureNumbers)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Zoom")
+                        Text(L10n.tr("Zoom"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Slider(value: $pageScale, in: 0.75...1.45, step: 0.05)
@@ -349,9 +349,9 @@ private struct ScoreInspectorPanel: View {
                 }
             }
 
-            StudioPanel(title: "Annotations", systemImage: "pencil.and.outline") {
+            StudioPanel(title: L10n.tr("Annotations"), systemImage: "pencil.and.outline") {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle("Annotation mode", isOn: $isAnnotating)
+                    Toggle(L10n.tr("Annotation mode"), isOn: $isAnnotating)
 
                     HStack(spacing: 8) {
                         ForEach(ScoreAnnotationTool.allCases) { tool in
@@ -369,7 +369,7 @@ private struct ScoreInspectorPanel: View {
                     }
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Line width")
+                        Text(L10n.tr("Line width"))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Slider(value: $annotationLineWidth, in: 1.5...8, step: 0.5)
@@ -379,26 +379,26 @@ private struct ScoreInspectorPanel: View {
                         Button {
                             undoLastAnnotation()
                         } label: {
-                            Label("Undo", systemImage: "arrow.uturn.backward")
+                            Label(L10n.tr("Undo"), systemImage: "arrow.uturn.backward")
                         }
                         .disabled(annotationStrokes.isEmpty)
 
                         Button(role: .destructive) {
                             clearAnnotations()
                         } label: {
-                            Label("Clear", systemImage: "trash")
+                            Label(L10n.tr("Clear"), systemImage: "trash")
                         }
                         .disabled(annotationStrokes.isEmpty)
                     }
                     .buttonStyle(.bordered)
 
-                    Text("\(annotationStrokes.count) vector strokes. Strokes are stored as scalable paths, not a page bitmap.")
+                    Text(L10n.tr("%d vector strokes. Strokes are stored as scalable paths, not a page bitmap.", annotationStrokes.count))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            StudioPanel(title: "Mixer", systemImage: "slider.vertical.3") {
+            StudioPanel(title: L10n.tr("Mixer"), systemImage: "slider.vertical.3") {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(score.parts) { part in
                         VStack(alignment: .leading, spacing: 8) {
@@ -412,7 +412,7 @@ private struct ScoreInspectorPanel: View {
                                     Image(systemName: mutedPartIDs.contains(part.id) ? "speaker.slash.fill" : "speaker.wave.2.fill")
                                 }
                                 .buttonStyle(.borderless)
-                                .help(mutedPartIDs.contains(part.id) ? "Unmute" : "Mute")
+                                .help(mutedPartIDs.contains(part.id) ? L10n.tr("Unmute") : L10n.tr("Mute"))
 
                                 Button {
                                     soloPartID = soloPartID == part.id ? nil : part.id
@@ -422,7 +422,7 @@ private struct ScoreInspectorPanel: View {
                                         .foregroundStyle(soloPartID == part.id ? Color.accentColor : Color.secondary)
                                 }
                                 .buttonStyle(.borderless)
-                                .help("Solo")
+                                .help(L10n.tr("Solo"))
                             }
                             Slider(value: bindingForVolume(part.id), in: 0...1)
                         }
@@ -430,29 +430,29 @@ private struct ScoreInspectorPanel: View {
                 }
             }
 
-            StudioPanel(title: "Full-Score MusicXML Review", systemImage: "doc.badge.magnifyingglass") {
+            StudioPanel(title: L10n.tr("Full-Score MusicXML Review"), systemImage: "doc.badge.magnifyingglass") {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("Main scan workflow: PDF/image score -> MusicXML candidate -> user correction -> annotations, playback, pitch tracking, and practice history.")
+                    Text(L10n.tr("Main scan workflow: PDF/image score -> MusicXML candidate -> user correction -> annotations, playback, pitch tracking, and practice history."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
                     Button {
                         workspace.createScanReviewCandidate()
                     } label: {
-                        Label("Create Review Candidate", systemImage: "checklist")
+                        Label(L10n.tr("Create Review Candidate"), systemImage: "checklist")
                     }
                     .buttonStyle(.borderedProminent)
 
                     let candidate = workspace.scannedMusicXMLCandidate ?? OMRMusicXMLCandidateBuilder.makeCandidate(
-                        sourceName: "Current score",
+                        sourceName: L10n.tr("Current score"),
                         inputKind: .musicXML,
                         provider: workspace.selectedOMRProvider,
                         score: score
                     )
 
                     HStack {
-                        ValuePill(title: "Source", value: candidate.inputKind.rawValue, systemImage: "doc")
-                        ValuePill(title: "Provider", value: candidate.provider.displayName, systemImage: "wand.and.stars")
+                        ValuePill(title: L10n.tr("Source"), value: candidate.inputKind.rawValue, systemImage: "doc")
+                        ValuePill(title: L10n.tr("Provider"), value: candidate.provider.displayName, systemImage: "wand.and.stars")
                     }
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 8)], spacing: 8) {
@@ -477,7 +477,7 @@ private struct ScoreInspectorPanel: View {
                         }
                     }
 
-                    SectionTitle("Review checklist")
+                    SectionTitle(L10n.tr("Review checklist"))
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(candidate.reviewChecklist, id: \.self) { item in
                             Label(item, systemImage: "square.and.pencil")
@@ -487,15 +487,15 @@ private struct ScoreInspectorPanel: View {
                     }
 
                     PipelineRow(
-                        title: "Ready for practice after review",
+                        title: L10n.tr("Ready for practice after review"),
                         state: candidate.canEnterPracticeWorkflow ? .ready : .blocked,
-                        detail: candidate.canEnterPracticeWorkflow ? "Candidate has score data; review/correct before practice." : "Candidate has no usable notes."
+                        detail: candidate.canEnterPracticeWorkflow ? L10n.tr("Candidate has score data; review/correct before practice.") : L10n.tr("Candidate has no usable notes.")
                     )
                 }
             }
 
-            StudioPanel(title: "OMR Review", systemImage: "doc.viewfinder") {
-                Picker("Provider", selection: $workspace.selectedOMRProvider) {
+            StudioPanel(title: L10n.tr("OMR Review"), systemImage: "doc.viewfinder") {
+                Picker(L10n.tr("Provider"), selection: $workspace.selectedOMRProvider) {
                     ForEach(OMRProvider.allCases, id: \.self) { provider in
                         Text(provider.displayName)
                             .tag(provider)
@@ -505,10 +505,10 @@ private struct ScoreInspectorPanel: View {
 
                 OMRProviderSummary(provider: workspace.selectedOMRProvider)
 
-                PipelineRow(title: "MusicXML parsed", state: .ready, detail: "\(workspace.scoreSummary.noteCount) notes")
-                PipelineRow(title: "\(workspace.selectedOMRProvider.displayName) full-score OMR", state: .planned, detail: "Run provider, import generated MusicXML, then validate every recognized element.")
-                PipelineRow(title: "Editable MusicXML correction gate", state: .ready, detail: "Correct candidate first; then use it for notes, annotations, playback, and practice.")
-                PipelineRow(title: "Repeat expansion audit", state: .planned)
+                PipelineRow(title: L10n.tr("MusicXML parsed"), state: .ready, detail: L10n.tr("%d notes", workspace.scoreSummary.noteCount))
+                PipelineRow(title: L10n.tr("%@ full-score OMR", workspace.selectedOMRProvider.displayName), state: .planned, detail: L10n.tr("Run provider, import generated MusicXML, then validate every recognized element."))
+                PipelineRow(title: L10n.tr("Editable MusicXML correction gate"), state: .ready, detail: L10n.tr("Correct candidate first; then use it for notes, annotations, playback, and practice."))
+                PipelineRow(title: L10n.tr("Repeat expansion audit"), state: .planned)
             }
         }
     }
@@ -710,7 +710,7 @@ private struct StaffMeasureView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             if showMeasureNumber {
-                Text("Measure \(measure.number)")
+                Text(L10n.tr("Measure %@", measure.number))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }

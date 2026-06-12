@@ -1,15 +1,14 @@
 import Foundation
-import Observation
+import Combine
 #if canImport(ShenghaiCore)
 import ShenghaiCore
 #endif
 
 @MainActor
-@Observable
-final class UsageTrackingStore {
+final class UsageTrackingStore: ObservableObject {
     private let defaults: UserDefaults
     private let storageKey = "shenghai.usageLedger.v1"
-    private var ledger: UsageAnalyticsLedger
+    @Published private var ledger: UsageAnalyticsLedger
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

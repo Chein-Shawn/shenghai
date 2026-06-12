@@ -1,27 +1,26 @@
 import Foundation
-import Observation
+import Combine
 #if canImport(ShenghaiCore)
 import ShenghaiCore
 #endif
 
 @MainActor
-@Observable
-final class ShenghaiWorkspace {
-    var selectedSection: AppSection = .dashboard {
+final class ShenghaiWorkspace: ObservableObject {
+    @Published var selectedSection: AppSection = .dashboard {
         didSet {
             usageTracking.switchTo(selectedSection.usageFeature)
         }
     }
-    var score: ScoreDocument?
-    var selectedPartID: String?
-    var statusMessage = "Ready for MusicXML prototype testing."
-    var errorMessage: String?
-    var exportedMIDIURL: URL?
-    var exportedMusicXMLURL: URL?
-    var isImportingScore = false
-    var isPlaying = false
-    var selectedOMRProvider: OMRProvider = .homr
-    var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
+    @Published var score: ScoreDocument?
+    @Published var selectedPartID: String?
+    @Published var statusMessage = L10n.tr("Ready for MusicXML prototype testing.")
+    @Published var errorMessage: String?
+    @Published var exportedMIDIURL: URL?
+    @Published var exportedMusicXMLURL: URL?
+    @Published var isImportingScore = false
+    @Published var isPlaying = false
+    @Published var selectedOMRProvider: OMRProvider = .homr
+    @Published var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
     let usageTracking = UsageTrackingStore()
 
     private let importer = MusicXMLImporter()
@@ -50,7 +49,7 @@ final class ShenghaiWorkspace {
             let data = Data(SampleScoreLibrary.twinkleMusicXML.utf8)
             let importedScore = try importer.importDocument(data: data)
             setScore(importedScore)
-            statusMessage = "Loaded demo score: Twinkle excerpt."
+            statusMessage = L10n.tr("Loaded demo score: Twinkle excerpt.")
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -69,7 +68,7 @@ final class ShenghaiWorkspace {
             let importedScore = try importer.importDocument(url: url)
             setScore(importedScore)
             createScanReviewCandidate(sourceName: url.lastPathComponent, inputKind: .musicXML)
-            statusMessage = "Imported \(url.lastPathComponent)."
+            statusMessage = L10n.tr("Imported %@.", url.lastPathComponent)
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -78,7 +77,7 @@ final class ShenghaiWorkspace {
 
     func exportMIDI() {
         guard let score else {
-            errorMessage = "Load or import a MusicXML score first."
+            errorMessage = L10n.tr("Load or import a MusicXML score first.")
             return
         }
 
@@ -87,7 +86,7 @@ final class ShenghaiWorkspace {
                 .appending(path: "Shenghai-\(UUID().uuidString.prefix(8)).mid")
             try MIDIWriter.writeMIDI(score: score, to: url, partIndex: selectedPartIndex)
             exportedMIDIURL = url
-            statusMessage = "Exported MIDI for \(selectedPart?.name ?? "selected part")."
+            statusMessage = L10n.tr("Exported MIDI for %@.", selectedPart?.name ?? L10n.tr("selected part"))
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -96,7 +95,7 @@ final class ShenghaiWorkspace {
 
     func createScanReviewCandidate(sourceName: String = "Current scanned score", inputKind: OMRInputKind = .image) {
         guard let score else {
-            errorMessage = "Load or import a MusicXML candidate first."
+            errorMessage = L10n.tr("Load or import a MusicXML candidate first.")
             return
         }
 
@@ -106,14 +105,14 @@ final class ShenghaiWorkspace {
             provider: selectedOMRProvider,
             score: score
         )
-        statusMessage = "Created editable MusicXML review candidate."
+        statusMessage = L10n.tr("Created editable MusicXML review candidate.")
         errorMessage = nil
     }
 
     func loadComposedScore(_ composedScore: ComposedScore) {
         let generatedScore = MusicXMLComposer.makeScoreDocument(from: composedScore)
         setScore(generatedScore)
-        statusMessage = "Created \(composedScore.notes.count) notes from Compose."
+        statusMessage = L10n.tr("Created %d notes from Compose.", composedScore.notes.count)
         errorMessage = nil
         selectedSection = .scoreWorkspace
     }
@@ -132,7 +131,7 @@ final class ShenghaiWorkspace {
             let xml = MusicXMLComposer.makeMusicXML(from: composedScore)
             try xml.write(to: url, atomically: true, encoding: .utf8)
             exportedMusicXMLURL = url
-            statusMessage = "Exported MusicXML: \(url.lastPathComponent)."
+            statusMessage = L10n.tr("Exported MusicXML: %@.", url.lastPathComponent)
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -143,12 +142,12 @@ final class ShenghaiWorkspace {
         if isPlaying {
             playbackService.stop()
             isPlaying = false
-            statusMessage = "Playback stopped."
+            statusMessage = L10n.tr("Playback stopped.")
             return
         }
 
         guard let score else {
-            errorMessage = "Load or import a MusicXML score first."
+            errorMessage = L10n.tr("Load or import a MusicXML score first.")
             return
         }
 
@@ -157,9 +156,9 @@ final class ShenghaiWorkspace {
             isPlaying = true
             try playbackService.play(data: midiData) { [weak self] in
                 self?.isPlaying = false
-                self?.statusMessage = "Playback finished."
+                self?.statusMessage = L10n.tr("Playback finished.")
             }
-            statusMessage = "Playing \(selectedPart?.name ?? "selected part")."
+            statusMessage = L10n.tr("Playing %@.", selectedPart?.name ?? L10n.tr("selected part"))
             errorMessage = nil
         } catch {
             isPlaying = false
@@ -186,7 +185,7 @@ struct ScoreSummary {
 
     init(score: ScoreDocument?, selectedPart: ScorePart?) {
         guard let score else {
-            title = "No score loaded"
+            title = L10n.tr("No score loaded")
             partCount = 0
             measureCount = 0
             noteCount = 0
@@ -195,7 +194,7 @@ struct ScoreSummary {
             return
         }
 
-        title = score.metadata.title ?? selectedPart?.name ?? score.parts.first?.name ?? "Imported score"
+        title = score.metadata.title ?? selectedPart?.name ?? score.parts.first?.name ?? L10n.tr("Imported score")
         partCount = score.parts.count
         measureCount = selectedPart?.measures.count ?? 0
         let notes = selectedPart?.measures.flatMap(\.notes) ?? []

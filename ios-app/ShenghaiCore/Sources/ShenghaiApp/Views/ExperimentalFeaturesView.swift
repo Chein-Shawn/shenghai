@@ -282,6 +282,8 @@ struct ExperimentalFeaturesView: View {
     }
 }
 
-#Preview {
-    ExperimentalFeaturesView()
+struct ExperimentalFeaturesView_Previews: PreviewProvider {
+    static var previews: some View {
+        ExperimentalFeaturesView()
+    }
 }

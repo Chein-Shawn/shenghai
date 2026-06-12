@@ -4,7 +4,8 @@ import ShenghaiCore
 #endif
 
 struct SupportView: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
+    @EnvironmentObject private var appSettings: AppSettingsStore
     @Environment(\.openURL) private var openURL
     @State private var category: FeedbackCategory = .bug
     @State private var summary = ""
@@ -18,12 +19,13 @@ struct SupportView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HeaderBand(
-                    title: "Support",
-                    subtitle: "Manual, release notes, and tester feedback",
+                    title: L10n.tr("Support & Settings"),
+                    subtitle: L10n.tr("Manual, release notes, tester feedback, and app language"),
                     systemImage: "questionmark.bubble"
                 )
 
                 quickLinks
+                languageSettings
                 feedbackForm
             }
             .padding()
@@ -33,19 +35,19 @@ struct SupportView: View {
 
     private var quickLinks: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle("Documentation")
+            SectionTitle(L10n.tr("Documentation"))
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 12)], spacing: 12) {
                 SupportLinkTile(
-                    title: "User Manual",
-                    subtitle: "Import scores, practice, annotate, and export.",
+                    title: L10n.tr("User Manual"),
+                    subtitle: L10n.tr("Import scores, practice, annotate, and export."),
                     systemImage: "book"
                 ) {
                     open(manualURL)
                 }
 
                 SupportLinkTile(
-                    title: "Changelog",
-                    subtitle: "New features, fixes, and known issues.",
+                    title: L10n.tr("Changelog"),
+                    subtitle: L10n.tr("New features, fixes, and known issues."),
                     systemImage: "clock.arrow.circlepath"
                 ) {
                     open(changelogURL)
@@ -54,11 +56,34 @@ struct SupportView: View {
         }
     }
 
+    private var languageSettings: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle(L10n.tr("Settings"))
+
+            Picker(L10n.tr("Display Language"), selection: $appSettings.selectedLanguage) {
+                ForEach(AppLanguage.allCases) { language in
+                    Text(language.nativeDisplayName).tag(language)
+                }
+            }
+            .pickerStyle(.menu)
+
+            Text(L10n.tr("Choose the interface language. The change applies immediately across the app."))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.quaternary, lineWidth: 1)
+        }
+    }
+
     private var feedbackForm: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle("Feedback")
+            SectionTitle(L10n.tr("Feedback"))
 
-            Picker("Type", selection: $category) {
+            Picker(L10n.tr("Type"), selection: $category) {
                 ForEach(FeedbackCategory.allCases) { category in
                     Label(category.title, systemImage: category.systemImage)
                         .tag(category)
@@ -66,7 +91,7 @@ struct SupportView: View {
             }
             .pickerStyle(.segmented)
 
-            TextField("Summary", text: $summary)
+            TextField(L10n.tr("Summary"), text: $summary)
                 .textFieldStyle(.roundedBorder)
 
             TextEditor(text: $details)
@@ -82,7 +107,7 @@ struct SupportView: View {
                 Button {
                     open(issueURL)
                 } label: {
-                    Label("GitHub Issue", systemImage: "arrow.up.right.square")
+                    Label(L10n.tr("GitHub Issue"), systemImage: "arrow.up.right.square")
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -90,7 +115,7 @@ struct SupportView: View {
                 Button {
                     open(mailURL)
                 } label: {
-                    Label("Mail Draft", systemImage: "envelope")
+                    Label(L10n.tr("Mail Draft"), systemImage: "envelope")
                 }
                 .buttonStyle(.bordered)
                 .disabled(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -98,7 +123,7 @@ struct SupportView: View {
                 Spacer()
             }
 
-            Text("Feedback sends only what you choose to include. For private repos, GitHub Issues are useful for invited internal testers; Mail Draft is the fallback.")
+            Text(L10n.tr("Feedback sends only what you choose to include. For private repos, GitHub Issues are useful for invited internal testers; Mail Draft is the fallback."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -161,13 +186,13 @@ private enum FeedbackCategory: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .bug:
-            return "Bug"
+            return L10n.tr("Bug")
         case .feature:
-            return "Feature"
+            return L10n.tr("Feature")
         case .usability:
-            return "Usability"
+            return L10n.tr("Usability")
         case .research:
-            return "Research"
+            return L10n.tr("Research")
         }
     }
 
@@ -222,31 +247,31 @@ private struct SupportLinkTile: View {
 }
 
 struct UsageStatsView: View {
-    @Bindable var usageTracking: UsageTrackingStore
+    @ObservedObject var usageTracking: UsageTrackingStore
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HeaderBand(
-                    title: "Usage",
-                    subtitle: "Daily practice trend and feature time",
+                    title: L10n.tr("Usage"),
+                    subtitle: L10n.tr("Daily practice trend and feature time"),
                     systemImage: "chart.bar.xaxis"
                 )
 
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 12)], spacing: 12) {
                     MetricTile(
-                        title: "Total Time",
+                        title: L10n.tr("Total Time"),
                         value: DurationFormat.short(usageTracking.totalDuration),
                         systemImage: "timer"
                     )
                     MetricTile(
-                        title: "Sessions",
+                        title: L10n.tr("Sessions"),
                         value: "\(usageTracking.dailySummaries.count) days",
                         systemImage: "calendar"
                     )
                     MetricTile(
-                        title: "Active",
-                        value: usageTracking.activeFeature?.displayName ?? "None",
+                        title: L10n.tr("Active"),
+                        value: usageTracking.activeFeature?.displayName ?? L10n.tr("None"),
                         systemImage: "dot.radiowaves.left.and.right"
                     )
                 }
@@ -265,7 +290,7 @@ private struct UsageFeatureBreakdown: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle("Feature Time")
+            SectionTitle(L10n.tr("Feature Time"))
             let maxDuration = max(durations.values.max() ?? 1, 1)
             ForEach(UsageFeature.allCases, id: \.self) { feature in
                 UsageBarRow(
@@ -283,9 +308,9 @@ private struct DailyUsageTrend: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle("Daily Trend")
+            SectionTitle(L10n.tr("Daily Trend"))
             if summaries.isEmpty {
-                Text("Usage appears after you switch between sections.")
+                Text(L10n.tr("Usage appears after you switch between sections."))
                     .foregroundStyle(.secondary)
                     .padding(12)
                     .frame(maxWidth: .infinity, alignment: .leading)

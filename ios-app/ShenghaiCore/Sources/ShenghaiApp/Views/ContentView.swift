@@ -1,7 +1,6 @@
 import SwiftUI
-
 struct ContentView: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
 
     var body: some View {
         NavigationSplitView {
@@ -44,10 +43,12 @@ struct ContentView: View {
     }
 }
 
-#Preview {
-    ContentView(workspace: {
-        let workspace = ShenghaiWorkspace()
-        workspace.loadDemoScore()
-        return workspace
-    }())
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        ContentView(workspace: {
+            let workspace = ShenghaiWorkspace()
+            workspace.loadDemoScore()
+            return workspace
+        }())
+    }
 }

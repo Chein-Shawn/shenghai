@@ -4,7 +4,7 @@ import ShenghaiCore
 #endif
 
 struct ScoreComposerView: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
     @State private var draft = ComposedScore()
     @State private var selectedStep: ComposedPitchStep = .C
     @State private var selectedAlter = 0
@@ -20,8 +20,8 @@ struct ScoreComposerView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 HeaderBand(
-                    title: "Compose",
-                    subtitle: "Create a simple MusicXML score, then load it into practice.",
+                    title: L10n.tr("Compose"),
+                    subtitle: L10n.tr("Create a simple MusicXML score, then load it into practice."),
                     systemImage: "square.and.pencil"
                 )
 
@@ -39,12 +39,12 @@ struct ScoreComposerView: View {
     }
 
     private var scoreSettingsPanel: some View {
-        StudioPanel(title: "Score Settings", systemImage: "slider.horizontal.3") {
+        StudioPanel(title: L10n.tr("Score Settings"), systemImage: "slider.horizontal.3") {
             VStack(alignment: .leading, spacing: 12) {
-                TextField("Title", text: $draft.title)
+                TextField(L10n.tr("Title"), text: $draft.title)
                     .textFieldStyle(.roundedBorder)
 
-                TextField("Part name", text: $draft.partName)
+                TextField(L10n.tr("Part name"), text: $draft.partName)
                     .textFieldStyle(.roundedBorder)
 
                 Stepper(value: $draft.tempoBPM, in: 40...220, step: 1) {
@@ -52,7 +52,7 @@ struct ScoreComposerView: View {
                 }
 
                 HStack(spacing: 10) {
-                    Picker("Beats", selection: $draft.beats) {
+                    Picker(L10n.tr("Beats"), selection: $draft.beats) {
                         Text("2").tag(2)
                         Text("3").tag(3)
                         Text("4").tag(4)
@@ -60,7 +60,7 @@ struct ScoreComposerView: View {
                     }
                     .pickerStyle(.segmented)
 
-                    Picker("Beat Type", selection: $draft.beatType) {
+                    Picker(L10n.tr("Beat Type"), selection: $draft.beatType) {
                         Text("4").tag(4)
                         Text("8").tag(8)
                     }
@@ -73,14 +73,14 @@ struct ScoreComposerView: View {
     }
 
     private var noteInputPanel: some View {
-        StudioPanel(title: "Note Entry", systemImage: "music.quarternote.3") {
+        StudioPanel(title: L10n.tr("Note Entry"), systemImage: "music.quarternote.3") {
             VStack(alignment: .leading, spacing: 12) {
                 Toggle(isOn: $addRest) {
-                    Label("Rest", systemImage: "pause")
+                    Label(L10n.tr("Rest"), systemImage: "pause")
                 }
                 .toggleStyle(.switch)
 
-                Picker("Pitch", selection: $selectedStep) {
+                Picker(L10n.tr("Pitch"), selection: $selectedStep) {
                     ForEach(ComposedPitchStep.allCases, id: \.self) { step in
                         Text(step.rawValue).tag(step)
                     }
@@ -88,20 +88,20 @@ struct ScoreComposerView: View {
                 .pickerStyle(.segmented)
                 .disabled(addRest)
 
-                Picker("Accidental", selection: $selectedAlter) {
+                Picker(L10n.tr("Accidental"), selection: $selectedAlter) {
                     Text("b").tag(-1)
-                    Text("natural").tag(0)
+                    Text(L10n.tr("natural")).tag(0)
                     Text("#").tag(1)
                 }
                 .pickerStyle(.segmented)
                 .disabled(addRest)
 
                 Stepper(value: $selectedOctave, in: 2...6, step: 1) {
-                    Label("Octave \(selectedOctave)", systemImage: "arrow.up.and.down")
+                    Label(L10n.tr("Octave %d", selectedOctave), systemImage: "arrow.up.and.down")
                 }
                 .disabled(addRest)
 
-                Picker("Value", selection: $selectedValue) {
+                Picker(L10n.tr("Value"), selection: $selectedValue) {
                     ForEach(ComposedNoteValue.allCases) { value in
                         Text(value.displayName).tag(value)
                     }
@@ -111,7 +111,7 @@ struct ScoreComposerView: View {
                 Button {
                     appendSelectedNote()
                 } label: {
-                    Label(addRest ? "Add Rest" : "Add Note", systemImage: addRest ? "plus.circle" : "music.note")
+                    Label(addRest ? L10n.tr("Add Rest") : L10n.tr("Add Note"), systemImage: addRest ? "plus.circle" : "music.note")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -120,20 +120,20 @@ struct ScoreComposerView: View {
     }
 
     private var sequencePanel: some View {
-        StudioPanel(title: "Score Sequence", systemImage: "rectangle.stack") {
+        StudioPanel(title: L10n.tr("Score Sequence"), systemImage: "rectangle.stack") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    ValuePill(title: "Events", value: "\(draft.notes.count)", systemImage: "number")
-                    ValuePill(title: "Measures", value: "\(estimatedMeasureCount)", systemImage: "music.note.list")
-                    ValuePill(title: "Duration", value: durationLabel, systemImage: "timer")
+                    ValuePill(title: L10n.tr("Events"), value: "\(draft.notes.count)", systemImage: "number")
+                    ValuePill(title: L10n.tr("Measures"), value: "\(estimatedMeasureCount)", systemImage: "music.note.list")
+                    ValuePill(title: L10n.tr("Duration"), value: durationLabel, systemImage: "timer")
                     Spacer()
                 }
 
                 if draft.notes.isEmpty {
                     ContentUnavailableView(
-                        "No notes yet",
+                        L10n.tr("No notes yet"),
                         systemImage: "music.note",
-                        description: Text("Use Note Entry to create the first MusicXML draft.")
+                        description: Text(L10n.tr("Use Note Entry to create the first MusicXML draft."))
                     )
                     .frame(maxWidth: .infinity, minHeight: 180)
                 } else {
@@ -149,38 +149,38 @@ struct ScoreComposerView: View {
 
     private var actionRow: some View {
         HStack(spacing: 8) {
-            ToolIconButton(title: "Undo", systemImage: "arrow.uturn.backward") {
+            ToolIconButton(title: L10n.tr("Undo"), systemImage: "arrow.uturn.backward") {
                 if !draft.notes.isEmpty {
                     draft.notes.removeLast()
-                    workspace.statusMessage = "Removed last composed event."
+                    workspace.statusMessage = L10n.tr("Removed last composed event.")
                 }
             }
             .disabled(draft.notes.isEmpty)
 
-            ToolIconButton(title: "Clear", systemImage: "trash") {
+            ToolIconButton(title: L10n.tr("Clear"), systemImage: "trash") {
                 draft.notes.removeAll()
-                workspace.statusMessage = "Cleared composition draft."
+                workspace.statusMessage = L10n.tr("Cleared composition draft.")
             }
             .disabled(draft.notes.isEmpty)
 
-            ToolIconButton(title: "Load Score", systemImage: "square.and.arrow.down", isProminent: true) {
+            ToolIconButton(title: L10n.tr("Load Score"), systemImage: "square.and.arrow.down", isProminent: true) {
                 workspace.loadComposedScore(draft)
             }
             .disabled(draft.notes.isEmpty)
 
-            ToolIconButton(title: "Export MusicXML", systemImage: "square.and.arrow.up") {
+            ToolIconButton(title: L10n.tr("Export MusicXML"), systemImage: "square.and.arrow.up") {
                 workspace.exportMusicXML(draft)
             }
             .disabled(draft.notes.isEmpty)
 
             if let exportedMusicXMLURL = workspace.exportedMusicXMLURL {
                 ShareLink(item: exportedMusicXMLURL) {
-                    Label("Share MusicXML", systemImage: "square.and.arrow.up")
+                    Label(L10n.tr("Share MusicXML"), systemImage: "square.and.arrow.up")
                         .labelStyle(.iconOnly)
                         .frame(width: 34, height: 34)
                 }
                 .buttonStyle(.bordered)
-                .help("Share MusicXML")
+                .help(L10n.tr("Share MusicXML"))
             }
         }
     }
@@ -204,7 +204,7 @@ struct ScoreComposerView: View {
             octave: selectedOctave
         )
         draft.notes.append(ComposedScoreNote(pitch: pitch, value: selectedValue))
-        workspace.statusMessage = addRest ? "Added rest." : "Added \(pitch?.displayName ?? "note")."
+        workspace.statusMessage = addRest ? L10n.tr("Added rest.") : L10n.tr("Added %@.", pitch?.displayName ?? L10n.tr("Note"))
         workspace.errorMessage = nil
     }
 }
@@ -222,7 +222,7 @@ private struct NoteToken: View {
                 .background(.quaternary.opacity(0.4), in: Circle())
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(note.isRest ? "Rest" : note.pitch?.displayName ?? "Note")
+                Text(note.isRest ? L10n.tr("Rest") : note.pitch?.displayName ?? L10n.tr("Note"))
                     .font(.headline)
                     .lineLimit(1)
                 Text(note.value.displayName)
@@ -237,10 +237,12 @@ private struct NoteToken: View {
     }
 }
 
-#Preview {
-    ScoreComposerView(workspace: {
-        let workspace = ShenghaiWorkspace()
-        workspace.loadDemoScore()
-        return workspace
-    }())
+struct ScoreComposerView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScoreComposerView(workspace: {
+            let workspace = ShenghaiWorkspace()
+            workspace.loadDemoScore()
+            return workspace
+        }())
+    }
 }

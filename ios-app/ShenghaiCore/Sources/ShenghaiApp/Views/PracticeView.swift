@@ -1,14 +1,14 @@
 import AVFoundation
-import Observation
+import Combine
 import SwiftUI
 #if canImport(ShenghaiCore)
 import ShenghaiCore
 #endif
 
 struct PracticeView: View {
-    @Bindable var workspace: ShenghaiWorkspace
-    @State private var livePitchCapture = LivePitchCaptureService()
-    @State private var practiceAudio = PracticeAudioService()
+    @ObservedObject var workspace: ShenghaiWorkspace
+    @StateObject private var livePitchCapture = LivePitchCaptureService()
+    @StateObject private var practiceAudio = PracticeAudioService()
     @State private var selectedMode: PracticeMode = .scoreReading
     @State private var targetPitch: Double = 261.63
 
@@ -106,13 +106,13 @@ private enum PracticeMode: String, CaseIterable, Identifiable {
     var caption: String {
         switch self {
         case .scoreReading:
-            return "follow score"
+            return L10n.tr("follow score")
         case .memorization:
-            return "hide cues"
+            return L10n.tr("hide cues")
         case .pitchDrill:
-            return "intonation"
+            return L10n.tr("intonation")
         case .commuteReview:
-            return "offline pass"
+            return L10n.tr("offline pass")
         }
     }
 }
@@ -121,7 +121,7 @@ private struct PracticeModeRail: View {
     @Binding var selectedMode: PracticeMode
 
     var body: some View {
-        StudioPanel(title: "Modes", systemImage: "rectangle.grid.1x2") {
+        StudioPanel(title: L10n.tr("Modes"), systemImage: "rectangle.grid.1x2") {
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(PracticeMode.allCases) { mode in
                     Button {
@@ -131,7 +131,7 @@ private struct PracticeModeRail: View {
                             Image(systemName: mode.systemImage)
                                 .frame(width: 22)
                             VStack(alignment: .leading, spacing: 1) {
-                                Text(mode.rawValue)
+                                Text(L10n.tr(mode.rawValue))
                                     .font(.subheadline.weight(.semibold))
                                 Text(mode.caption)
                                     .font(.caption)
@@ -150,10 +150,10 @@ private struct PracticeModeRail: View {
 }
 
 private struct PracticeStage: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
     var selectedMode: PracticeMode
-    @Bindable var livePitchCapture: LivePitchCaptureService
-    @Bindable var practiceAudio: PracticeAudioService
+    @ObservedObject var livePitchCapture: LivePitchCaptureService
+    @ObservedObject var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
 
     var body: some View {
@@ -175,7 +175,7 @@ private struct PracticeStage: View {
                             livePitchCapture.start()
                         }
                     } label: {
-                        Label(livePitchCapture.isRunning ? "Stop" : "Start", systemImage: livePitchCapture.isRunning ? "stop.fill" : "mic.fill")
+                            Label(livePitchCapture.isRunning ? L10n.tr("Stop") : L10n.tr("Start"), systemImage: livePitchCapture.isRunning ? "stop.fill" : "mic.fill")
                     }
                     .buttonStyle(.borderedProminent)
                 }
@@ -202,9 +202,9 @@ private struct PracticeStage: View {
 }
 
 private struct PracticeInspector: View {
-    @Bindable var workspace: ShenghaiWorkspace
-    @Bindable var livePitchCapture: LivePitchCaptureService
-    @Bindable var practiceAudio: PracticeAudioService
+    @ObservedObject var workspace: ShenghaiWorkspace
+    @ObservedObject var livePitchCapture: LivePitchCaptureService
+    @ObservedObject var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
     var mockDeviations: [PitchDeviation]
 
@@ -212,15 +212,15 @@ private struct PracticeInspector: View {
         VStack(spacing: 14) {
             LivePitchPanel(livePitchCapture: livePitchCapture)
 
-            StudioPanel(title: "Target", systemImage: "target") {
+            StudioPanel(title: L10n.tr("Target"), systemImage: "target") {
                 VStack(alignment: .leading, spacing: 10) {
-                    ValuePill(title: "Reference", value: String(format: "%.1f Hz", targetPitch), systemImage: "waveform")
+                    ValuePill(title: L10n.tr("Reference"), value: String(format: "%.1f Hz", targetPitch), systemImage: "waveform")
                     Slider(value: $targetPitch, in: 196...523.25, step: 0.1)
                     HStack {
                         Button {
                             practiceAudio.playReferenceTone(frequency: targetPitch)
                         } label: {
-                            Label("Play", systemImage: "speaker.wave.2.fill")
+                            Label(L10n.tr("Play"), systemImage: "speaker.wave.2.fill")
                         }
 
                         Button {
@@ -230,7 +230,7 @@ private struct PracticeInspector: View {
                                 practiceAudio.startTuningFork(frequency: targetPitch)
                             }
                         } label: {
-                            Label(practiceAudio.isTuningForkRunning ? "Stop Fork" : "Fork", systemImage: "tuningfork")
+                            Label(practiceAudio.isTuningForkRunning ? L10n.tr("Stop Fork") : L10n.tr("Fork"), systemImage: "tuningfork")
                         }
                     }
                     .buttonStyle(.bordered)
@@ -241,41 +241,41 @@ private struct PracticeInspector: View {
 
             TuningForkPanel(practiceAudio: practiceAudio, targetPitch: $targetPitch)
 
-            StudioPanel(title: "Pitch States", systemImage: "chart.xyaxis.line") {
+            StudioPanel(title: L10n.tr("Pitch States"), systemImage: "chart.xyaxis.line") {
                 ForEach(Array(mockDeviations.enumerated()), id: \.offset) { _, deviation in
                     PitchDeviationRow(deviation: deviation)
                 }
             }
 
-            StudioPanel(title: "Build Queue", systemImage: "hammer") {
-                PipelineRow(title: "Microphone capture", state: .ready)
-                PipelineRow(title: "YIN tracker adapter", state: .ready)
-                PipelineRow(title: "Score-aligned target timeline", state: .planned)
-                PipelineRow(title: "Red mark overlay", state: .planned)
+            StudioPanel(title: L10n.tr("Build Queue"), systemImage: "hammer") {
+                PipelineRow(title: L10n.tr("Microphone capture"), state: .ready)
+                PipelineRow(title: L10n.tr("YIN tracker adapter"), state: .ready)
+                PipelineRow(title: L10n.tr("Score-aligned target timeline"), state: .planned)
+                PipelineRow(title: L10n.tr("Red mark overlay"), state: .planned)
             }
         }
     }
 }
 
 private struct LivePitchPanel: View {
-    @Bindable var livePitchCapture: LivePitchCaptureService
+    @ObservedObject var livePitchCapture: LivePitchCaptureService
 
     var body: some View {
-        StudioPanel(title: "Live Pitch", systemImage: "waveform.and.mic") {
+        StudioPanel(title: L10n.tr("Live Pitch"), systemImage: "waveform.and.mic") {
             HStack {
                 if let latestSample = livePitchCapture.latestSample {
                     MetricTile(
-                        title: "Frequency",
+                        title: L10n.tr("Frequency"),
                         value: latestSample.frequencyHz.map { String(format: "%.1f Hz", $0) } ?? "No pitch",
                         systemImage: "waveform"
                     )
                     MetricTile(
-                        title: "Confidence",
+                        title: L10n.tr("Confidence"),
                         value: String(format: "%.2f", latestSample.confidence),
                         systemImage: "checkmark.seal"
                     )
                 } else {
-                    Text(livePitchCapture.isRunning ? "Listening..." : "Mic idle")
+                    Text(livePitchCapture.isRunning ? L10n.tr("Listening...") : L10n.tr("Mic idle"))
                         .font(.headline)
                         .foregroundStyle(.secondary)
                 }
@@ -290,7 +290,7 @@ private struct LivePitchPanel: View {
 }
 
 private struct TargetPitchCanvas: View {
-    @Bindable var livePitchCapture: LivePitchCaptureService
+    @ObservedObject var livePitchCapture: LivePitchCaptureService
     var targetPitch: Double
 
     private var latestFrequency: Double? {
@@ -298,7 +298,7 @@ private struct TargetPitchCanvas: View {
     }
 
     var body: some View {
-        StudioPanel(title: "Intonation Trace", systemImage: "waveform.path.ecg") {
+        StudioPanel(title: L10n.tr("Intonation Trace"), systemImage: "waveform.path.ecg") {
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Rectangle()
@@ -323,11 +323,11 @@ private struct TargetPitchCanvas: View {
                     VStack {
                         Spacer()
                         HStack {
-                            Text("flat")
+                            Text(L10n.tr("flat"))
                             Spacer()
-                            Text("target")
+                            Text(L10n.tr("target"))
                             Spacer()
-                            Text("sharp")
+                            Text(L10n.tr("sharp"))
                         }
                         .font(.caption2)
                         .foregroundStyle(.secondary)
@@ -349,21 +349,21 @@ private struct TargetPitchCanvas: View {
 
 private struct MemoryCueStrip: View {
     var body: some View {
-        StudioPanel(title: "Memory Cues", systemImage: "eye.slash") {
+        StudioPanel(title: L10n.tr("Memory Cues"), systemImage: "eye.slash") {
             HStack {
-                ValuePill(title: "Visible", value: "Rhythm", systemImage: "metronome")
-                ValuePill(title: "Hidden", value: "Pitch names", systemImage: "eye.slash")
+                ValuePill(title: L10n.tr("Visible"), value: L10n.tr("Rhythm"), systemImage: "metronome")
+                ValuePill(title: L10n.tr("Hidden"), value: L10n.tr("Pitch names"), systemImage: "eye.slash")
             }
         }
     }
 }
 
 private struct PitchDrillStrip: View {
-    @Bindable var practiceAudio: PracticeAudioService
+    @ObservedObject var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
 
     var body: some View {
-        StudioPanel(title: "Pitch Drill", systemImage: "scope") {
+        StudioPanel(title: L10n.tr("Pitch Drill"), systemImage: "scope") {
             HStack {
                 ForEach(PianoKey.pitchDrillKeys) { key in
                     Button(key.name) {
@@ -378,13 +378,13 @@ private struct PitchDrillStrip: View {
 }
 
 private struct PianoKeyboardPanel: View {
-    @Bindable var practiceAudio: PracticeAudioService
+    @ObservedObject var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
 
     private let keys = PianoKey.practiceKeys
 
     var body: some View {
-        StudioPanel(title: "Piano", systemImage: "pianokeys") {
+        StudioPanel(title: L10n.tr("Piano"), systemImage: "pianokeys") {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 52), spacing: 8)], spacing: 8) {
                 ForEach(keys) { key in
                     Button {
@@ -402,7 +402,7 @@ private struct PianoKeyboardPanel: View {
                     }
                     .buttonStyle(.bordered)
                     .tint(key.isAccidental ? .secondary : .accentColor)
-                    .accessibilityLabel("Play \(key.name)")
+                    .accessibilityLabel(L10n.tr("Play %@.", key.name))
                 }
             }
         }
@@ -410,19 +410,19 @@ private struct PianoKeyboardPanel: View {
 }
 
 private struct MetronomePanel: View {
-    @Bindable var practiceAudio: PracticeAudioService
+    @ObservedObject var practiceAudio: PracticeAudioService
 
     var body: some View {
-        StudioPanel(title: "Metronome", systemImage: "metronome") {
+        StudioPanel(title: L10n.tr("Metronome"), systemImage: "metronome") {
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    ValuePill(title: "Tempo", value: "\(practiceAudio.metronomeBPM) bpm", systemImage: "speedometer")
-                    ValuePill(title: "Beat", value: "\(practiceAudio.currentBeat)/\(practiceAudio.beatsPerMeasure)", systemImage: "number")
+                    ValuePill(title: L10n.tr("Tempo"), value: "\(practiceAudio.metronomeBPM) bpm", systemImage: "speedometer")
+                    ValuePill(title: L10n.tr("Beat"), value: "\(practiceAudio.currentBeat)/\(practiceAudio.beatsPerMeasure)", systemImage: "number")
                 }
 
                 Stepper("BPM \(practiceAudio.metronomeBPM)", value: $practiceAudio.metronomeBPM, in: 40...220, step: 2)
 
-                Picker("Meter", selection: $practiceAudio.beatsPerMeasure) {
+                Picker(L10n.tr("Meter"), selection: $practiceAudio.beatsPerMeasure) {
                     Text("2/4").tag(2)
                     Text("3/4").tag(3)
                     Text("4/4").tag(4)
@@ -434,7 +434,7 @@ private struct MetronomePanel: View {
                     practiceAudio.toggleMetronome()
                 } label: {
                     Label(
-                        practiceAudio.isMetronomeRunning ? "Stop Metronome" : "Start Metronome",
+                        practiceAudio.isMetronomeRunning ? L10n.tr("Stop Metronome") : L10n.tr("Start Metronome"),
                         systemImage: practiceAudio.isMetronomeRunning ? "stop.fill" : "play.fill"
                     )
                 }
@@ -445,13 +445,13 @@ private struct MetronomePanel: View {
 }
 
 private struct TuningForkPanel: View {
-    @Bindable var practiceAudio: PracticeAudioService
+    @ObservedObject var practiceAudio: PracticeAudioService
     @Binding var targetPitch: Double
 
     var body: some View {
-        StudioPanel(title: "Tuning Fork", systemImage: "tuningfork") {
+        StudioPanel(title: L10n.tr("Tuning Fork"), systemImage: "tuningfork") {
             VStack(alignment: .leading, spacing: 12) {
-                ValuePill(title: "Fork", value: String(format: "%.1f Hz", practiceAudio.tuningForkFrequency), systemImage: "waveform")
+                ValuePill(title: L10n.tr("Fork"), value: String(format: "%.1f Hz", practiceAudio.tuningForkFrequency), systemImage: "waveform")
 
                 HStack {
                     ForEach(PianoKey.forkKeys) { key in
@@ -468,13 +468,13 @@ private struct TuningForkPanel: View {
                     Button {
                         practiceAudio.startTuningFork(frequency: practiceAudio.tuningForkFrequency)
                     } label: {
-                        Label("Start", systemImage: "waveform")
+                        Label(L10n.tr("Start"), systemImage: "waveform")
                     }
 
                     Button {
                         practiceAudio.stopTuningFork()
                     } label: {
-                        Label("Stop", systemImage: "stop.fill")
+                        Label(L10n.tr("Stop"), systemImage: "stop.fill")
                     }
                     .disabled(!practiceAudio.isTuningForkRunning)
                 }
@@ -488,7 +488,7 @@ private struct PracticeMeasureList: View {
     var part: ScorePart
 
     var body: some View {
-        StudioPanel(title: "Current Passage", systemImage: "music.note.list") {
+        StudioPanel(title: L10n.tr("Current Passage"), systemImage: "music.note.list") {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], spacing: 10) {
                 ForEach(part.measures.prefix(8)) { measure in
                     VStack(alignment: .leading, spacing: 6) {
@@ -552,24 +552,23 @@ private struct PianoKey: Identifiable, Equatable {
 }
 
 @MainActor
-@Observable
-private final class PracticeAudioService {
-    var metronomeBPM = 72 {
+private final class PracticeAudioService: ObservableObject {
+    @Published var metronomeBPM = 72 {
         didSet {
             if isMetronomeRunning {
                 restartMetronome()
             }
         }
     }
-    var beatsPerMeasure = 4 {
+    @Published var beatsPerMeasure = 4 {
         didSet {
             currentBeat = min(currentBeat, beatsPerMeasure)
         }
     }
-    var currentBeat = 1
-    var isMetronomeRunning = false
-    var tuningForkFrequency = 440.0
-    var isTuningForkRunning = false
+    @Published var currentBeat = 1
+    @Published var isMetronomeRunning = false
+    @Published var tuningForkFrequency = 440.0
+    @Published var isTuningForkRunning = false
 
     private let engine = AVAudioEngine()
     private let transientPlayer = AVAudioPlayerNode()

@@ -13,21 +13,21 @@ public enum UsageFeature: String, CaseIterable, Codable, Sendable {
     public var displayName: String {
         switch self {
         case .dashboard:
-            return "Overview"
+            return L10n.tr("Overview")
         case .scoreComposer:
-            return "Compose"
+            return L10n.tr("Compose")
         case .scoreWorkspace:
-            return "Score"
+            return L10n.tr("Score")
         case .practice:
-            return "Practice"
+            return L10n.tr("Practice")
         case .experimentalFeatures:
-            return "Experimental"
+            return L10n.tr("Experimental")
         case .researchStatus:
-            return "Research"
+            return L10n.tr("Research")
         case .support:
-            return "Support"
+            return L10n.tr("Support")
         case .usageStats:
-            return "Usage"
+            return L10n.tr("Usage")
         }
     }
 }

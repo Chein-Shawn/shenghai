@@ -9,7 +9,7 @@ struct SidebarView: View {
             Label(section.title, systemImage: section.systemImage)
                 .tag(section)
         }
-        .navigationTitle("Shenghai")
+        .navigationTitle(L10n.tr("Shenghai"))
         .listStyle(.sidebar)
         #else
         List(AppSection.allCases) { section in
@@ -22,7 +22,7 @@ struct SidebarView: View {
             .buttonStyle(.plain)
             .foregroundStyle(selection == section ? Color.accentColor : Color.primary)
         }
-        .navigationTitle("Shenghai")
+        .navigationTitle(L10n.tr("Shenghai"))
         #endif
     }
 }

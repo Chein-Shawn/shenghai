@@ -1,20 +1,19 @@
 import AVFoundation
 import Foundation
-import Observation
+import Combine
 #if canImport(ShenghaiCore)
 import ShenghaiCore
 #endif
 
 @MainActor
-@Observable
-final class LivePitchCaptureService {
+final class LivePitchCaptureService: ObservableObject {
     private let engine = AVAudioEngine()
     private let tracker = YINPitchTracker(frameSize: 2048, hopSize: 512, minimumFrequency: 70, maximumFrequency: 1_100)
     private let smoother = MedianPitchContourSmoother(windowSize: 5, minimumConfidence: 0.45)
 
-    var isRunning = false
-    var samples: [PitchSample] = []
-    var errorMessage: String?
+    @Published var isRunning = false
+    @Published var samples: [PitchSample] = []
+    @Published var errorMessage: String?
 
     var latestSample: PitchSample? {
         samples.last
@@ -103,7 +102,7 @@ enum LivePitchCaptureError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .microphonePermissionDenied:
-            return "Microphone permission is required for live pitch tracking."
+            return L10n.tr("Microphone permission is required for live pitch tracking.")
         }
     }
 }

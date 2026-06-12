@@ -40,27 +40,27 @@ public enum OMRProvider: String, Codable, CaseIterable, Sendable {
     public var summary: String {
         switch self {
         case .homr:
-            return "Camera/photo-oriented OMR that produces machine-readable MusicXML."
+            return L10n.tr("Camera/photo-oriented OMR that produces machine-readable MusicXML.")
         case .oemer:
-            return "Deep-learning OMR baseline for skewed or phone-taken score images."
+            return L10n.tr("Deep-learning OMR baseline for skewed or phone-taken score images.")
         }
     }
 
     public var bestFor: String {
         switch self {
         case .homr:
-            return "Phone photos, quick MusicXML trials, and future Mac/server helper research."
+            return L10n.tr("Phone photos, quick MusicXML trials, and future Mac/server helper research.")
         case .oemer:
-            return "Research comparison, skewed images, and MusicXML output benchmarking."
+            return L10n.tr("Research comparison, skewed images, and MusicXML output benchmarking.")
         }
     }
 
     public var licenseNote: String {
         switch self {
         case .homr:
-            return "AGPL-3.0 project; keep as an external pipeline until launch/legal review."
+            return L10n.tr("AGPL-3.0 project; keep as an external pipeline until launch/legal review.")
         case .oemer:
-            return "Open-source ML tool with model checkpoints; review code/model licenses before bundling."
+            return L10n.tr("Open-source ML tool with model checkpoints; review code/model licenses before bundling.")
         }
     }
 
@@ -98,25 +98,25 @@ public struct OMRPipelinePlan: Codable, Equatable, Sendable {
             inputKind: inputKind,
             provider: provider,
             stages: [
-                OMRStagePlan(stage: .captureOrImport, status: .ready, note: "Use iOS document/photo import or macOS file import."),
-                OMRStagePlan(stage: .fullPageElementCapture, status: .planned, note: "Capture notes, rests, lyrics, dynamics, tempo text, articulations, repeats, and layout-critical markings into editable MusicXML."),
-                OMRStagePlan(stage: .imagePreprocessing, status: .planned, note: "Prioritize de-skew, contrast normalization, and clean binarization before recognition."),
+                OMRStagePlan(stage: .captureOrImport, status: .ready, note: L10n.tr("Use iOS document/photo import or macOS file import.")),
+                OMRStagePlan(stage: .fullPageElementCapture, status: .planned, note: L10n.tr("Capture notes, rests, lyrics, dynamics, tempo text, articulations, repeats, and layout-critical markings into editable MusicXML.")),
+                OMRStagePlan(stage: .imagePreprocessing, status: .planned, note: L10n.tr("Prioritize de-skew, contrast normalization, and clean binarization before recognition.")),
                 OMRStagePlan(stage: .omrRecognition, status: .planned, note: recognitionNote(for: provider)),
-                OMRStagePlan(stage: .musicXMLExport, status: .ready, note: "MusicXML remains the canonical interchange output."),
-                OMRStagePlan(stage: .editableMusicXMLReview, status: .ready, note: "User checks the scanned MusicXML candidate before using it for notes, playback, and practice feedback."),
-                OMRStagePlan(stage: .scoreDocumentImport, status: .ready, note: "Existing MusicXMLImporter converts the output into ScoreDocument."),
-                OMRStagePlan(stage: .manualCorrection, status: .planned, note: "Needed because OMR accuracy is not perfect, especially with dense scores."),
-                OMRStagePlan(stage: .playbackValidation, status: .ready, note: "Existing MIDIWriter can validate playable notes after import.")
+                OMRStagePlan(stage: .musicXMLExport, status: .ready, note: L10n.tr("MusicXML remains the canonical interchange output.")),
+                OMRStagePlan(stage: .editableMusicXMLReview, status: .ready, note: L10n.tr("User checks the scanned MusicXML candidate before using it for notes, playback, and practice feedback.")),
+                OMRStagePlan(stage: .scoreDocumentImport, status: .ready, note: L10n.tr("Existing MusicXMLImporter converts the output into ScoreDocument.")),
+                OMRStagePlan(stage: .manualCorrection, status: .planned, note: L10n.tr("Needed because OMR accuracy is not perfect, especially with dense scores.")),
+                OMRStagePlan(stage: .playbackValidation, status: .ready, note: L10n.tr("Existing MIDIWriter can validate playable notes after import."))
             ]
         )
     }
 
     private static func recognitionNote(for provider: OMRProvider?) -> String {
         guard let provider else {
-            return "Choose homr or oemer as an external MusicXML-producing OMR pipeline."
+            return L10n.tr("Choose homr or oemer as an external MusicXML-producing OMR pipeline.")
         }
 
-        return "Use \(provider.displayName) outside the app, then import its MusicXML output."
+        return L10n.tr("Use %@ outside the app, then import its MusicXML output.", provider.displayName)
     }
 }
 
@@ -134,23 +134,23 @@ public enum OMRRecognizedElementKind: String, Codable, CaseIterable, Sendable {
     public var displayName: String {
         switch self {
         case .metadata:
-            return "Title and credits"
+            return L10n.tr("Title and credits")
         case .parts:
-            return "Parts and staves"
+            return L10n.tr("Parts and staves")
         case .measures:
-            return "Measures"
+            return L10n.tr("Measures")
         case .notes:
-            return "Notes"
+            return L10n.tr("Notes")
         case .rests:
-            return "Rests"
+            return L10n.tr("Rests")
         case .lyrics:
-            return "Lyrics"
+            return L10n.tr("Lyrics")
         case .directions:
-            return "Directions and markings"
+            return L10n.tr("Directions and markings")
         case .repeats:
-            return "Repeats"
+            return L10n.tr("Repeats")
         case .layout:
-            return "Layout"
+            return L10n.tr("Layout")
         }
     }
 }
@@ -222,15 +222,15 @@ public enum OMRMusicXMLCandidateBuilder {
         ].compactMap { $0 }.count
 
         let summaries = [
-            OMRRecognizedElementSummary(kind: .metadata, count: metadataCount, needsUserReview: true, note: "Check title, composer, lyricist, arranger, and copyright."),
-            OMRRecognizedElementSummary(kind: .parts, count: score.parts.count, needsUserReview: true, note: "Check SATB/instrument names and staff mapping."),
-            OMRRecognizedElementSummary(kind: .measures, count: measures.count, needsUserReview: true, note: "Check measure count, time signature changes, and barlines."),
-            OMRRecognizedElementSummary(kind: .notes, count: notes.filter { !$0.isRest }.count, needsUserReview: true, note: "Check pitch, octave, rhythm, ties, and voice assignment."),
-            OMRRecognizedElementSummary(kind: .rests, count: notes.filter { $0.isRest }.count, needsUserReview: true, note: "Check rests and empty measures."),
-            OMRRecognizedElementSummary(kind: .lyrics, count: lyricCount, needsUserReview: lyricCount > 0, note: "Check syllables, hyphenation, melisma, and verse numbers."),
-            OMRRecognizedElementSummary(kind: .directions, count: directionCount, needsUserReview: directionCount > 0, note: "Check tempo words, dynamics, rehearsal text, and expressive markings."),
-            OMRRecognizedElementSummary(kind: .repeats, count: repeatCount, needsUserReview: repeatCount > 0, note: "Check repeat starts, endings, D.C./D.S., coda, and expanded playback order."),
-            OMRRecognizedElementSummary(kind: .layout, count: 0, needsUserReview: true, note: "Check page/system layout visually against the source PDF or image.")
+            OMRRecognizedElementSummary(kind: .metadata, count: metadataCount, needsUserReview: true, note: L10n.tr("Check title, composer, lyricist, arranger, and copyright.")),
+            OMRRecognizedElementSummary(kind: .parts, count: score.parts.count, needsUserReview: true, note: L10n.tr("Check SATB/instrument names and staff mapping.")),
+            OMRRecognizedElementSummary(kind: .measures, count: measures.count, needsUserReview: true, note: L10n.tr("Check measure count, time signature changes, and barlines.")),
+            OMRRecognizedElementSummary(kind: .notes, count: notes.filter { !$0.isRest }.count, needsUserReview: true, note: L10n.tr("Check pitch, octave, rhythm, ties, and voice assignment.")),
+            OMRRecognizedElementSummary(kind: .rests, count: notes.filter { $0.isRest }.count, needsUserReview: true, note: L10n.tr("Check rests and empty measures.")),
+            OMRRecognizedElementSummary(kind: .lyrics, count: lyricCount, needsUserReview: lyricCount > 0, note: L10n.tr("Check syllables, hyphenation, melisma, and verse numbers.")),
+            OMRRecognizedElementSummary(kind: .directions, count: directionCount, needsUserReview: directionCount > 0, note: L10n.tr("Check tempo words, dynamics, rehearsal text, and expressive markings.")),
+            OMRRecognizedElementSummary(kind: .repeats, count: repeatCount, needsUserReview: repeatCount > 0, note: L10n.tr("Check repeat starts, endings, D.C./D.S., coda, and expanded playback order.")),
+            OMRRecognizedElementSummary(kind: .layout, count: 0, needsUserReview: true, note: L10n.tr("Check page/system layout visually against the source PDF or image."))
         ]
 
         return OMRMusicXMLCandidate(
@@ -240,9 +240,9 @@ public enum OMRMusicXMLCandidateBuilder {
             score: score,
             recognizedElements: summaries,
             reviewChecklist: [
-                "Compare every staff, measure, note, rest, lyric, dynamic, tempo word, repeat, and rehearsal marking against the original PDF/image.",
-                "Correct the MusicXML candidate first; then use the corrected file for annotation, playback, pitch tracking, and practice history.",
-                "Do not treat OMR output as final until playback and visual review both pass."
+                L10n.tr("Compare every staff, measure, note, rest, lyric, dynamic, tempo word, repeat, and rehearsal marking against the original PDF/image."),
+                L10n.tr("Correct the MusicXML candidate first; then use the corrected file for annotation, playback, pitch tracking, and practice history."),
+                L10n.tr("Do not treat OMR output as final until playback and visual review both pass.")
             ],
             canEnterPracticeWorkflow: !score.parts.isEmpty && !notes.isEmpty
         )

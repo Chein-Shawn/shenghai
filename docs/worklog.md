@@ -192,3 +192,33 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 - Real PDF/image recognition is still an external OMR step. Shenghai now handles the review, correction, and downstream use of generated MusicXML, but the actual visual recognition still depends on homr, oemer, Audiveris, or another OMR engine.
 - The first phrase-rate thresholds were still too English-biased and under-scored Chinese phrase practice. The evaluator needed recalibration to use a more appropriate phrase-per-minute target range for Chinese and mixed-language sessions.
+
+## Codex 實作工作日誌｜2026-06-12
+
+### Done
+
+- Replaced the unstable `@Observable` macro path with `ObservableObject` / `@Published` for app-facing state owners:
+  - `ShenghaiWorkspace`
+  - `UsageTrackingStore`
+  - `LivePitchCaptureService`
+  - `PracticeAudioService`
+- Updated SwiftUI view bindings from `@Bindable` to `@ObservedObject` / `@StateObject` where appropriate.
+- Replaced `#Preview` macros with `PreviewProvider` in app views to avoid the current preview macro plugin failure path.
+- Fixed the Xcode project file so it now includes:
+  - `ExperimentalFeaturesView.swift`
+  - `ExperimentalFeature.swift`
+- Added a first-pass in-app localization architecture:
+  - `AppLanguage`
+  - persisted `AppSettingsStore`
+  - centralized `L10n.tr(...)`
+- Added a user-facing display language picker in the Support/Settings screen.
+- Localized major app shell and core workflow text for the current build path, including status messages and key app sections.
+- Validated `xcodebuild` macOS build with workspace-local DerivedData; the build now succeeds.
+
+### Encountered / Discovered
+
+- The earlier Xcode failure had multiple layers:
+  - initial `Observation` macro/plugin failure for `@Observable`
+  - preview macro failure for `#Preview`
+  - `.xcodeproj` drift where newer Swift files existed on disk but were not registered in the project
+- The current localization architecture is now in place, but full coverage across every deep experimental/research text block will still require iterative expansion of the translation table.

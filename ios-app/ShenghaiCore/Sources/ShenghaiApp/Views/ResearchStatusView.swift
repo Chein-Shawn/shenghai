@@ -5,27 +5,27 @@ struct ResearchStatusView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HeaderBand(
-                    title: "Research Map",
-                    subtitle: "Algorithm decisions feeding the MVP",
+                    title: L10n.tr("Research Map"),
+                    subtitle: L10n.tr("Algorithm decisions feeding the MVP"),
                     systemImage: "book.pages"
                 )
 
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionTitle("Product Algorithms")
-                    ResearchRow(topic: "OMR", decision: "Let users choose homr or oemer as external MusicXML-producing providers; keep Audiveris as a benchmark path.")
-                    ResearchRow(topic: "OMR Pipeline", decision: "Track capture, preprocessing, recognition, MusicXML export, correction, and playback validation as explicit stages.")
-                    ResearchRow(topic: "Internal Format", decision: "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.")
-                    ResearchRow(topic: "Pitch Feedback", decision: "Use a YIN baseline for live monophonic pitch, smooth contours, and keep CREPE/pYIN as replaceable higher-accuracy trackers.")
-                    ResearchRow(topic: "Playback", decision: "Generate MIDI events first; move to AVAudioEngine sampler when richer practice controls are needed.")
-                    ResearchRow(topic: "Source Separation", decision: "Treat Moises-like stem controls as post-MVP research unless a simple API/prototype is available.")
+                    SectionTitle(L10n.tr("Product Algorithms"))
+                    ResearchRow(topic: "OMR", decision: L10n.tr("Let users choose homr or oemer as external MusicXML-producing providers; keep Audiveris as a benchmark path."))
+                    ResearchRow(topic: "OMR Pipeline", decision: L10n.tr("Track capture, preprocessing, recognition, MusicXML export, correction, and playback validation as explicit stages."))
+                    ResearchRow(topic: L10n.tr("Internal Format"), decision: L10n.tr("Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs."))
+                    ResearchRow(topic: L10n.tr("Pitch Feedback"), decision: L10n.tr("Use a YIN baseline for live monophonic pitch, smooth contours, and keep CREPE/pYIN as replaceable higher-accuracy trackers."))
+                    ResearchRow(topic: L10n.tr("Playback"), decision: L10n.tr("Generate MIDI events first; move to AVAudioEngine sampler when richer practice controls are needed."))
+                    ResearchRow(topic: L10n.tr("Source Separation"), decision: L10n.tr("Treat Moises-like stem controls as post-MVP research unless a simple API/prototype is available."))
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionTitle("Current Blockers")
-                    PipelineRow(title: "External OMR provider execution", state: .planned, detail: "homr/oemer are selected in-app but run in a reviewed external environment for now.")
-                    PipelineRow(title: "Audiveris app install", state: .blocked, detail: "Install official macOS release or use JDK 25 for source build.")
-                    PipelineRow(title: "TestFlight signing", state: .blocked, detail: "Needs Apple Developer Program and App Store Connect setup.")
-                    PipelineRow(title: "Live pitch capture", state: .planned, detail: "Requires microphone permission and input calibration.")
+                    SectionTitle(L10n.tr("Current Blockers"))
+                    PipelineRow(title: L10n.tr("External OMR provider execution"), state: .planned, detail: L10n.tr("homr/oemer are selected in-app but run in a reviewed external environment for now."))
+                    PipelineRow(title: L10n.tr("Audiveris app install"), state: .blocked, detail: L10n.tr("Install official macOS release or use JDK 25 for source build."))
+                    PipelineRow(title: L10n.tr("TestFlight signing"), state: .blocked, detail: L10n.tr("Needs Apple Developer Program and App Store Connect setup."))
+                    PipelineRow(title: L10n.tr("Live pitch capture"), state: .planned, detail: L10n.tr("Requires microphone permission and input calibration."))
                 }
             }
             .padding()

@@ -126,7 +126,7 @@ struct ValuePill: View {
 }
 
 struct StatusStrip: View {
-    @Bindable var workspace: ShenghaiWorkspace
+    @ObservedObject var workspace: ShenghaiWorkspace
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
