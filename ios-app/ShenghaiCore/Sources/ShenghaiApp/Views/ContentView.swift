@@ -1,28 +1,99 @@
 import SwiftUI
 struct ContentView: View {
     @ObservedObject var workspace: ShenghaiWorkspace
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @State private var hasBootstrapped = false
+
+    private var usesCompactNavigation: Bool {
+        #if os(iOS)
+        horizontalSizeClass == .compact
+        #else
+        false
+        #endif
+    }
 
     var body: some View {
-        NavigationSplitView {
-            SidebarView(selection: $workspace.selectedSection)
-        } detail: {
-            detailView
-                .navigationTitle(workspace.selectedSection.title)
+        Group {
+            if usesCompactNavigation {
+                iPhoneTabShell
+            } else {
+                NavigationSplitView {
+                    SidebarView(selection: $workspace.selectedSection)
+                } detail: {
+                    detailView(for: workspace.selectedSection)
+                        .navigationTitle(workspace.selectedSection.title)
+                }
+            }
         }
         .onAppear {
             workspace.usageTracking.switchTo(workspace.selectedSection.usageFeature)
-            if workspace.score == nil {
-                workspace.loadDemoScore()
-            }
         }
         .onDisappear {
             workspace.usageTracking.closeActiveSession()
         }
+        .task {
+            guard !hasBootstrapped else { return }
+            hasBootstrapped = true
+            await Task.yield()
+
+            if workspace.score == nil {
+                workspace.loadDemoScore()
+            }
+        }
+    }
+
+    private var iPhoneTabShell: some View {
+        TabView(selection: $workspace.selectedSection) {
+            NavigationStack {
+                detailView(for: .dashboard)
+                    .navigationTitle(AppSection.dashboard.title)
+            }
+            .tabItem {
+                Label(AppSection.dashboard.title, systemImage: AppSection.dashboard.systemImage)
+            }
+            .tag(AppSection.dashboard)
+
+            NavigationStack {
+                CompactScoreHubView(workspace: workspace)
+                    .navigationTitle(AppSection.scoreWorkspace.title)
+            }
+            .tabItem {
+                Label(AppSection.scoreWorkspace.title, systemImage: AppSection.scoreWorkspace.systemImage)
+            }
+            .tag(AppSection.scoreWorkspace)
+
+            NavigationStack {
+                detailView(for: .practice)
+                    .navigationTitle(AppSection.practice.title)
+            }
+            .tabItem {
+                Label(AppSection.practice.title, systemImage: AppSection.practice.systemImage)
+            }
+            .tag(AppSection.practice)
+
+            NavigationStack {
+                detailView(for: .experimentalFeatures)
+                    .navigationTitle(AppSection.experimentalFeatures.title)
+            }
+            .tabItem {
+                Label(AppSection.experimentalFeatures.title, systemImage: AppSection.experimentalFeatures.systemImage)
+            }
+            .tag(AppSection.experimentalFeatures)
+
+            NavigationStack {
+                detailView(for: .settings)
+                    .navigationTitle(AppSection.settings.title)
+            }
+            .tabItem {
+                Label(AppSection.settings.title, systemImage: AppSection.settings.systemImage)
+            }
+            .tag(AppSection.settings)
+        }
     }
 
     @ViewBuilder
-    private var detailView: some View {
-        switch workspace.selectedSection {
+    private func detailView(for section: AppSection) -> some View {
+        switch section {
         case .dashboard:
             DashboardView(workspace: workspace)
         case .scoreComposer:
@@ -33,12 +104,57 @@ struct ContentView: View {
             PracticeView(workspace: workspace)
         case .experimentalFeatures:
             ExperimentalFeaturesView()
-        case .researchStatus:
-            ResearchStatusView()
-        case .support:
+        case .settings:
             SupportView(workspace: workspace)
-        case .usageStats:
-            UsageStatsView(usageTracking: workspace.usageTracking)
+        }
+    }
+}
+
+private struct CompactScoreHubView: View {
+    @ObservedObject var workspace: ShenghaiWorkspace
+    @State private var mode: CompactScoreMode = .workspace
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Picker(L10n.tr("Score Mode"), selection: $mode) {
+                ForEach(CompactScoreMode.allCases) { mode in
+                    Text(mode.title).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding(.horizontal)
+            .padding(.top)
+
+            Group {
+                switch mode {
+                case .workspace:
+                    ScoreWorkspaceView(workspace: workspace)
+                case .compose:
+                    ScoreComposerView(workspace: workspace)
+                }
+            }
+        }
+        .onAppear {
+            workspace.usageTracking.switchTo(mode == .workspace ? .scoreWorkspace : .scoreComposer)
+        }
+        .onChange(of: mode) { _, newMode in
+            workspace.usageTracking.switchTo(newMode == .workspace ? .scoreWorkspace : .scoreComposer)
+        }
+    }
+}
+
+private enum CompactScoreMode: String, CaseIterable, Identifiable {
+    case workspace
+    case compose
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .workspace:
+            return L10n.tr("Score")
+        case .compose:
+            return L10n.tr("Compose")
         }
     }
 }

@@ -18,8 +18,13 @@ struct ScoreWorkspaceView: View {
     @State private var mutedPartIDs: Set<String> = []
     @State private var soloPartID: String?
 
-    private var musicXMLTypes: [UTType] {
-        [.xml, UTType(filenameExtension: "musicxml")].compactMap { $0 }
+    private var importableScoreTypes: [UTType] {
+        [
+            .xml,
+            UTType(filenameExtension: "musicxml"),
+            .pdf,
+            .image
+        ].compactMap { $0 }
     }
 
     var body: some View {
@@ -111,19 +116,19 @@ struct ScoreWorkspaceView: View {
                 ContentUnavailableView(
                     L10n.tr("No Score Loaded"),
                     systemImage: "music.note.list",
-                    description: Text(L10n.tr("Import MusicXML, or convert a PDF/image score into an editable MusicXML candidate and review it here."))
+                    description: Text(L10n.tr("Import MusicXML, PDF, or score images. MusicXML opens directly; PDF/image currently enters the OMR intake path before review."))
                 )
             }
         }
         .fileImporter(
             isPresented: $workspace.isImportingScore,
-            allowedContentTypes: musicXMLTypes,
+            allowedContentTypes: importableScoreTypes,
             allowsMultipleSelection: false
         ) { result in
             guard case .success(let urls) = result, let url = urls.first else {
                 return
             }
-            workspace.importMusicXML(url: url)
+            workspace.importScoreFile(url: url)
         }
     }
 }
@@ -177,7 +182,7 @@ private struct ScoreToolbar: View {
 
             Spacer()
 
-            ToolIconButton(title: L10n.tr("Import MusicXML"), systemImage: "square.and.arrow.down") {
+            ToolIconButton(title: L10n.tr("Import Score File"), systemImage: "square.and.arrow.down") {
                 workspace.isImportingScore = true
             }
 
@@ -430,7 +435,7 @@ private struct ScoreInspectorPanel: View {
                 }
             }
 
-            StudioPanel(title: L10n.tr("Full-Score MusicXML Review"), systemImage: "doc.badge.magnifyingglass") {
+            StudioPanel(title: L10n.tr("Full-Score MusicXML Review"), systemImage: "doc.text.magnifyingglass") {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(L10n.tr("Main scan workflow: PDF/image score -> MusicXML candidate -> user correction -> annotations, playback, pitch tracking, and practice history."))
                         .font(.caption)
@@ -451,7 +456,7 @@ private struct ScoreInspectorPanel: View {
                     )
 
                     HStack {
-                        ValuePill(title: L10n.tr("Source"), value: candidate.inputKind.rawValue, systemImage: "doc")
+                        ValuePill(title: L10n.tr("Source"), value: candidate.inputKind.localizedDisplayName, systemImage: "doc")
                         ValuePill(title: L10n.tr("Provider"), value: candidate.provider.displayName, systemImage: "wand.and.stars")
                     }
 
@@ -465,9 +470,9 @@ private struct ScoreInspectorPanel: View {
                                     Image(systemName: item.needsUserReview ? "exclamationmark.circle" : "checkmark.circle")
                                         .foregroundStyle(item.needsUserReview ? .orange : .green)
                                 }
-                                Text(item.kind.displayName)
+                                Text(item.kind.localizedDisplayName)
                                     .font(.caption.weight(.semibold))
-                                Text(item.note)
+                                Text(L10n.tr(item.note))
                                     .font(.caption2)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(3)
@@ -480,7 +485,7 @@ private struct ScoreInspectorPanel: View {
                     SectionTitle(L10n.tr("Review checklist"))
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(candidate.reviewChecklist, id: \.self) { item in
-                            Label(item, systemImage: "square.and.pencil")
+                            Label(L10n.tr(item), systemImage: "square.and.pencil")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -557,15 +562,15 @@ private struct OMRProviderSummary: View {
                     .foregroundStyle(.tint)
                     .frame(width: 24)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(provider.summary)
+                    Text(provider.localizedSummary)
                         .font(.subheadline.weight(.semibold))
-                    Text(provider.bestFor)
+                    Text(provider.localizedBestFor)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            Label(provider.licenseNote, systemImage: "shield.lefthalf.filled")
+            Label(provider.localizedLicenseNote, systemImage: "shield.lefthalf.filled")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

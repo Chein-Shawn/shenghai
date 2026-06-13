@@ -6,30 +6,7 @@ public enum UsageFeature: String, CaseIterable, Codable, Sendable {
     case scoreWorkspace
     case practice
     case experimentalFeatures
-    case researchStatus
-    case support
-    case usageStats
-
-    public var displayName: String {
-        switch self {
-        case .dashboard:
-            return L10n.tr("Overview")
-        case .scoreComposer:
-            return L10n.tr("Compose")
-        case .scoreWorkspace:
-            return L10n.tr("Score")
-        case .practice:
-            return L10n.tr("Practice")
-        case .experimentalFeatures:
-            return L10n.tr("Experimental")
-        case .researchStatus:
-            return L10n.tr("Research")
-        case .support:
-            return L10n.tr("Support")
-        case .usageStats:
-            return L10n.tr("Usage")
-        }
-    }
+    case settings
 }
 
 public struct UsageSessionEvent: Codable, Equatable, Sendable, Identifiable {

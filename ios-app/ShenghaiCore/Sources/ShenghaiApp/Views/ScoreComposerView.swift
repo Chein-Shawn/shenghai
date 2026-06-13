@@ -5,7 +5,7 @@ import ShenghaiCore
 
 struct ScoreComposerView: View {
     @ObservedObject var workspace: ShenghaiWorkspace
-    @State private var draft = ComposedScore()
+    @State private var draft = ComposedScore.localizedDraftTemplate()
     @State private var selectedStep: ComposedPitchStep = .C
     @State private var selectedAlter = 0
     @State private var selectedOctave = 4
@@ -103,7 +103,7 @@ struct ScoreComposerView: View {
 
                 Picker(L10n.tr("Value"), selection: $selectedValue) {
                     ForEach(ComposedNoteValue.allCases) { value in
-                        Text(value.displayName).tag(value)
+                        Text(value.localizedDisplayName).tag(value)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -225,7 +225,7 @@ private struct NoteToken: View {
                 Text(note.isRest ? L10n.tr("Rest") : note.pitch?.displayName ?? L10n.tr("Note"))
                     .font(.headline)
                     .lineLimit(1)
-                Text(note.value.displayName)
+                Text(note.value.localizedDisplayName)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

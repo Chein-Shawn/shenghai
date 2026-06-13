@@ -218,6 +218,64 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 ### Encountered / Discovered
 
 - The earlier Xcode failure had multiple layers:
+
+## Codex 實作工作日誌｜2026-06-13
+
+### Done
+
+- Refactored `ShenghaiCore` so it no longer depends on app-layer `L10n`.
+- Removed direct localization calls from:
+  - `MusicXMLComposer`
+  - `OMRPipeline`
+  - `UsageAnalytics`
+- Added app-side localization adapters in `LocalizedPresentation.swift` so the UI renders:
+  - composed note values
+  - usage feature names
+  - OMR provider descriptions
+  - OMR recognized-element labels
+  - OMR checklist/review copy
+- Changed OMR shared models to use semantic text tokens instead of localized strings:
+  - `LocalizedTextToken`
+  - provider summary/best-for/license tokens
+  - stage-note tokens
+- Replaced the old Settings feedback actions (`GitHub Issue`, `Mail Draft`) with a native in-app feedback submission flow.
+- Added app-layer feedback integration files:
+  - `FeedbackConfiguration.swift`
+  - `FeedbackSubmissionService.swift`
+  - `FeedbackConfiguration.json`
+- Added a Google Apps Script backend template under `tools/google-apps-script/` so Shenghai feedback can land in a Google Sheet and optionally notify by email.
+- Updated C4, README, user manual, changelog, and a dedicated backend note to reflect the new feedback architecture.
+- Added translated feedback-flow strings for all currently shipped app languages.
+- Fixed a Swift 6 concurrency build issue by making `FeedbackSubmissionService` an `actor`.
+- Updated `ios-app/Shenghai.xcodeproj/project.pbxproj` so the Xcode target includes:
+  - `LocalizedPresentation.swift`
+  - `FeedbackConfiguration.swift`
+  - `FeedbackSubmissionService.swift`
+- Removed an over-strict `#if canImport(ShenghaiCore)` guard in `LocalizedPresentation.swift` so the same localized compose helpers work in both SwiftPM and the single-target Xcode project.
+- Revalidated both build paths:
+  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
+  - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS ... build`
+
+### Encountered / Discovered
+
+- A live feedback submission still needs one manual external step: deploy the Apps Script web app and paste its `/exec` URL into `FeedbackConfiguration.json`.
+- Writing user text into Google Sheets needs spreadsheet-formula escaping for prefixes such as `=`, `+`, `-`, and `@`; the Apps Script template now sanitizes those values before appending rows.
+- The repo-wide localization audit still fails because of many pre-existing untranslated or mojibake strings outside the new feedback flow. The new feedback keys were added, but a full translation cleanup remains a separate task.
+  - review-note tokens
+  - checklist tokens
+- Added localized compose fallbacks at the app layer before MusicXML/ScoreDocument export so blank user drafts no longer have to rely on core-localized defaults.
+- Updated `tools/localization/check_localization.py` to cover all 14 currently shipped app languages and to flag non-English values that still match English unless explicitly allowlisted.
+- Updated `tools/localization/build_resources.py` so it preserves current static `.strings` resources instead of regenerating them from old Swift source history.
+- Added first-pass static translations for the new OMR semantic keys and a small set of visible support/review strings across all shipped languages.
+- Validated:
+  - `swift build --disable-sandbox --scratch-path .build/spm`
+  - `swift test --disable-sandbox --scratch-path .build/spm`
+
+### Encountered / Discovered
+
+- The original compile error (`Cannot find 'L10n' in scope`) was a boundary problem, not an isolated missing import. Shared-core types were rendering user-facing strings directly, which broke once localization was moved into the app target.
+- The current shipped language resources still contain many pre-existing English fallbacks outside the newly refactored OMR path. The upgraded localization audit now exposes that debt much more clearly.
+- The repo move from the dated Codex path to `/Users/shawn/Documents/Codex/shenghai/` left stale SwiftPM module-cache artifacts in `.build`, so a clean/build cycle was needed before local compilation succeeded again.
   - initial `Observation` macro/plugin failure for `@Observable`
   - preview macro failure for `#Preview`
   - `.xcodeproj` drift where newer Swift files existed on disk but were not registered in the project
@@ -225,3 +283,19 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Pushed commit `bb595b5` to GitHub `main`.
 - Continued the localization pass for experimental-feature UI labels, pitch-state labels, and score-annotation tool names.
 - Added `docs/localization-architecture-2026-06-12.md` to document the multi-language structure and long-term migration path.
+- Removed the in-app `Research` navigation section from the main app flow.
+- Fixed the confusing score-import behavior: the `Score` section had been wired to accept only `MusicXML`, so PDF files were never actually selectable/importable.
+- Expanded the `Score` file picker to accept `MusicXML`, `PDF`, and score images, and added explicit user-facing messaging that PDF/image currently enters an OMR intake path and still needs external OMR before editable MusicXML can open in-app.
+- Revalidated `xcodebuild` after the import-flow and navigation changes; the build succeeds.
+- Began restructuring navigation into an iPhone tab shell and a larger-screen sidebar workflow.
+- Merged Support and Usage into a unified Settings surface and added official contact details / website.
+- Moved iPhone Compose access into the Score hub so phone navigation stays compact.
+- Fixed the iOS compile failure in `ShenghaiApp/Views/SidebarView.swift`: `List(_:selection:)` is not available on iOS, so the sidebar now uses macOS selection binding only and keeps a button-driven list for iPad/iPhone builds.
+- Revalidated the post-fix build and confirmed the project compiles successfully again.
+- Replaced an invalid SF Symbol in `ShenghaiApp/Views/ScoreWorkspaceView.swift` (`doc.badge.magnifyingglass`) with a valid symbol (`doc.text.magnifyingglass`) and revalidated the build.
+- Deferred the automatic demo-score load in `ShenghaiApp/Views/ContentView.swift` until after the first render pass so launch-time work does not compete with iPhone/iPad first-frame presentation.
+- Migrated Shenghai away from the in-code `L10n` translation dictionary to bundle-backed static localization resources under `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources`.
+- Added `Localization.swift` so the in-app display-language switch now chooses a localized resource bundle instead of switching an embedded Swift dictionary.
+- Added `tools/localization/build_resources.py` to generate shipped localization resources and semantic alias keys from the legacy string inventory.
+- Added `tools/localization/check_localization.py` to enforce localization-key coverage and catch raw user-facing string literals that bypass the localization layer.
+- Replaced the remaining raw UI literals flagged by the localization audit (`Score Mode`, `M %@`) with `L10n.tr(...)` lookups.

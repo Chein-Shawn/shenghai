@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UniformTypeIdentifiers
 #if canImport(ShenghaiCore)
 import ShenghaiCore
 #endif
@@ -75,6 +76,28 @@ final class ShenghaiWorkspace: ObservableObject {
         }
     }
 
+    func importScoreFile(url: URL) {
+        let lowercasedExtension = url.pathExtension.lowercased()
+
+        if ["xml", "musicxml", "mxl"].contains(lowercasedExtension) {
+            importMusicXML(url: url)
+            return
+        }
+
+        if lowercasedExtension == "pdf" {
+            handlePendingOMRImport(url: url, inputKind: .pdf)
+            return
+        }
+
+        if let type = UTType(filenameExtension: lowercasedExtension),
+           type.conforms(to: .image) {
+            handlePendingOMRImport(url: url, inputKind: .image)
+            return
+        }
+
+        errorMessage = L10n.tr("This file type is not supported yet. Import MusicXML directly, or use PDF/image for the OMR intake path.")
+    }
+
     func exportMIDI() {
         guard let score else {
             errorMessage = L10n.tr("Load or import a MusicXML score first.")
@@ -110,25 +133,27 @@ final class ShenghaiWorkspace: ObservableObject {
     }
 
     func loadComposedScore(_ composedScore: ComposedScore) {
-        let generatedScore = MusicXMLComposer.makeScoreDocument(from: composedScore)
+        let normalizedScore = composedScore.applyingLocalizedFallbacks()
+        let generatedScore = MusicXMLComposer.makeScoreDocument(from: normalizedScore)
         setScore(generatedScore)
-        statusMessage = L10n.tr("Created %d notes from Compose.", composedScore.notes.count)
+        statusMessage = L10n.tr("Created %d notes from Compose.", normalizedScore.notes.count)
         errorMessage = nil
         selectedSection = .scoreWorkspace
     }
 
     func exportMusicXML(_ composedScore: ComposedScore) {
         do {
-            let fileName = composedScore.title
+            let normalizedScore = composedScore.applyingLocalizedFallbacks()
+            let fileName = normalizedScore.title
                 .trimmingCharacters(in: .whitespacesAndNewlines)
-                .isEmpty ? "Shenghai-Composition" : composedScore.title
+                .isEmpty ? "Shenghai-Composition" : normalizedScore.title
             let safeName = fileName
                 .components(separatedBy: CharacterSet.alphanumerics.inverted)
                 .filter { !$0.isEmpty }
                 .joined(separator: "-")
             let url = FileManager.default.temporaryDirectory
                 .appending(path: "\(safeName.isEmpty ? "Shenghai-Composition" : safeName).musicxml")
-            let xml = MusicXMLComposer.makeMusicXML(from: composedScore)
+            let xml = MusicXMLComposer.makeMusicXML(from: normalizedScore)
             try xml.write(to: url, atomically: true, encoding: .utf8)
             exportedMusicXMLURL = url
             statusMessage = L10n.tr("Exported MusicXML: %@.", url.lastPathComponent)
@@ -164,6 +189,20 @@ final class ShenghaiWorkspace: ObservableObject {
             isPlaying = false
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func handlePendingOMRImport(url: URL, inputKind: OMRInputKind) {
+        let didStartAccess = url.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccess {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        statusMessage = L10n.tr("Imported %@ for OMR intake. This build still needs an external OMR step before Shenghai can open it as editable MusicXML.", url.lastPathComponent)
+        errorMessage = L10n.tr("PDF/image import is accepted, but in-app OMR is not implemented yet. Convert it to MusicXML first, then import the MusicXML result.")
+        scannedMusicXMLCandidate = nil
+        selectedSection = .scoreWorkspace
     }
 
     private func setScore(_ newScore: ScoreDocument) {

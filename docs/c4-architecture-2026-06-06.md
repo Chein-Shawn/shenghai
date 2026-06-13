@@ -15,7 +15,9 @@ Developer / Researcher
 
 External Systems
   -> GitHub Pages: user manual and changelog
-  -> GitHub Issues: tester feedback and bug reports
+  -> Google Apps Script web app: feedback intake endpoint
+  -> Google Sheet: public-user feedback inbox and triage table
+  -> MailApp email notification: optional new-feedback alert
   -> App Store Connect / TestFlight: internal testing and distribution
   -> YouTube: reference link or official player only
   -> Audiveris / OMR tools: development or server-side score recognition baseline
@@ -43,10 +45,14 @@ Support Site
   - published through GitHub Pages
   - manual, changelog, support links
 
+Feedback Backend
+  - Google Apps Script web app
+  - appends to Google Sheet
+  - optional email notification to maintainer
+
 GitHub Repo
   - source code
   - docs
-  - issue-based feedback
   - release and backup point
 
 Notion Workspace
@@ -73,6 +79,7 @@ App Services
     - app state
     - selected score and part
     - playback state
+    - localized compose fallback normalization before core import/export
   MIDIPlaybackService
     - plays generated MIDI
   LivePitchCaptureService
@@ -80,6 +87,13 @@ App Services
     - YINPitchTracker bridge
   UsageTrackingStore
     - stores usage ledger in UserDefaults
+  FeedbackSubmissionService
+    - builds native feedback payload
+    - posts to Google Apps Script
+    - handles cooldown and submission state
+  Localization layer
+    - `L10n`, `AppLanguage`, `AppSettingsStore`
+    - app-side rendering of semantic text tokens from core
 
 Core Domain
   MusicXMLImporter
@@ -90,6 +104,7 @@ Core Domain
   ScoreAudioAlignmentAnalyzer
   UsageAnalyticsLedger
   OMRPipelinePlan
+  LocalizedTextToken
 ```
 
 ## Level 4: Important Code Paths
@@ -138,8 +153,10 @@ TargetPitchPoint + PitchSample
 ```text
 SupportView
   -> GitHub Pages manual/changelog
-  -> GitHub issue URL
-  -> mail draft URL
+  -> FeedbackSubmissionService
+  -> Google Apps Script web app
+  -> Google Sheet
+  -> optional email notification
 ```
 
 ### Usage Analytics
@@ -158,5 +175,6 @@ The app is correctly moving toward a shared-core architecture:
 
 - Apple UI can differ by device later.
 - Domain logic stays in `ShenghaiCore`.
+- Localization stays in `ShenghaiApp`; core exposes semantic identifiers instead of localized strings.
 - iOS, iPadOS, and macOS share the same parser, pitch timeline, alignment, and usage analytics.
 - OMR remains outside the shipped app until a legal, reliable, and App-Store-safe path is selected.

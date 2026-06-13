@@ -26,7 +26,7 @@ PDF / 圖片樂譜 → 影像前處理 → Audiveris OMR baseline → MusicXML /
 已在本機建立專案資料夾：
 
 ```text
-/Users/shawn/Documents/Codex/2026-05-29/files-mentioned-by-the-user-docx/shenghai
+/Users/shawn/Documents/Codex/shenghai
 ```
 
 已建立結構：
@@ -83,4 +83,3 @@ https://github.com/Chein-Shawn/shenghai
 3. 準備 1-3 份合法可測試簡單樂譜。
 4. 記錄 OMR 成功率、錯誤類型、是否能辨識小節/音高/節奏/反覆記號。
 5. 將 ScoreDocument parser 逐步接入 Xcode multiplatform app。
-

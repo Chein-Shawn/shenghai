@@ -37,19 +37,6 @@ public enum ComposedNoteValue: String, CaseIterable, Codable, Sendable, Identifi
 
     public var id: String { rawValue }
 
-    public var displayName: String {
-        switch self {
-        case .whole:
-            return L10n.tr("Whole")
-        case .half:
-            return L10n.tr("Half")
-        case .quarter:
-            return L10n.tr("Quarter")
-        case .eighth:
-            return L10n.tr("Eighth")
-        }
-    }
-
     public var musicXMLType: String {
         rawValue
     }
@@ -111,16 +98,12 @@ public struct ComposedScoreNote: Identifiable, Codable, Equatable, Sendable {
     public var isRest: Bool {
         pitch == nil
     }
-
-    public var displayName: String {
-        if let pitch {
-            return "\(pitch.displayName) \(value.displayName)"
-        }
-        return "\(L10n.tr("Rest")) \(value.displayName)"
-    }
 }
 
 public struct ComposedScore: Codable, Equatable, Sendable {
+    public static let defaultTitle = "Untitled Shenghai Score"
+    public static let defaultPartName = "Voice"
+
     public var title: String
     public var partName: String
     public var tempoBPM: Int
@@ -129,8 +112,8 @@ public struct ComposedScore: Codable, Equatable, Sendable {
     public var notes: [ComposedScoreNote]
 
     public init(
-        title: String = "Untitled Shenghai Score",
-        partName: String = "Voice",
+        title: String = ComposedScore.defaultTitle,
+        partName: String = ComposedScore.defaultPartName,
         tempoBPM: Int = 96,
         beats: Int = 4,
         beatType: Int = 4,
@@ -151,11 +134,11 @@ public enum MusicXMLComposer {
 
     public static func makeScoreDocument(from composedScore: ComposedScore) -> ScoreDocument {
         let measures = makeMeasures(from: composedScore)
-        let part = ScorePart(id: "P1", name: composedScore.partName.trimmedOrFallback(L10n.tr("Voice")), measures: measures)
+        let part = ScorePart(id: "P1", name: composedScore.partName.trimmedOrFallback(ComposedScore.defaultPartName), measures: measures)
         let expandedOrder = measures.map { ExpandedMeasure(partID: part.id, measureNumber: $0.number) }
         return ScoreDocument(
             sourceFormat: "Shenghai Composer",
-            metadata: ScoreMetadata(title: composedScore.title.trimmedOrFallback(L10n.tr("Untitled Shenghai Score"))),
+            metadata: ScoreMetadata(title: composedScore.title.trimmedOrFallback(ComposedScore.defaultTitle)),
             divisions: divisions,
             ticksPerQuarter: ticksPerQuarter,
             tempoBPM: composedScore.tempoBPM,
@@ -165,8 +148,8 @@ public enum MusicXMLComposer {
     }
 
     public static func makeMusicXML(from composedScore: ComposedScore) -> String {
-        let title = composedScore.title.trimmedOrFallback(L10n.tr("Untitled Shenghai Score"))
-        let partName = composedScore.partName.trimmedOrFallback(L10n.tr("Voice"))
+        let title = composedScore.title.trimmedOrFallback(ComposedScore.defaultTitle)
+        let partName = composedScore.partName.trimmedOrFallback(ComposedScore.defaultPartName)
         let measureGroups = makeMeasureGroups(from: composedScore)
 
         let measures = measureGroups.enumerated().map { index, group in

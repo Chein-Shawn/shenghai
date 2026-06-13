@@ -57,7 +57,7 @@ The `Shenghai` scheme is the first Alpha app shell for iPhone, iPad, and macOS. 
 - MIDI playback and share/export.
 - Practice lab preview for pitch deviation states.
 - Research/status view for algorithm decisions and blockers.
-- Support view with manual, changelog, GitHub Issue, and mail draft links.
+- Settings view with manual, changelog, contact info, and native feedback submission.
 - Local usage tracking by day and by app feature.
 
 The shared Apple-platform core can also be opened directly in Xcode:
@@ -132,7 +132,7 @@ Current app links point to:
 
 - `https://chein-shawn.github.io/shenghai/manual.html`
 - `https://chein-shawn.github.io/shenghai/changelog.html`
-- GitHub Issues for tester feedback
+- in-app feedback submission to a Google Apps Script / Google Sheet backend once configured
 
 ## Planning And Review Docs
 
@@ -140,3 +140,4 @@ Current app links point to:
 - `docs/localization-strategy-2026-06-06.md`
 - `docs/third-party-algorithm-and-license-audit-2026-06-06.md`
 - `docs/youtube-score-audio-alignment-plan-2026-06-06.md`
+- `docs/google-sheets-feedback-backend-2026-06-13.md`

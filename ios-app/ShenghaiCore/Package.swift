@@ -4,6 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "ShenghaiCore",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)
@@ -22,7 +23,10 @@ let package = Package(
         .target(name: "ShenghaiCore"),
         .executableTarget(
             name: "ShenghaiApp",
-            dependencies: ["ShenghaiCore"]
+            dependencies: ["ShenghaiCore"],
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "ShenghaiCoreTests",

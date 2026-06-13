@@ -23,6 +23,7 @@ struct SidebarView: View {
             .foregroundStyle(selection == section ? Color.accentColor : Color.primary)
         }
         .navigationTitle(L10n.tr("Shenghai"))
+        .listStyle(.sidebar)
         #endif
     }
 }

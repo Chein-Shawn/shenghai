@@ -492,7 +492,7 @@ private struct PracticeMeasureList: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 120), spacing: 10)], spacing: 10) {
                 ForEach(part.measures.prefix(8)) { measure in
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("M \(measure.number)")
+                        Text(L10n.tr("Measure %@", "\(measure.number)"))
                             .font(.caption.weight(.bold))
                             .foregroundStyle(.secondary)
                         Text(measure.notes.prefix(5).map(ScoreFormatting.noteName).joined(separator: " "))

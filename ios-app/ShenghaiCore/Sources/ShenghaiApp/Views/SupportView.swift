@@ -10,22 +10,27 @@ struct SupportView: View {
     @State private var category: FeedbackCategory = .bug
     @State private var summary = ""
     @State private var details = ""
+    @State private var replyEmail = ""
+    @State private var feedbackStatus: FeedbackSubmissionStatus = .idle
+    @State private var isSubmitting = false
 
     private let manualURL = URL(string: "https://chein-shawn.github.io/shenghai/manual.html")
     private let changelogURL = URL(string: "https://chein-shawn.github.io/shenghai/changelog.html")
-    private let githubIssueURL = URL(string: "https://github.com/Chein-Shawn/shenghai/issues/new")
+    private let feedbackService = FeedbackSubmissionService()
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 HeaderBand(
-                    title: L10n.tr("Support & Settings"),
-                    subtitle: L10n.tr("Manual, release notes, tester feedback, and app language"),
-                    systemImage: "questionmark.bubble"
+                    title: L10n.tr("Settings"),
+                    subtitle: L10n.tr("Language, usage, documentation, contact, and feedback"),
+                    systemImage: "gearshape"
                 )
 
-                quickLinks
                 languageSettings
+                usageSection
+                quickLinks
+                contactSection
                 feedbackForm
             }
             .padding()
@@ -58,7 +63,7 @@ struct SupportView: View {
 
     private var languageSettings: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(L10n.tr("Settings"))
+            SectionTitle(L10n.tr("Language"))
 
             Picker(L10n.tr("Display Language"), selection: $appSettings.selectedLanguage) {
                 ForEach(AppLanguage.allCases) { language in
@@ -70,6 +75,55 @@ struct SupportView: View {
             Text(L10n.tr("Choose the interface language. The change applies immediately across the app."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
+        }
+        .padding(12)
+        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.quaternary, lineWidth: 1)
+        }
+    }
+
+    private var usageSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle(L10n.tr("Usage"))
+            UsageStatsContent(usageTracking: workspace.usageTracking)
+        }
+        .padding(12)
+        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.quaternary, lineWidth: 1)
+        }
+    }
+
+    private var contactSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle(L10n.tr("Contact"))
+
+            SupportLinkTile(
+                title: L10n.tr("Official Website"),
+                subtitle: FeedbackConfiguration.current.officialWebsite,
+                systemImage: "globe"
+            ) {
+                open(FeedbackConfiguration.current.officialWebsiteURL)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(L10n.tr("Feel free to contact me"))
+                    .font(.headline)
+                Text(FeedbackConfiguration.current.supportEmail)
+                    .foregroundStyle(.secondary)
+                Text(FeedbackConfiguration.current.supportPhone)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(.quaternary, lineWidth: 1)
+            }
         }
         .padding(12)
         .background(.background, in: RoundedRectangle(cornerRadius: 8))
@@ -94,6 +148,11 @@ struct SupportView: View {
             TextField(L10n.tr("Summary"), text: $summary)
                 .textFieldStyle(.roundedBorder)
 
+            replyEmailField
+
+            Text(L10n.tr("support.feedback.details"))
+                .font(.subheadline.weight(.semibold))
+
             TextEditor(text: $details)
                 .frame(minHeight: 150)
                 .padding(8)
@@ -105,25 +164,41 @@ struct SupportView: View {
 
             HStack {
                 Button {
-                    open(issueURL)
+                    Task {
+                        await submitFeedback()
+                    }
                 } label: {
-                    Label(L10n.tr("GitHub Issue"), systemImage: "arrow.up.right.square")
+                    Label(
+                        isSubmitting ? L10n.tr("support.feedback.sending") : L10n.tr("support.feedback.send"),
+                        systemImage: "paperplane"
+                    )
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .disabled(!canSubmitFeedback)
 
                 Button {
-                    open(mailURL)
+                    open(FeedbackConfiguration.current.officialWebsiteURL)
                 } label: {
-                    Label(L10n.tr("Mail Draft"), systemImage: "envelope")
+                    Label(L10n.tr("Official Website"), systemImage: "globe")
                 }
                 .buttonStyle(.bordered)
-                .disabled(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
                 Spacer()
             }
 
-            Text(L10n.tr("Feedback sends only what you choose to include. For private repos, GitHub Issues are useful for invited internal testers; Mail Draft is the fallback."))
+            if let statusText = feedbackStatus.text {
+                Text(statusText)
+                    .font(.caption)
+                    .foregroundStyle(feedbackStatus.color)
+            }
+
+            if FeedbackConfiguration.current.feedbackEndpointURL == nil {
+                Text(L10n.tr("support.feedback.backend_not_configured"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(L10n.tr("support.feedback.privacy"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -135,36 +210,24 @@ struct SupportView: View {
         }
     }
 
-    private var issueURL: URL? {
-        guard var components = URLComponents(url: githubIssueURL ?? URL(filePath: "/"), resolvingAgainstBaseURL: false) else {
-            return nil
-        }
-        components.queryItems = [
-            URLQueryItem(name: "title", value: "[\(category.title)] \(summary)"),
-            URLQueryItem(name: "body", value: feedbackBody)
-        ]
-        return components.url
+    private var canSubmitFeedback: Bool {
+        !isSubmitting &&
+        !summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !details.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        FeedbackConfiguration.current.feedbackEndpointURL != nil
     }
 
-    private var mailURL: URL? {
-        var components = URLComponents()
-        components.scheme = "mailto"
-        components.queryItems = [
-            URLQueryItem(name: "subject", value: "[Shenghai \(category.title)] \(summary)"),
-            URLQueryItem(name: "body", value: feedbackBody)
-        ]
-        return components.url
-    }
-
-    private var feedbackBody: String {
-        """
-        Type: \(category.title)
-        Screen: \(workspace.selectedSection.title)
-        App stage: Alpha
-
-        Details:
-        \(details)
-        """
+    @ViewBuilder
+    private var replyEmailField: some View {
+        #if os(iOS)
+        TextField(L10n.tr("support.feedback.reply_email"), text: $replyEmail)
+            .textFieldStyle(.roundedBorder)
+            .keyboardType(.emailAddress)
+            .textInputAutocapitalization(.never)
+        #else
+        TextField(L10n.tr("support.feedback.reply_email"), text: $replyEmail)
+            .textFieldStyle(.roundedBorder)
+        #endif
     }
 
     private func open(_ url: URL?) {
@@ -173,9 +236,39 @@ struct SupportView: View {
         }
         openURL(url)
     }
+
+    @MainActor
+    private func submitFeedback() async {
+        guard canSubmitFeedback else {
+            return
+        }
+
+        isSubmitting = true
+        feedbackStatus = .sending
+
+        do {
+            try await feedbackService.submit(
+                category: category,
+                summary: summary,
+                details: details,
+                replyEmail: replyEmail,
+                currentSection: workspace.selectedSection,
+                selectedLanguage: appSettings.selectedLanguage
+            )
+            feedbackStatus = .sent
+            summary = ""
+            details = ""
+            replyEmail = ""
+            category = .bug
+        } catch {
+            feedbackStatus = .failed(error.localizedDescription)
+        }
+
+        isSubmitting = false
+    }
 }
 
-private enum FeedbackCategory: String, CaseIterable, Identifiable {
+enum FeedbackCategory: String, CaseIterable, Identifiable {
     case bug
     case feature
     case usability
@@ -206,6 +299,39 @@ private enum FeedbackCategory: String, CaseIterable, Identifiable {
             return "hand.tap"
         case .research:
             return "book.pages"
+        }
+    }
+}
+
+private enum FeedbackSubmissionStatus {
+    case idle
+    case sending
+    case sent
+    case failed(String)
+
+    var text: String? {
+        switch self {
+        case .idle:
+            return nil
+        case .sending:
+            return L10n.tr("support.feedback.sending")
+        case .sent:
+            return L10n.tr("support.feedback.sent")
+        case let .failed(message):
+            return message
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .idle:
+            return .secondary
+        case .sending:
+            return .secondary
+        case .sent:
+            return .green
+        case .failed:
+            return .red
         }
     }
 }
@@ -246,6 +372,33 @@ private struct SupportLinkTile: View {
     }
 }
 
+struct UsageStatsContent: View {
+    @ObservedObject var usageTracking: UsageTrackingStore
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 12)], spacing: 12) {
+            MetricTile(
+                title: L10n.tr("Total Time"),
+                value: DurationFormat.short(usageTracking.totalDuration),
+                systemImage: "timer"
+            )
+            MetricTile(
+                title: L10n.tr("Sessions"),
+                value: "\(usageTracking.dailySummaries.count) days",
+                systemImage: "calendar"
+            )
+            MetricTile(
+                title: L10n.tr("Active"),
+                value: usageTracking.activeFeature?.localizedDisplayName ?? L10n.tr("None"),
+                systemImage: "dot.radiowaves.left.and.right"
+            )
+        }
+
+        UsageFeatureBreakdown(durations: usageTracking.featureDurations)
+        DailyUsageTrend(summaries: usageTracking.dailySummaries)
+    }
+}
+
 struct UsageStatsView: View {
     @ObservedObject var usageTracking: UsageTrackingStore
 
@@ -257,27 +410,7 @@ struct UsageStatsView: View {
                     subtitle: L10n.tr("Daily practice trend and feature time"),
                     systemImage: "chart.bar.xaxis"
                 )
-
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 180), spacing: 12)], spacing: 12) {
-                    MetricTile(
-                        title: L10n.tr("Total Time"),
-                        value: DurationFormat.short(usageTracking.totalDuration),
-                        systemImage: "timer"
-                    )
-                    MetricTile(
-                        title: L10n.tr("Sessions"),
-                        value: "\(usageTracking.dailySummaries.count) days",
-                        systemImage: "calendar"
-                    )
-                    MetricTile(
-                        title: L10n.tr("Active"),
-                        value: usageTracking.activeFeature?.displayName ?? L10n.tr("None"),
-                        systemImage: "dot.radiowaves.left.and.right"
-                    )
-                }
-
-                UsageFeatureBreakdown(durations: usageTracking.featureDurations)
-                DailyUsageTrend(summaries: usageTracking.dailySummaries)
+                UsageStatsContent(usageTracking: usageTracking)
             }
             .padding()
             .frame(maxWidth: 980, alignment: .leading)
@@ -294,7 +427,7 @@ private struct UsageFeatureBreakdown: View {
             let maxDuration = max(durations.values.max() ?? 1, 1)
             ForEach(UsageFeature.allCases, id: \.self) { feature in
                 UsageBarRow(
-                    title: feature.displayName,
+                    title: feature.localizedDisplayName,
                     value: durations[feature, default: 0],
                     maxValue: maxDuration
                 )

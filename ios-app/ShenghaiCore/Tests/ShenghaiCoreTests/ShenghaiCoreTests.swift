@@ -71,7 +71,7 @@ struct ShenghaiCoreTests {
         #expect(candidate.recognizedElements.first(where: { $0.kind == .metadata })?.count == 3)
         #expect(candidate.recognizedElements.first(where: { $0.kind == .lyrics })?.count == 2)
         #expect(candidate.recognizedElements.first(where: { $0.kind == .directions })?.count == 2)
-        #expect(candidate.reviewChecklist.first?.contains("every staff") == true)
+        #expect(candidate.reviewChecklist.first?.key == "omr.checklist.compare_source")
     }
 
     @Test func createsPlaybackEventsAndMIDIData() throws {
@@ -416,7 +416,7 @@ struct ShenghaiCoreTests {
         #expect(oemerPlan.commandName == "oemer")
         #expect(oemerPlan.arguments == ["-o", "/tmp/choir.musicxml", "/tmp/choir score.png"])
         #expect(pipeline.provider == .oemer)
-        #expect(pipeline.stages.first(where: { $0.stage == .omrRecognition })?.note.contains("oemer") == true)
+        #expect(pipeline.stages.first(where: { $0.stage == .omrRecognition })?.note.arguments == ["oemer"])
     }
 
     private static let twinkleMusicXML = """

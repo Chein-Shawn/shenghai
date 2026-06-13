@@ -40,6 +40,10 @@
 5. `SupportView`
    - Exposes the language picker to users
 
+6. `LocalizedPresentation`
+   - Maps shared-core enums and semantic tokens into app-localized display strings
+   - Keeps `ShenghaiCore` free of direct `L10n` calls
+
 ## Best Management Pattern
 - Never leave user-facing text directly hardcoded in a view
 - Route all visible strings through `L10n.tr(...)`
@@ -47,20 +51,11 @@
 - Use formatted keys for dynamic strings
 - Keep music-note names like `C4` and `F#4` unchanged unless there is a teaching reason
 
-## Recommended Evolution
-### v1
-- Current dictionary-based localization is acceptable for fast iteration
-- Good for prototype speed and cross-platform consistency
-
-### v2
-- Migrate to Xcode String Catalogs (`.xcstrings`)
-- Split strings by feature area:
-  - Core
-  - Score
-  - Practice
-  - Support
-  - Experimental
-- Add translator comments for ambiguous music terms
+## Current Decision
+- Runtime translation is not used
+- The app ships pretranslated static `.lproj/Localizable.strings` resources
+- `L10n.tr(...)` resolves against the user-selected bundle
+- Shared-core models use semantic keys or structured text tokens when app rendering is needed
 
 ## Language-Specific Notes
 ### Chinese
@@ -79,12 +74,9 @@
 ## Suggested Workflow For New Features
 1. Build the feature in English
 2. Replace all visible strings with `L10n.tr(...)`
-3. Add at least:
-   - English baseline
-   - Traditional Chinese
-   - Arabic smoke test
+3. Add or update all shipped language resources in the same change
 4. Verify layout on iPhone, iPad, and macOS
-5. Expand the remaining languages
+5. Run the localization audit script and fix missing or English-copy regressions
 
 ## Why This Architecture Is Practical
 - Single SwiftUI codebase
