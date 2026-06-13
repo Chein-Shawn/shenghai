@@ -2,7 +2,6 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var workspace: ShenghaiWorkspace
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
-    @State private var hasBootstrapped = false
 
     private var usesCompactNavigation: Bool {
         #if os(iOS)
@@ -32,13 +31,21 @@ struct ContentView: View {
             workspace.usageTracking.closeActiveSession()
         }
         .task {
-            guard !hasBootstrapped else { return }
-            hasBootstrapped = true
             await Task.yield()
-
+            workspace.bootstrapIfNeeded()
             if workspace.score == nil {
                 workspace.loadDemoScore()
             }
+        }
+        .alert(L10n.tr("settings.sync.first_run.title"), isPresented: $workspace.shouldPromptForSyncChoice) {
+            Button(L10n.tr("settings.sync.enable")) {
+                workspace.completeFirstRunSyncChoice(enableSync: true)
+            }
+            Button(L10n.tr("settings.sync.not_now"), role: .cancel) {
+                workspace.completeFirstRunSyncChoice(enableSync: false)
+            }
+        } message: {
+            Text(L10n.tr("settings.sync.first_run.message"))
         }
     }
 

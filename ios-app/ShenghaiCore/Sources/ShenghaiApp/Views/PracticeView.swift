@@ -163,7 +163,7 @@ private struct PracticeStage: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(workspace.scoreSummary.title)
                             .font(.title2.bold())
-                        Text(selectedMode.rawValue)
+                        Text(L10n.tr(selectedMode.rawValue))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                     }
@@ -266,7 +266,7 @@ private struct LivePitchPanel: View {
                 if let latestSample = livePitchCapture.latestSample {
                     MetricTile(
                         title: L10n.tr("Frequency"),
-                        value: latestSample.frequencyHz.map { String(format: "%.1f Hz", $0) } ?? "No pitch",
+                        value: latestSample.frequencyHz.map { String(format: "%.1f Hz", $0) } ?? L10n.tr("text.no_pitch"),
                         systemImage: "waveform"
                     )
                     MetricTile(

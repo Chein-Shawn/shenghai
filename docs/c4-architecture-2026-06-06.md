@@ -18,6 +18,7 @@ External Systems
   -> Google Apps Script web app: feedback intake endpoint
   -> Google Sheet: public-user feedback inbox and triage table
   -> MailApp email notification: optional new-feedback alert
+  -> iCloud / CloudKit: optional same-Apple-ID sync transport for structured app data
   -> App Store Connect / TestFlight: internal testing and distribution
   -> YouTube: reference link or official player only
   -> Audiveris / OMR tools: development or server-side score recognition baseline
@@ -30,6 +31,7 @@ Shenghai Apple App
   - iPhone, iPad, macOS
   - SwiftUI app shell
   - local-first data and practice UI
+  - Settings sync control and first-run sync choice
 
 ShenghaiCore
   - MusicXML parser
@@ -39,6 +41,11 @@ ShenghaiCore
   - YIN pitch tracking baseline
   - score/audio alignment
   - usage analytics ledger
+
+Persistence Layer
+  - SwiftData-backed structured records
+  - local store + optional CloudKit-backed store
+  - Application Support asset storage for imported/generated score files
 
 Support Site
   - static HTML under docs
@@ -70,6 +77,7 @@ SwiftUI App
     DashboardView
     ScoreWorkspaceView
     PracticeView
+    ExperimentalFeaturesView
     ResearchStatusView
     SupportView
     UsageStatsView
@@ -79,6 +87,9 @@ App Services
     - app state
     - selected score and part
     - playback state
+    - restored score session bootstrap
+    - sync status / first-run sync choice state
+    - persisted annotation state
     - localized compose fallback normalization before core import/export
   MIDIPlaybackService
     - plays generated MIDI
@@ -86,14 +97,24 @@ App Services
     - microphone capture
     - YINPitchTracker bridge
   UsageTrackingStore
-    - stores usage ledger in UserDefaults
+    - persists usage ledger through SwiftData-backed records
   FeedbackSubmissionService
     - builds native feedback payload
     - posts to Google Apps Script
     - handles cooldown and submission state
+  PersistenceCoordinator
+    - bootstraps local / cloud-backed stores
+    - migrates legacy settings and usage data
+    - persists score library metadata
+    - copies score assets into Application Support
+    - switches active data universe when sync is enabled or disabled
   Localization layer
     - `L10n`, `AppLanguage`, `AppSettingsStore`
     - app-side rendering of semantic text tokens from core
+  ExperimentalFeaturesView
+    - sing-to-dismiss alarm prototype
+    - bilingual text rhythm speech prototype
+    - current trimmed Experimental surface without the removed research-notes panel
 
 Core Domain
   MusicXMLImporter
@@ -165,8 +186,26 @@ SupportView
 ContentView / selectedSection changes
   -> UsageTrackingStore
   -> UsageAnalyticsLedger
-  -> UserDefaults
+  -> PersistenceCoordinator
+  -> SwiftData usage records
   -> UsageStatsView
+```
+
+### Persistent Scores And Sync
+
+```text
+Imported MusicXML / composed score
+  -> ImportedAssetStore
+  -> Application Support score file
+  -> PersistenceCoordinator
+  -> ScoreLibraryItemRecord + selected score setting
+  -> ShenghaiWorkspace restore path on next launch
+
+Display language / sync preference / usage records
+  -> UserProfileSettingsRecord + UsageAnalyticsRecord
+  -> local SwiftData store
+  -> optional CloudKit-backed SwiftData store
+  -> same-Apple-ID device sync when cloud path is available
 ```
 
 ## Current Architecture Judgment
@@ -177,4 +216,5 @@ The app is correctly moving toward a shared-core architecture:
 - Domain logic stays in `ShenghaiCore`.
 - Localization stays in `ShenghaiApp`; core exposes semantic identifiers instead of localized strings.
 - iOS, iPadOS, and macOS share the same parser, pitch timeline, alignment, and usage analytics.
+- Durable user data now belongs in a structured persistence layer rather than scattered `UserDefaults` blobs.
 - OMR remains outside the shipped app until a legal, reliable, and App-Store-safe path is selected.

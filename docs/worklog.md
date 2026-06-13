@@ -223,6 +223,51 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Done
 
+- Added a first real persistence/sync layer for Shenghai in the app target:
+  - `PersistenceModels.swift`
+  - `ImportedAssetStore.swift`
+  - `PersistenceCoordinator.swift`
+- Replaced the local-only `UserDefaults` language/usage pattern with a structured SwiftData-backed path for:
+  - display language
+  - sync preference
+  - selected score
+  - usage session history
+  - score library metadata
+  - score annotation payloads
+- Added a dual-store architecture:
+  - local SwiftData store as the baseline
+  - optional CloudKit-backed SwiftData store when iCloud is available
+- Added first-run sync choice UX in `ContentView` and a real Sync section in `SupportView` / Settings.
+
+## Codex 實作工作日誌｜2026-06-14
+
+### Done
+
+- Removed the active `Singing Support Lab` / `Gentle Call-and-Response` surface from `ExperimentalFeaturesView.swift`.
+- Removed the Experimental `Evidence Notes` panel and hid the top-level safety-boundary panel from the current Experimental screen.
+- Kept the Experimental area focused on the two currently active prototypes:
+  - `Sing-to-Dismiss Alarm`
+  - `Text Rhythm Speech Lab`
+- Renamed the dashboard section title from `MVP Chain` to `Feature Overview`.
+- Updated the user manual and changelog so public-facing docs match the current in-app Experimental feature set.
+- Added a backup rule to `AGENTS.md` so every modification cycle also checks repo backup status.
+- Updated localized resources for all shipped app languages so the new Experimental subtitle and `Feature Overview` label resolve through the static localization bundles.
+
+### Encountered / Discovered
+
+- The existing localization files still contain a much wider pre-existing translation backlog than this cleanup touched. This pass updated the strings needed for the renamed dashboard section and Experimental subtitle, but a broader translation sweep remains a separate task.
+- Updated `ShenghaiWorkspace` so it can:
+  - restore the previous persisted score session
+  - persist imported MusicXML and composed scores into app-owned Application Support storage
+  - persist annotation strokes as structured scalable data
+  - reflect sync status and toggle changes in the app state
+- Updated `UsageTrackingStore` to persist its ledger through the new persistence coordinator instead of a single encoded `UserDefaults` blob.
+- Updated `AppSettingsStore` so display-language changes still apply immediately in UI while being mirrored into the new persisted settings record.
+- Registered the new persistence source files in `ios-app/Shenghai.xcodeproj/project.pbxproj` so both SwiftPM and the Xcode app target compile the same sync architecture.
+- Revalidated both build paths after the persistence refactor:
+  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
+  - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS build`
+
 - Refactored `ShenghaiCore` so it no longer depends on app-layer `L10n`.
 - Removed direct localization calls from:
   - `MusicXMLComposer`
@@ -257,6 +302,10 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS ... build`
 
 ### Encountered / Discovered
+
+- `SwiftData` + CloudKit container setup can compile cleanly in both SwiftPM and the Xcode target, but the real cloud path still depends on runtime iCloud/CloudKit availability. The app now surfaces that state instead of pretending sync is always ready.
+- `xcodebuild` initially failed even though the Swift package compiled, because the Xcode project target had not yet been updated to include the new persistence files. Adding those source references fixed the target drift.
+- The new sync UI strings were added across all shipped language resource files, but the repo-wide localization audit still reveals a much larger pre-existing translation backlog outside this sync pass.
 
 - A live feedback submission still needs one manual external step: deploy the Apps Script web app and paste its `/exec` URL into `FeedbackConfiguration.json`.
 - Writing user text into Google Sheets needs spreadsheet-formula escaping for prefixes such as `=`, `+`, `-`, and `@`; the Apps Script template now sanitizes those values before appending rows.
@@ -299,3 +348,44 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added `tools/localization/build_resources.py` to generate shipped localization resources and semantic alias keys from the legacy string inventory.
 - Added `tools/localization/check_localization.py` to enforce localization-key coverage and catch raw user-facing string literals that bypass the localization layer.
 - Replaced the remaining raw UI literals flagged by the localization audit (`Score Mode`, `M %@`) with `L10n.tr(...)` lookups.
+
+### 2026-06-14
+
+- Treated localization as an infrastructure repair instead of another one-off translation patch.
+- Added `tools/localization/strings_io.py` so `.strings` files are read and rewritten through one path that:
+  - repairs repeated mojibake patterns
+  - rewrites resource files as stable UTF-8
+  - keeps later localization tooling from crashing on damaged values
+- Updated `tools/localization/check_localization.py` to use the shared `.strings` reader instead of raw text parsing.
+- Fixed the checker logic so it now reliably reports:
+  - missing localized keys
+  - English fallbacks in the primary QA languages (`zh-Hant`, `ja`)
+  - raw SwiftUI user-facing literals outside the localization layer
+- Added `tools/localization/normalize_resources.py` cleanup for stale localization surface that should no longer count as active app UI:
+  - `Singing Support Lab`
+  - `Gentle Call-and-Response`
+  - `Safety Boundary`
+  - `Evidence Notes`
+  - `Research Map`
+- Removed the unused app-side `ResearchStatusView.swift` file so the old research-map screen no longer pollutes active localization coverage.
+- Added `tools/localization/apply_localization_overrides.py` as a curated override layer:
+  - fills newly introduced semantic keys such as `text.no_pitch`, `text.unknown`, and `text.decimal2_beats`
+  - performs a visible-screen translation sweep for `zh-Hant`
+  - performs a larger catch-up sweep for `ja`
+  - backfills required resource-key coverage for the other shipped languages so the checker can enforce one complete static resource set
+- Rewrote all shipped `Localizable.strings` files through the normalization/override pipeline and re-ran the audit until:
+  - `python3 tools/localization/check_localization.py`
+  - returned `Localization coverage passed.`
+- C4 impact checked for this pass:
+  - no app data-flow or navigation-structure update was needed for the localization repair itself
+  - no C4 document change was required in this change set
+
+### Encountered / Discovered
+
+- The recurring `zh-Hant / ja` English leak was not just “missing translation effort”; a big part of it was resource-file data quality, including mojibake content that looked populated but could not be trusted.
+- After removing `ResearchStatusView.swift`, the Xcode project still referenced it in `ios-app/Shenghai.xcodeproj/project.pbxproj`; that stale file reference caused a real compile failure until the PBX entries were removed.
+- Once the stale view reference was fixed, the next Xcode build blocker moved to the pre-existing persistence/sync work:
+  - `PersistenceModels.swift`
+  - SwiftData macro/plugin expansion failed under the current environment (`SwiftDataMacros ... malformed response`)
+  - this build failure is outside the localization repair itself
+- `swift build` still cannot be treated as a clean signal in the current sandbox because SwiftPM tries to write to cache/module paths under the user home directory unless run in a less restricted environment.

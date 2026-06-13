@@ -12,7 +12,6 @@ struct ScoreWorkspaceView: View {
     @State private var isAnnotating = false
     @State private var annotationTool: ScoreAnnotationTool = .pen
     @State private var annotationLineWidth = 3.0
-    @State private var annotationStrokes: [ScoreAnnotationStroke] = []
     @State private var annotationDraft: [CGPoint] = []
     @State private var partVolumes: [String: Double] = [:]
     @State private var mutedPartIDs: Set<String> = []
@@ -51,7 +50,7 @@ struct ScoreWorkspaceView: View {
                                 isAnnotating: isAnnotating,
                                 annotationTool: annotationTool,
                                 annotationLineWidth: annotationLineWidth,
-                                annotationStrokes: $annotationStrokes,
+                                annotationStrokes: $workspace.annotationStrokes,
                                 annotationDraft: $annotationDraft
                             )
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -67,7 +66,7 @@ struct ScoreWorkspaceView: View {
                                 isAnnotating: $isAnnotating,
                                 annotationTool: $annotationTool,
                                 annotationLineWidth: $annotationLineWidth,
-                                annotationStrokes: $annotationStrokes,
+                                annotationStrokes: $workspace.annotationStrokes,
                                 annotationDraft: $annotationDraft,
                                 partVolumes: $partVolumes,
                                 mutedPartIDs: $mutedPartIDs,
@@ -89,7 +88,7 @@ struct ScoreWorkspaceView: View {
                                     isAnnotating: isAnnotating,
                                     annotationTool: annotationTool,
                                     annotationLineWidth: annotationLineWidth,
-                                    annotationStrokes: $annotationStrokes,
+                                    annotationStrokes: $workspace.annotationStrokes,
                                     annotationDraft: $annotationDraft
                                 )
                                 ScoreInspectorPanel(
@@ -101,7 +100,7 @@ struct ScoreWorkspaceView: View {
                                     isAnnotating: $isAnnotating,
                                     annotationTool: $annotationTool,
                                     annotationLineWidth: $annotationLineWidth,
-                                    annotationStrokes: $annotationStrokes,
+                                    annotationStrokes: $workspace.annotationStrokes,
                                     annotationDraft: $annotationDraft,
                                     partVolumes: $partVolumes,
                                     mutedPartIDs: $mutedPartIDs,
@@ -161,14 +160,6 @@ private enum ScoreAnnotationTool: String, CaseIterable, Identifiable {
             return "eraser"
         }
     }
-}
-
-private struct ScoreAnnotationStroke: Identifiable {
-    var id = UUID()
-    var points: [CGPoint]
-    var color: Color
-    var opacity: Double
-    var lineWidth: Double
 }
 
 private struct ScoreToolbar: View {
@@ -268,7 +259,7 @@ private struct ScoreReaderPanel: View {
     var isAnnotating: Bool
     var annotationTool: ScoreAnnotationTool
     var annotationLineWidth: Double
-    @Binding var annotationStrokes: [ScoreAnnotationStroke]
+    @Binding var annotationStrokes: [ScoreAnnotationStrokePayload]
     @Binding var annotationDraft: [CGPoint]
 
     var body: some View {
@@ -333,7 +324,7 @@ private struct ScoreInspectorPanel: View {
     @Binding var isAnnotating: Bool
     @Binding var annotationTool: ScoreAnnotationTool
     @Binding var annotationLineWidth: Double
-    @Binding var annotationStrokes: [ScoreAnnotationStroke]
+    @Binding var annotationStrokes: [ScoreAnnotationStrokePayload]
     @Binding var annotationDraft: [CGPoint]
     @Binding var partVolumes: [String: Double]
     @Binding var mutedPartIDs: Set<String>
@@ -588,7 +579,7 @@ private struct OMRProviderSummary: View {
 }
 
 private struct VectorAnnotationLayer: View {
-    @Binding var strokes: [ScoreAnnotationStroke]
+    @Binding var strokes: [ScoreAnnotationStrokePayload]
     @Binding var draft: [CGPoint]
     var tool: ScoreAnnotationTool
     var lineWidth: Double
@@ -597,7 +588,7 @@ private struct VectorAnnotationLayer: View {
         GeometryReader { proxy in
             Canvas { context, size in
                 for stroke in strokes {
-                    draw(stroke.points, in: size, context: &context, stroke: stroke)
+                    draw(stroke.points.map { CGPoint(x: $0.x, y: $0.y) }, in: size, context: &context, stroke: stroke)
                 }
 
                 if !draft.isEmpty, tool != .eraser {
@@ -639,7 +630,7 @@ private struct VectorAnnotationLayer: View {
         _ points: [CGPoint],
         in size: CGSize,
         context: inout GraphicsContext,
-        stroke: ScoreAnnotationStroke
+        stroke: ScoreAnnotationStrokePayload
     ) {
         guard points.count > 1 else {
             return
@@ -653,7 +644,11 @@ private struct VectorAnnotationLayer: View {
 
         context.stroke(
             path,
-            with: .color(stroke.color.opacity(stroke.opacity)),
+            with: .color(Color(
+                red: stroke.red,
+                green: stroke.green,
+                blue: stroke.blue
+            ).opacity(stroke.opacity)),
             style: StrokeStyle(
                 lineWidth: stroke.lineWidth,
                 lineCap: .round,
@@ -662,31 +657,47 @@ private struct VectorAnnotationLayer: View {
         )
     }
 
-    private func makeStroke(points: [CGPoint]) -> ScoreAnnotationStroke {
+    private func makeStroke(points: [CGPoint]) -> ScoreAnnotationStrokePayload {
+        let normalizedPoints = points.map {
+            AnnotationPointPayload(x: $0.x, y: $0.y)
+        }
         switch tool {
         case .pen:
-            return ScoreAnnotationStroke(
-                points: points,
-                color: .red,
+            return ScoreAnnotationStrokePayload(
+                points: normalizedPoints,
+                red: 1,
+                green: 0,
+                blue: 0,
                 opacity: 0.88,
                 lineWidth: lineWidth
             )
         case .highlighter:
-            return ScoreAnnotationStroke(
-                points: points,
-                color: .yellow,
+            return ScoreAnnotationStrokePayload(
+                points: normalizedPoints,
+                red: 1,
+                green: 0.92,
+                blue: 0.1,
                 opacity: 0.34,
                 lineWidth: max(lineWidth * 3.2, 12)
             )
         case .eraser:
-            return ScoreAnnotationStroke(points: points, color: .clear, opacity: 0, lineWidth: lineWidth)
+            return ScoreAnnotationStrokePayload(
+                points: normalizedPoints,
+                red: 0,
+                green: 0,
+                blue: 0,
+                opacity: 0,
+                lineWidth: lineWidth
+            )
         }
     }
 
     private func erase(near point: CGPoint) {
         let threshold: CGFloat = 0.018
         strokes.removeAll { stroke in
-            stroke.points.contains { distance($0, point) < threshold }
+            stroke.points.contains { payload in
+                distance(CGPoint(x: payload.x, y: payload.y), point) < threshold
+            }
         }
     }
 

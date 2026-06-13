@@ -3,6 +3,8 @@ import json
 import pathlib
 import re
 
+from strings_io import read_strings, write_strings
+
 REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/shenghai")
 SOURCE_ROOT = REPO_ROOT / "ios-app" / "ShenghaiCore" / "Sources"
 RESOURCE_ROOT = SOURCE_ROOT / "ShenghaiApp" / "Resources"
@@ -92,10 +94,6 @@ def semantic_key(legacy_key: str, taken: set[str]) -> str:
     return key
 
 
-def escape_strings_value(value: str) -> str:
-    return value.replace("\\", "\\\\").replace('"', '\\"')
-
-
 def build_files() -> None:
     used_keys = extract_used_keys()
     legacy_keys = extract_legacy_keys(used_keys)
@@ -130,29 +128,11 @@ def read_strings_file(language_code: str) -> dict[str, str]:
     path = RESOURCE_ROOT / f"{language_code}.lproj" / "Localizable.strings"
     if not path.exists():
         return {}
-
-    values: dict[str, str] = {}
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if not line or not line.startswith('"'):
-            continue
-        match = re.match(r'^"((?:[^"\\]|\\.)*)" = "((?:[^"\\]|\\.)*)";$', line)
-        if not match:
-            continue
-        key = bytes(match.group(1), "utf-8").decode("unicode_escape")
-        value = bytes(match.group(2), "utf-8").decode("unicode_escape")
-        values[key] = value
-    return values
+    return read_strings(path)
 
 
 def write_strings_file(language_code: str, values: dict[str, str]) -> None:
-    folder = RESOURCE_ROOT / f"{language_code}.lproj"
-    folder.mkdir(parents=True, exist_ok=True)
-    lines = [
-        f'"{escape_strings_value(key)}" = "{escape_strings_value(value)}";'
-        for key, value in sorted(values.items())
-    ]
-    (folder / "Localizable.strings").write_text("\n".join(lines) + "\n")
+    write_strings(RESOURCE_ROOT / f"{language_code}.lproj" / "Localizable.strings", values)
 
 
 if __name__ == "__main__":

@@ -82,7 +82,9 @@ final class AppSettingsStore: ObservableObject, @unchecked Sendable {
 
     @Published var selectedLanguage: AppLanguage {
         didSet {
-            defaults.set(selectedLanguage.rawValue, forKey: Self.languageKey)
+            Task { @MainActor in
+                PersistenceCoordinator.shared.updateSelectedLanguage(selectedLanguage)
+            }
         }
     }
 
@@ -96,6 +98,16 @@ final class AppSettingsStore: ObservableObject, @unchecked Sendable {
             selectedLanguage = storedLanguage
         } else {
             selectedLanguage = .english
+        }
+    }
+
+    func reloadFromPersistence() {
+        Task { @MainActor in
+            let language = PersistenceCoordinator.shared.settingsSnapshot().selectedLanguage
+            guard language != self.selectedLanguage else {
+                return
+            }
+            self.selectedLanguage = language
         }
     }
 }

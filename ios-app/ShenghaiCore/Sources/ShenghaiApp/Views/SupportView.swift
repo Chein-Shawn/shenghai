@@ -28,6 +28,7 @@ struct SupportView: View {
                 )
 
                 languageSettings
+                syncSettings
                 usageSection
                 quickLinks
                 contactSection
@@ -88,6 +89,55 @@ struct SupportView: View {
         VStack(alignment: .leading, spacing: 12) {
             SectionTitle(L10n.tr("Usage"))
             UsageStatsContent(usageTracking: workspace.usageTracking)
+        }
+        .padding(12)
+        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.quaternary, lineWidth: 1)
+        }
+    }
+
+    private var syncSettings: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle(L10n.tr("settings.sync.section"))
+
+            Toggle(
+                isOn: Binding(
+                    get: { workspace.isSyncEnabled },
+                    set: { workspace.setSyncEnabled($0) }
+                )
+            ) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L10n.tr("settings.sync.toggle"))
+                        .font(.headline)
+                    Text(L10n.tr("settings.sync.description"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .disabled(!workspace.syncStatus.canEnable && !workspace.isSyncEnabled)
+
+            VStack(alignment: .leading, spacing: 6) {
+                labeledSyncRow(
+                    title: L10n.tr("settings.sync.status_label"),
+                    value: syncStateLabel(workspace.syncStatus)
+                )
+                labeledSyncRow(
+                    title: L10n.tr("settings.sync.last_synced_label"),
+                    value: formattedLastSync(workspace.syncStatus.lastSuccessfulSync)
+                )
+                if let reason = workspace.syncStatus.unavailableReason {
+                    Text(syncUnavailableMessage(reason))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                if let lastErrorSummary = workspace.syncStatus.lastErrorSummary, !lastErrorSummary.isEmpty {
+                    Text(L10n.tr("settings.sync.error_prefix", lastErrorSummary))
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            }
         }
         .padding(12)
         .background(.background, in: RoundedRectangle(cornerRadius: 8))
@@ -235,6 +285,55 @@ struct SupportView: View {
             return
         }
         openURL(url)
+    }
+
+    private func syncStateLabel(_ snapshot: SyncStatusSnapshot) -> String {
+        switch snapshot.state {
+        case .off:
+            return L10n.tr("settings.sync.state.off")
+        case .on:
+            return L10n.tr("settings.sync.state.on")
+        case .syncing:
+            return L10n.tr("settings.sync.state.syncing")
+        case .unavailable:
+            return L10n.tr("settings.sync.state.unavailable")
+        case .error:
+            return L10n.tr("settings.sync.state.error")
+        }
+    }
+
+    private func formattedLastSync(_ date: Date?) -> String {
+        guard let date else {
+            return L10n.tr("settings.sync.not_yet_synced")
+        }
+
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: appSettings.selectedLanguage.localeIdentifier)
+        return formatter.string(from: date)
+    }
+
+    private func syncUnavailableMessage(_ reason: SyncUnavailableReason) -> String {
+        switch reason {
+        case .cloudKitContainerUnavailable:
+            return L10n.tr("settings.sync.unavailable.cloudkit")
+        case .iCloudAccountUnavailable:
+            return L10n.tr("settings.sync.unavailable.account")
+        }
+    }
+
+    @ViewBuilder
+    private func labeledSyncRow(title: String, value: String) -> some View {
+        HStack(alignment: .top, spacing: 12) {
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 108, alignment: .leading)
+            Text(value)
+                .font(.subheadline)
+            Spacer()
+        }
     }
 
     @MainActor

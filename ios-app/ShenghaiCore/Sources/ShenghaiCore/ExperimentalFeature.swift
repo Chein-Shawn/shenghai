@@ -1021,7 +1021,6 @@ public enum ExperimentalFeatureCatalog {
     )
 
     public static let all: [ExperimentalFeature] = [
-        singingSupportLab,
         singToDismissAlarm,
         textRhythmSpeechLab
     ]

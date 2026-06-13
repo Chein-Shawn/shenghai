@@ -6,18 +6,12 @@ import ShenghaiCore
 
 @MainActor
 final class UsageTrackingStore: ObservableObject {
-    private let defaults: UserDefaults
-    private let storageKey = "shenghai.usageLedger.v1"
+    private let persistence: PersistenceCoordinator
     @Published private var ledger: UsageAnalyticsLedger
 
-    init(defaults: UserDefaults = .standard) {
-        self.defaults = defaults
-        if let data = defaults.data(forKey: storageKey),
-           let decoded = try? JSONDecoder().decode(UsageAnalyticsLedger.self, from: data) {
-            ledger = decoded
-        } else {
-            ledger = UsageAnalyticsLedger()
-        }
+    init(persistence: PersistenceCoordinator = .shared) {
+        self.persistence = persistence
+        ledger = persistence.loadUsageLedger()
     }
 
     var dailySummaries: [DailyUsageSummary] {
@@ -47,9 +41,10 @@ final class UsageTrackingStore: ObservableObject {
     }
 
     private func save() {
-        guard let data = try? JSONEncoder().encode(ledger) else {
-            return
-        }
-        defaults.set(data, forKey: storageKey)
+        persistence.persistUsageLedger(ledger)
+    }
+
+    func reloadFromPersistence() {
+        ledger = persistence.loadUsageLedger()
     }
 }

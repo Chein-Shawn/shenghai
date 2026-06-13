@@ -2,13 +2,12 @@
 "annotation.annotations" = "Annotations";
 "app.shenghai" = "Shenghai";
 "app.shenghai_studio" = "Shenghai Studio";
-"nav.compose" = "ÃÂªÃÂ£ÃÂÃÂÃÂ";
-"nav.experimental" = "ÃÂªÃÂ¬ÃÂ±ÃÂÃÂ¨ÃÂ";
+"nav.compose" = "تأليف";
+"nav.experimental" = "تجريبي";
 "nav.experimental_sing_to_dismiss_alarm" = "Experimental Sing-to-Dismiss Alarm";
-"nav.experimental_singing_support_lab" = "Experimental Singing Support Lab";
 "nav.experimental_text_rhythm_speech_lab" = "Experimental Text Rhythm Speech Lab";
 "nav.overview" = "Overview";
-"nav.practice" = "ÃÂªÃÂ¯ÃÂ±ÃÂÃÂ¨";
+"nav.practice" = "تدريب";
 "nav.practice_display" = "Practice Display";
 "nav.practice_metrics" = "Practice metrics";
 "nav.score" = "Score";
@@ -17,47 +16,40 @@
 "nav.score_sequence" = "Score Sequence";
 "nav.score_settings" = "Score Settings";
 "nav.scoredocument_wrapper" = "ScoreDocument wrapper";
-"nav.settings" = "ÃÂ§ÃÂÃÂ¥ÃÂ¹ÃÂ¯ÃÂ§ÃÂ¯ÃÂ§ÃÂª";
-"omr.checklist.compare_source" = "ÙØ§Ø±Ù ÙÙ ÙØ¯Ø±Ø¬Ø ÙÙØ§Ø²ÙØ±Ø©Ø ÙÙØºÙØ©Ø ÙØ³ÙØªØ©Ø ÙÙÙÙØ©Ø ÙØ¯ÙÙØ§ÙÙÙÙØ©Ø ÙÙÙÙØ© Ø³Ø±Ø¹Ø©Ø ÙØªÙØ±Ø§Ø±Ø ÙØ¹ÙØ§ÙØ© Ø¨Ø±ÙÙØ© ÙØ¹ ÙÙÙ PDF/Ø§ÙØµÙØ±Ø© Ø§ÙØ£ØµÙÙØ©.";
-"omr.checklist.correct_candidate" = "ØµØ­Ø­ ÙÙÙ MusicXML Ø§ÙÙØ±Ø´Ø­ Ø£ÙÙÙØ§Ø Ø«Ù Ø§Ø³ØªØ®Ø¯Ù Ø§ÙÙÙÙ Ø§ÙÙØµØ­Ø­ ÙÙØªØ¹ÙÙÙØ§ØªØ ÙØ§ÙØªØ´ØºÙÙØ ÙØªØªØ¨Ø¹ Ø§ÙØ¯Ø±Ø¬Ø©Ø ÙØ³Ø¬Ù Ø§ÙØªØ¯Ø±ÙØ¨.";
-"omr.checklist.do_not_treat_as_final" = "ÙØ§ ØªØ¹ØªØ¨Ø± ÙØ®Ø±Ø¬Ø§Øª OMR ÙÙØ§Ø¦ÙØ© Ø­ØªÙ ÙÙØ¬Ø­ ÙÙ ÙÙ Ø§ÙØªØ­ÙÙ Ø§ÙØ³ÙØ¹Ù ÙØ§ÙÙØ±Ø§Ø¬Ø¹Ø© Ø§ÙØ¨ØµØ±ÙØ©.";
-"omr.element.directions" = "Ø§ÙØªØ¹ÙÙÙØ§Øª ÙØ§ÙØ¹ÙØ§ÙØ§Øª";
-"omr.element.layout" = "Ø§ÙØªØ®Ø·ÙØ·";
-"omr.element.lyrics" = "Ø§ÙÙÙÙØ§Øª";
-"omr.element.measures" = "Ø§ÙÙÙØ§Ø²ÙØ±";
-"omr.element.metadata" = "Ø§ÙØ¹ÙÙØ§Ù ÙØ§ÙØ§Ø¹ØªÙØ§Ø¯Ø§Øª";
-"omr.element.notes" = "Ø§ÙÙØºÙØ§Øª";
-"omr.element.parts" = "Ø§ÙØ£Ø¬Ø²Ø§Ø¡ ÙØ§ÙÙØ¯Ø±Ø¬Ø§Øª";
-"omr.element.repeats" = "Ø¹ÙØ§ÙØ§Øª Ø§ÙØªÙØ±Ø§Ø±";
-"omr.element.rests" = "Ø§ÙØ³ÙØªØ§Øª";
-"omr.input.image" = "ØµÙØ±Ø©";
+"nav.settings" = "الإعدادات";
+"omr.checklist.compare_source" = "Compare every staff, measure, note, rest, lyric, dynamic, tempo word, repeat, and rehearsal marking against the original PDF/image.";
+"omr.checklist.correct_candidate" = "Correct the MusicXML candidate before using it for practice.";
+"omr.checklist.do_not_treat_as_final" = "Do not treat OMR output as final until playback and visual review both pass.";
+"omr.element.layout" = "التخطيط";
+"omr.element.rests" = "السكتات";
+"omr.input.image" = "صورة";
 "omr.input.musicxml" = "MusicXML";
 "omr.input.pdf" = "PDF";
-"omr.provider.homr.best_for" = "ÙÙØ§Ø³Ø¨Ø© ÙØµÙØ± Ø§ÙÙØ§ØªÙØ ÙØªØ¬Ø§Ø±Ø¨ MusicXML Ø§ÙØ³Ø±ÙØ¹Ø©Ø ÙØ§ÙØ¨Ø­Ø« Ø§ÙÙØ³ØªÙØ¨ÙÙ Ø¨ÙØ³Ø§Ø¹Ø¯Ø© Mac Ø£Ù Ø§ÙØ®Ø§Ø¯Ù.";
-"omr.provider.homr.license_note" = "ÙØ´Ø±ÙØ¹ AGPL-3.0Ø Ø£Ø¨ÙÙ ÙØ³Ø§Ø±ÙØ§ Ø®Ø§Ø±Ø¬ÙÙØ§ Ø­ØªÙ Ø§ÙØ¥Ø·ÙØ§Ù ÙØ§ÙÙØ±Ø§Ø¬Ø¹Ø© Ø§ÙÙØ§ÙÙÙÙØ©.";
-"omr.provider.homr.summary" = "Ø£Ø¯Ø§Ø© OMR ÙÙØ¬ÙØ© ÙÙÙØ§ÙÙØ±Ø§ ÙØ§ÙØµÙØ± ÙØªÙØªØ¬ MusicXML ÙØ§Ø¨ÙÙØ§ ÙÙÙØ±Ø§Ø¡Ø© Ø¢ÙÙÙØ§.";
-"omr.provider.oemer.best_for" = "ÙÙÙØ¯ ÙÙÙÙØ§Ø±ÙØ© Ø§ÙØ¨Ø­Ø«ÙØ©Ø ÙØ§ÙØµÙØ± Ø§ÙÙØ§Ø¦ÙØ©Ø ÙÙÙØ§Ø³ ÙØ®Ø±Ø¬Ø§Øª MusicXML.";
-"omr.provider.oemer.license_note" = "Ø£Ø¯Ø§Ø© ØªØ¹ÙÙ Ø¢ÙÙ ÙÙØªÙØ­Ø© Ø§ÙÙØµØ¯Ø± ÙØ¹ ÙÙØ§Ø· ÙØ­Øµ ÙÙÙÙÙØ°Ø¬Ø Ø±Ø§Ø¬Ø¹ ØªØ±Ø§Ø®ÙØµ Ø§ÙØ´ÙÙØ±Ø© ÙØ§ÙÙÙÙØ°Ø¬ ÙØ¨Ù Ø§ÙØ¯ÙØ¬.";
-"omr.provider.oemer.summary" = "Ø®Ø· Ø£Ø³Ø§Ø³ OMR ÙØ§Ø¦Ù Ø¹ÙÙ Ø§ÙØªØ¹ÙÙ Ø§ÙØ¹ÙÙÙ ÙÙØµÙØ± Ø§ÙÙØ§Ø¦ÙØ© Ø£Ù Ø§ÙÙØµÙØ±Ø© Ø¨Ø§ÙÙØ§ØªÙ.";
-"omr.review.directions.note" = "Ø±Ø§Ø¬Ø¹ ÙÙÙØ§Øª Ø§ÙØ³Ø±Ø¹Ø©Ø ÙØ§ÙØ¯ÙÙØ§ÙÙÙÙØ§ØªØ ÙÙØµÙØµ Ø§ÙØ¨Ø±ÙÙØ©Ø ÙØ§ÙØ¹ÙØ§ÙØ§Øª Ø§ÙØªØ¹Ø¨ÙØ±ÙØ©.";
-"omr.review.layout.note" = "Ø±Ø§Ø¬Ø¹ ØªØ®Ø·ÙØ· Ø§ÙØµÙØ­Ø© ÙØ§ÙØ£Ø³Ø·Ø± Ø¨ØµØ±ÙÙØ§ ÙÙØ§Ø¨Ù ÙÙÙ PDF Ø£Ù Ø§ÙØµÙØ±Ø© Ø§ÙØ£ØµÙÙØ©.";
-"omr.review.lyrics.note" = "Ø±Ø§Ø¬Ø¹ Ø§ÙÙÙØ§Ø·Ø¹Ø ÙØ§ÙÙØ§ØµÙØ§ØªØ ÙØ§ÙÙÙØ²ÙØ ÙØ£Ø±ÙØ§Ù Ø§ÙØ£Ø¨ÙØ§Øª.";
-"omr.review.measures.note" = "Ø±Ø§Ø¬Ø¹ Ø¹Ø¯Ø¯ Ø§ÙÙÙØ§Ø²ÙØ±Ø ÙØªØºÙÙØ±Ø§Øª Ø§ÙÙÙØ²Ø§ÙØ ÙØ®Ø·ÙØ· Ø§ÙÙØ§Ø²ÙØ±Ø§Øª.";
-"omr.review.metadata.note" = "Ø±Ø§Ø¬Ø¹ Ø§ÙØ¹ÙÙØ§ÙØ ÙØ§ÙÙÙØ­ÙØ ÙÙØ§ØªØ¨ Ø§ÙÙÙÙØ§ØªØ ÙØ§ÙÙÙØ²Ø¹Ø ÙØ­ÙÙÙ Ø§ÙÙØ´Ø±.";
-"omr.review.notes.note" = "Ø±Ø§Ø¬Ø¹ Ø§ÙØ¯Ø±Ø¬Ø©Ø ÙØ§ÙØ£ÙÙØªØ§ÙØ ÙØ§ÙØ¥ÙÙØ§Ø¹Ø ÙØ§ÙØ±Ø¨Ø§Ø·Ø ÙØªØ¹ÙÙÙ Ø§ÙØµÙØª.";
-"omr.review.parts.note" = "Ø±Ø§Ø¬Ø¹ Ø£Ø³ÙØ§Ø¡ SATB/Ø§ÙØ¢ÙØ§Øª ÙØªØ®Ø·ÙØ· Ø§ÙÙØ¯Ø±Ø¬Ø§Øª.";
-"omr.review.repeats.note" = "Ø±Ø§Ø¬Ø¹ Ø¨Ø¯Ø§ÙØ§Øª Ø§ÙØªÙØ±Ø§Ø±Ø ÙØ§ÙÙÙØ§ÙØ§ØªØ Ù D.C./D.S.Ø ÙØ§ÙÙÙØ¯Ø§Ø ÙØªØ±ØªÙØ¨ Ø§ÙØªØ´ØºÙÙ Ø§ÙÙÙØ³Ø¹.";
-"omr.review.rests.note" = "Ø±Ø§Ø¬Ø¹ Ø§ÙØ³ÙØªØ§Øª ÙØ§ÙÙÙØ§Ø²ÙØ± Ø§ÙÙØ§Ø±ØºØ©.";
-"omr.stage.capture_or_import.note" = "Ø§Ø³ØªØ®Ø¯Ù Ø§Ø³ØªÙØ±Ø§Ø¯ Ø§ÙÙØ³ØªÙØ¯Ø§Øª/Ø§ÙØµÙØ± ÙÙ iOS Ø£Ù Ø§Ø³ØªÙØ±Ø§Ø¯ Ø§ÙÙÙÙØ§Øª ÙÙ macOS.";
-"omr.stage.editable_musicxml_review.note" = "ÙØ±Ø§Ø¬Ø¹ Ø§ÙÙØ³ØªØ®Ø¯Ù ÙÙÙ MusicXML Ø§ÙÙÙØ³ÙØ­ ÙØ¨Ù Ø§Ø³ØªØ®Ø¯Ø§ÙÙ ÙÙÙÙØ§Ø­Ø¸Ø§ØªØ ÙØ§ÙØªØ´ØºÙÙØ ÙØªØºØ°ÙØ© Ø§ÙØªØ¯Ø±ÙØ¨ Ø§ÙØ±Ø§Ø¬Ø¹Ø©.";
-"omr.stage.full_page_element_capture.note" = "Ø§ÙØªÙØ· Ø§ÙÙØºÙØ§ØªØ ÙØ§ÙØ³ÙØªØ§ØªØ ÙØ§ÙÙÙÙØ§ØªØ ÙØ§ÙØ¯ÙÙØ§ÙÙÙÙØ§ØªØ ÙÙØµÙØµ Ø§ÙØ³Ø±Ø¹Ø©Ø ÙØ¹ÙØ§ÙØ§Øª Ø§ÙØ£Ø¯Ø§Ø¡Ø ÙØ¹ÙØ§ÙØ§Øª Ø§ÙØªÙØ±Ø§Ø±Ø ÙØ§ÙØ¹ÙØ§ØµØ± Ø§ÙÙÙÙØ© ÙÙ Ø§ÙØªØ®Ø·ÙØ· Ø¥ÙÙ MusicXML ÙØ§Ø¨Ù ÙÙØªØ­Ø±ÙØ±.";
-"omr.stage.image_preprocessing.note" = "Ø£Ø¹Ø·Ù Ø§ÙØ£ÙÙÙÙØ© ÙØªØµØ­ÙØ­ Ø§ÙÙÙÙØ ÙØªØ·Ø¨ÙØ¹ Ø§ÙØªØ¨Ø§ÙÙØ ÙØ§ÙØ«ÙØ§Ø¦ÙØ© Ø§ÙÙØ¸ÙÙØ© ÙØ¨Ù Ø§ÙØªØ¹Ø±ÙÙ.";
-"omr.stage.manual_correction.note" = "ÙØ°Ø§ ÙØ·ÙÙØ¨ ÙØ£Ù Ø¯ÙØ© OMR ÙÙØ³Øª ÙØ«Ø§ÙÙØ©Ø Ø®Ø§ØµØ©Ù ÙØ¹ Ø§ÙÙÙØªØ§Øª Ø§ÙÙØ«ÙÙØ©.";
-"omr.stage.musicxml_export.note" = "ÙØ¨ÙÙ MusicXML ØµÙØºØ© Ø§ÙØªØ¨Ø§Ø¯Ù Ø§ÙØ£Ø³Ø§Ø³ÙØ©.";
-"omr.stage.omr_recognition.choose_provider" = "Ø§Ø®ØªØ± homr Ø£Ù oemer ÙÙØ³Ø§Ø± OMR Ø®Ø§Ø±Ø¬Ù ÙÙØªØ¬ MusicXML.";
-"omr.stage.omr_recognition.use_provider" = "Ø§Ø³ØªØ®Ø¯Ù %@ Ø®Ø§Ø±Ø¬ Ø§ÙØªØ·Ø¨ÙÙ Ø«Ù Ø§Ø³ØªÙØ±Ø¯ ÙØ®Ø±Ø¬Ø§Øª MusicXML Ø§ÙØ®Ø§ØµØ© Ø¨Ù.";
-"omr.stage.playback_validation.note" = "ÙÙÙÙ ÙÙ MIDIWriter Ø§ÙØ­Ø§ÙÙ Ø§ÙØªØ­ÙÙ ÙÙ Ø§ÙÙØºÙØ§Øª Ø§ÙÙØ§Ø¨ÙØ© ÙÙØªØ´ØºÙÙ Ø¨Ø¹Ø¯ Ø§ÙØ§Ø³ØªÙØ±Ø§Ø¯.";
-"omr.stage.scoredocument_import.note" = "ÙÙÙÙ MusicXMLImporter Ø§ÙØ­Ø§ÙÙ Ø¨ØªØ­ÙÙÙ Ø§ÙÙØ§ØªØ¬ Ø¥ÙÙ ScoreDocument.";
+"omr.provider.homr.best_for" = "Best for quick score photos and early MusicXML trials.";
+"omr.provider.homr.license_note" = "Review the project and model licenses before bundling or redistribution.";
+"omr.provider.homr.summary" = "Phone-photo-oriented OMR that can export MusicXML for review.";
+"omr.provider.oemer.best_for" = "Research comparison, skewed images, and MusicXML output benchmarking.";
+"omr.provider.oemer.license_note" = "Review model weights and upstream licenses before shipping.";
+"omr.provider.oemer.summary" = "Deep-learning OMR baseline for skewed or phone-taken score images.";
+"omr.review.directions.note" = "Check tempo words, dynamics, rehearsal text, and expressive markings.";
+"omr.review.layout.note" = "Check page and system layout against the source score.";
+"omr.review.lyrics.note" = "Check syllables, hyphenation, melisma, and verse numbers.";
+"omr.review.measures.note" = "Check measure count, time signature changes, and barlines.";
+"omr.review.metadata.note" = "Check title, composer, lyricist, arranger, and copyright.";
+"omr.review.notes.note" = "راجع الدرجة، والأوكتاف، والإيقاع، والرباط، وتعيين الصوت.";
+"omr.review.parts.note" = "Check SATB/instrument names and staff mapping.";
+"omr.review.repeats.note" = "Check repeat starts, endings, D.C./D.S., coda, and expanded playback order.";
+"omr.review.rests.note" = "Check rests and empty measures.";
+"omr.stage.capture_or_import.note" = "Capture or import PDF/image source material before recognition begins.";
+"omr.stage.editable_musicxml_review.note" = "Review the editable MusicXML candidate against the original score.";
+"omr.stage.full_page_element_capture.note" = "Capture notes, rests, lyrics, dynamics, repeats, and layout-critical markings.";
+"omr.stage.image_preprocessing.note" = "Deskew, normalize contrast, and clean the page before recognition.";
+"omr.stage.manual_correction.note" = "Correct notes, lyrics, repeats, and layout details before practice.";
+"omr.stage.musicxml_export.note" = "يبقى MusicXML صيغة التبادل الأساسية.";
+"omr.stage.omr_recognition.choose_provider" = "Choose homr or oemer as an external MusicXML-producing OMR pipeline.";
+"omr.stage.omr_recognition.use_provider" = "Run the selected provider and import the generated MusicXML result.";
+"omr.stage.playback_validation.note" = "Validate playback order, pitches, and rhythms before training.";
+"omr.stage.scoredocument_import.note" = "Existing MusicXMLImporter converts the output into ScoreDocument.";
 "practice.metronome" = "Metronome";
 "practice.pitch" = "Pitch";
 "practice.pitch_drill" = "Pitch Drill";
@@ -79,10 +71,9 @@
 "practice.stop_metronome" = "Stop Metronome";
 "practice.stop_playback" = "Stop Playback";
 "practice.tuning_fork" = "Tuning Fork";
-"research.research" = "ÃÂ¨ÃÂ­ÃÂ«";
-"research.research_backed_unusual_singing_features" = "Research-backed, unusual singing features";
+"research.research" = "بحث";
+"research.research_backed_unusual_singing_features" = "ميزات ممتعة لا تزال قيد الاختبار";
 "research.research_comparison_skewed_images_and_musicxml_output_benchmarking" = "Research comparison, skewed images, and MusicXML output benchmarking.";
-"research.research_map" = "Research Map";
 "score.export_midi" = "Export MIDI";
 "score.export_musicxml" = "Export MusicXML";
 "score.exported_midi_for_placeholder" = "Exported MIDI for %@.";
@@ -98,12 +89,42 @@
 "score.musicxml_parsed" = "MusicXML parsed";
 "score.musicxml_preview" = "MusicXML preview";
 "score.musicxml_remains_the_canonical_interchange_output" = "MusicXML remains the canonical interchange output.";
-"settings.display_language" = "ÃÂÃÂºÃÂ© ÃÂ§ÃÂÃÂ¹ÃÂ±ÃÂ¶";
-"support.changelog" = "Changelog";
+"score.restore_previous_session" = "Restored previous score session.";
+"settings.display_language" = "لغة العرض";
+"settings.sync.description" = "Sync scores, annotations, usage history, language, and training records across devices signed into the same Apple ID.";
+"settings.sync.enable" = "Enable Sync";
+"settings.sync.error_prefix" = "Sync issue: %@";
+"settings.sync.first_run.message" = "Choose whether Shenghai should sync your scores, annotations, usage history, language, and training records across your Apple devices.";
+"settings.sync.first_run.title" = "Enable iCloud Sync?";
+"settings.sync.last_synced_label" = "Last Synced";
+"settings.sync.not_now" = "ليس الآن";
+"settings.sync.not_yet_synced" = "Not yet synced";
+"settings.sync.section" = "Sync";
+"settings.sync.state.error" = "خطأ";
+"settings.sync.state.off" = "Off";
+"settings.sync.state.on" = "On";
+"settings.sync.state.syncing" = "Syncing";
+"settings.sync.state.unavailable" = "Unavailable";
+"settings.sync.status_label" = "حالة المزامنة";
+"settings.sync.toggle" = "iCloud Sync";
+"settings.sync.unavailable.account" = "سجّل الدخول إلى iCloud لتفعيل المزامنة.";
+"settings.sync.unavailable.cloudkit" = "Cloud sync is unavailable in this build until CloudKit capability is configured.";
+"support.changelog" = "سجل التحديثات";
 "support.feedback" = "Feedback";
+"support.feedback.backend_not_configured" = "Feedback backend is not configured yet.";
+"support.feedback.cooldown" = "يرجى الانتظار قليلًا قبل إرسال تقرير آخر.";
+"support.feedback.details" = "التفاصيل";
+"support.feedback.invalid_response" = "The feedback service returned an unexpected response.";
+"support.feedback.network" = "Could not send feedback. Check your connection and try again.";
+"support.feedback.privacy" = "يُرسل التعليق فقط التفاصيل التي تختار تضمينها.";
+"support.feedback.reply_email" = "بريد الرد (اختياري)";
+"support.feedback.send" = "Send Feedback";
+"support.feedback.sending" = "جارٍ الإرسال...";
+"support.feedback.sent" = "Feedback sent. Thank you.";
+"support.feedback.server" = "The feedback service rejected the submission.";
 "support.feedback_sends_only_what_you_choose_to_include_for_private_repos_github_issues_are_useful_for_invited_internal_testers_mail_draft_is_the_fallback" = "Feedback sends only what you choose to include. For private repos, GitHub Issues are useful for invited internal testers; Mail Draft is the fallback.";
-"support.official_website" = "Ø§ÙÙÙÙØ¹ Ø§ÙØ±Ø³ÙÙ";
-"support.user_manual" = "User Manual";
+"support.official_website" = "Official Website";
+"support.user_manual" = "دليل الاستخدام";
 "text.accidental" = "Accidental";
 "text.active" = "Active";
 "text.add_note" = "Add Note";
@@ -144,7 +165,7 @@
 "text.completion" = "Completion";
 "text.confidence" = "Confidence";
 "text.confidence_decimal2" = "confidence %.2f";
-"text.contact" = "Contact";
+"text.contact" = "التواصل";
 "text.core_deviation_model_exists_live_tracker_is_next" = "Core deviation model exists; live tracker is next.";
 "text.correct_candidate_first_then_use_it_for_notes_annotations_playback_and_practice" = "Correct candidate first; then use it for notes, annotations, playback, and practice.";
 "text.correct_the_musicxml_candidate_first_then_use_the_corrected_file_for_annotation_playback_pitch_tracking_and_practice_history" = "Correct the MusicXML candidate first; then use the corrected file for annotation, playback, pitch tracking, and practice history.";
@@ -160,6 +181,7 @@
 "text.daily_practice_trend_and_feature_time" = "Daily practice trend and feature time";
 "text.daily_trend" = "Daily Trend";
 "text.decimal1_cents_confidence_decimal2" = "%.1f cents, confidence %.2f";
+"text.decimal2_beats" = "%.2f نبضة";
 "text.deep_learning_omr_baseline_for_skewed_or_phone_taken_score_images" = "Deep-learning OMR baseline for skewed or phone-taken score images.";
 "text.demo_song" = "Demo song";
 "text.directions_and_markings" = "Directions and markings";
@@ -171,14 +193,13 @@
 "text.english_only_sessions_can_also_report_words_min_placeholder" = "English-only sessions can also report words/min: %@.";
 "text.eraser" = "Eraser";
 "text.events" = "Events";
-"text.evidence_notes" = "Evidence Notes";
 "text.existing_midiwriter_can_validate_playable_notes_after_import" = "Existing MIDIWriter can validate playable notes after import.";
 "text.existing_musicxmlimporter_converts_the_output_into_scoredocument" = "Existing MusicXMLImporter converts the output into ScoreDocument.";
 "text.external_omr_engine_execution" = "External OMR engine execution";
 "text.external_omr_provider_execution" = "External OMR provider execution";
 "text.feature" = "Feature";
 "text.feature_time" = "Feature Time";
-"text.feel_free_to_contact_me" = "Feel free to contact me";
+"text.feel_free_to_contact_me" = "لا تتردد في التواصل معي";
 "text.flat" = "flat";
 "text.flat_2" = "Flat";
 "text.follow_score" = "follow score";
@@ -187,7 +208,6 @@
 "text.full_score_musicxml_review" = "Full-Score MusicXML Review";
 "text.full_song_in_app_challenge_model_exists_os_level_alarm_behavior_depends_on_platform_apis" = "Full-song in-app challenge model exists; OS-level alarm behavior depends on platform APIs.";
 "text.generate_midi_events_first_move_to_avaudioengine_sampler_when_richer_practice_controls_are_needed" = "Generate MIDI events first; move to AVAudioEngine sampler when richer practice controls are needed.";
-"text.gentle_call_and_response" = "Gentle Call-and-Response";
 "text.github_issue" = "GitHub Issue";
 "text.guide" = "Guide";
 "text.half" = "Half";
@@ -204,7 +224,7 @@
 "text.intonation" = "intonation";
 "text.intonation_trace" = "Intonation Trace";
 "text.language" = "Language";
-"text.language_usage_documentation_contact_and_feedback" = "Language, usage, documentation, contact, and feedback";
+"text.language_usage_documentation_contact_and_feedback" = "Language, sync, usage, documentation, contact, and feedback";
 "text.layout" = "Layout";
 "text.length" = "Length";
 "text.let_users_choose_homr_or_oemer_as_external_musicxml_producing_providers_keep_audiveris_as_a_benchmark_path" = "Let users choose homr or oemer as external MusicXML-producing providers; keep Audiveris as a benchmark path.";
@@ -238,13 +258,14 @@
 "text.mixer" = "Mixer";
 "text.modes" = "Modes";
 "text.mute" = "Mute";
-"text.mvp_chain" = "MVP Chain";
+"text.mvp_chain" = "نظرة عامة على الميزات";
 "text.natural" = "natural";
 "text.needed_because_omr_accuracy_is_not_perfect_especially_with_dense_scores" = "Needed because OMR accuracy is not perfect, especially with dense scores.";
 "text.needs_apple_developer_program_and_app_store_connect_setup" = "Needs Apple Developer Program and App Store Connect setup.";
 "text.new_features_fixes_and_known_issues" = "New features, fixes, and known issues.";
 "text.no_notes_yet" = "No notes yet";
 "text.no_part_selected" = "No Part Selected";
+"text.no_pitch" = "لا توجد نغمة";
 "text.no_score_loaded" = "No score loaded";
 "text.no_score_loaded_2" = "No Score Loaded";
 "text.non_medical_research_prototype_with_safety_guardrails" = "Non-medical research prototype with safety guardrails.";
@@ -296,10 +317,9 @@
 "text.requires_microphone_permission_and_input_calibration" = "Requires microphone permission and input calibration.";
 "text.rest" = "Rest";
 "text.rests" = "Rests";
-"text.review_checklist" = "ÙØ§Ø¦ÙØ© Ø§ÙÙØ±Ø§Ø¬Ø¹Ø©";
+"text.review_checklist" = "Review checklist";
 "text.rhythm" = "Rhythm";
 "text.run_provider_import_generated_musicxml_then_validate_every_recognized_element" = "Run provider, import generated MusicXML, then validate every recognized element.";
-"text.safety_boundary" = "Safety Boundary";
 "text.sample_prompt" = "Sample prompt";
 "text.scan_correct_and_practice_from_editable_musicxml" = "Scan, correct, and practice from editable MusicXML";
 "text.segmentation" = "Segmentation";
@@ -315,7 +335,7 @@
 "text.start" = "Start";
 "text.start_metronome" = "Start Metronome";
 "text.status" = "Status";
-"text.summary" = "Ø§ÙÙÙØ®Øµ";
+"text.summary" = "Summary";
 "text.target" = "Target";
 "text.target_2" = "target";
 "text.tempo" = "Tempo";
@@ -331,6 +351,7 @@
 "text.treat_moises_like_stem_controls_as_post_mvp_research_unless_a_simple_api_prototype_is_available" = "Treat Moises-like stem controls as post-MVP research unless a simple API/prototype is available.";
 "text.type" = "Type";
 "text.undo" = "Undo";
+"text.unknown" = "غير معروف";
 "text.unmute" = "Unmute";
 "text.untitled_shenghai_score" = "Untitled Shenghai Score";
 "text.usability" = "Usability";
@@ -351,14 +372,3 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
-"support.feedback.reply_email" = "بريد الرد (اختياري)";
-"support.feedback.details" = "التفاصيل";
-"support.feedback.send" = "إرسال الملاحظات";
-"support.feedback.sending" = "جارٍ الإرسال...";
-"support.feedback.backend_not_configured" = "خدمة الملاحظات غير مُعدّة بعد.";
-"support.feedback.privacy" = "عند إرسال الملاحظات، يضم Shenghai نص النموذج وإصدار التطبيق والمنصة والشاشة الحالية ولغة العرض لتسهيل إعادة المشكلة.";
-"support.feedback.sent" = "تم إرسال الملاحظات. شكرًا لك.";
-"support.feedback.cooldown" = "يرجى الانتظار %d ثانية قبل إرسال ملاحظة أخرى.";
-"support.feedback.invalid_response" = "أعادت خدمة الملاحظات استجابة غير متوقعة.";
-"support.feedback.network" = "تعذر إرسال الملاحظات. تحقق من الاتصال ثم حاول مرة أخرى.";
-"support.feedback.server" = "رفضت خدمة الملاحظات هذا الإرسال.";

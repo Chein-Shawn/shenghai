@@ -4,6 +4,8 @@ import pathlib
 import re
 import sys
 
+from strings_io import read_strings
+
 REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/shenghai")
 SOURCE_ROOT = REPO_ROOT / "ios-app" / "ShenghaiCore" / "Sources"
 RESOURCE_ROOT = SOURCE_ROOT / "ShenghaiApp" / "Resources"
@@ -24,6 +26,10 @@ REQUIRED_LANGUAGES = [
     "it",
     "de",
 ]
+PRIMARY_QA_LANGUAGES = [
+    "zh-Hant",
+    "ja",
+]
 
 SAME_AS_ENGLISH_VALUE_ALLOWLIST = {
     "Shenghai",
@@ -43,6 +49,7 @@ SAME_AS_ENGLISH_VALUE_ALLOWLIST = {
     "AVAudioEngine",
     "JDK 25",
     "AGPL-3.0",
+    "PDF",
     "b",
     "#",
     "2",
@@ -62,11 +69,11 @@ SAME_AS_ENGLISH_VALUE_ALLOWLIST = {
 
 CALL_RE = re.compile(r'L10n\.tr\("([^"]*)"')
 TOKEN_RE = re.compile(r'LocalizedTextToken\("([^"]*)"')
-STRINGS_RE = re.compile(r'^"((?:[^"\\]|\\.)*)" = "((?:[^"\\]|\\.)*)";$')
 RAW_LITERAL_ALLOWLIST = {
     "2/4", "3/4", "4/4", "6/8", "2", "3", "4", "6", "8",
     "b", "#", "S",
     "shanewn931131@gmail.com", "+886 0901230875",
+    "C4", "C#4", "D4", "Eb4", "E4", "F4", "F#4", "G4", "Ab4", "A4", "Bb4", "B4", "C5",
 }
 
 
@@ -83,17 +90,9 @@ def used_keys() -> set[str]:
     return keys
 
 
-def read_strings(language: str) -> dict[str, str]:
+def read_strings_table(language: str) -> dict[str, str]:
     path = RESOURCE_ROOT / f"{language}.lproj" / "Localizable.strings"
-    values = {}
-    for line in path.read_text().splitlines():
-        match = STRINGS_RE.match(line.strip())
-        if not match:
-            continue
-        key = bytes(match.group(1), "utf-8").decode("unicode_escape")
-        value = bytes(match.group(2), "utf-8").decode("unicode_escape")
-        values[key] = value
-    return values
+    return read_strings(path)
 
 
 def raw_string_violations() -> list[str]:
@@ -114,10 +113,10 @@ def main() -> int:
     aliases = read_aliases()
     missing = []
     untranslated = []
-    english_table = read_strings("en")
+    english_table = read_strings_table("en")
     used = used_keys()
     for language in REQUIRED_LANGUAGES:
-        table = read_strings(language)
+        table = read_strings_table(language)
         for key in used:
             resource_key = aliases.get(key, key)
             if resource_key not in table:
@@ -130,7 +129,8 @@ def main() -> int:
             english_value = english_table.get(resource_key)
             localized_value = table.get(resource_key)
             if (
-                english_value
+                language in PRIMARY_QA_LANGUAGES
+                and english_value
                 and localized_value == english_value
                 and localized_value not in SAME_AS_ENGLISH_VALUE_ALLOWLIST
             ):

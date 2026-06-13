@@ -6,11 +6,11 @@ import ShenghaiCore
 enum ScoreFormatting {
     static func noteName(_ note: ScoreNote) -> String {
         if note.isRest {
-            return "Rest"
+            return L10n.tr("text.rest")
         }
 
         guard let step = note.step, let octave = note.octave else {
-            return "Unknown"
+            return L10n.tr("text.unknown")
         }
 
         let accidental: String
@@ -27,10 +27,10 @@ enum ScoreFormatting {
 
     static func durationLabel(ticks: Int, ticksPerQuarter: Int) -> String {
         guard ticksPerQuarter > 0 else {
-            return "\(ticks) ticks"
+            return L10n.tr("%d ticks", ticks)
         }
 
         let beats = Double(ticks) / Double(ticksPerQuarter)
-        return String(format: "%.2f beats", beats)
+        return L10n.tr("text.decimal2_beats", beats)
     }
 }

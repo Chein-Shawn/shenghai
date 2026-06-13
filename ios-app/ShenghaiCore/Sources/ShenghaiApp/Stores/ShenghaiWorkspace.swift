@@ -22,10 +22,33 @@ final class ShenghaiWorkspace: ObservableObject {
     @Published var isPlaying = false
     @Published var selectedOMRProvider: OMRProvider = .homr
     @Published var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
-    let usageTracking = UsageTrackingStore()
+    @Published var currentScoreItemID: String?
+    @Published var annotationStrokes: [ScoreAnnotationStrokePayload] = [] {
+        didSet {
+            guard annotationPersistenceEnabled, let currentScoreItemID else {
+                return
+            }
+            persistence.saveAnnotationStrokes(annotationStrokes, for: currentScoreItemID)
+        }
+    }
+    @Published var syncStatus: SyncStatusSnapshot
+    @Published var isSyncEnabled: Bool
+    @Published var shouldPromptForSyncChoice = false
+    let usageTracking: UsageTrackingStore
 
     private let importer = MusicXMLImporter()
     private let playbackService = MIDIPlaybackService()
+    private let persistence: PersistenceCoordinator
+    private var annotationPersistenceEnabled = true
+    private var hasBootstrapped = false
+
+    init(persistence: PersistenceCoordinator = .shared) {
+        self.persistence = persistence
+        self.usageTracking = UsageTrackingStore(persistence: persistence)
+        let settings = persistence.settingsSnapshot()
+        self.syncStatus = persistence.syncStatusSnapshot()
+        self.isSyncEnabled = settings.syncEnabled
+    }
 
     var selectedPartIndex: Int {
         guard let score, let selectedPartID else {
@@ -49,7 +72,13 @@ final class ShenghaiWorkspace: ObservableObject {
         do {
             let data = Data(SampleScoreLibrary.twinkleMusicXML.utf8)
             let importedScore = try importer.importDocument(data: data)
-            setScore(importedScore)
+            let scoreItemID = try persistence.persistScoreDocument(
+                score: importedScore,
+                data: data,
+                sourceType: .demo,
+                preferredFileName: importedScore.metadata.title ?? "twinkle-demo"
+            )
+            setScore(importedScore, scoreItemID: scoreItemID)
             statusMessage = L10n.tr("Loaded demo score: Twinkle excerpt.")
             errorMessage = nil
         } catch {
@@ -66,8 +95,15 @@ final class ShenghaiWorkspace: ObservableObject {
                 }
             }
 
-            let importedScore = try importer.importDocument(url: url)
-            setScore(importedScore)
+            let data = try Data(contentsOf: url)
+            let importedScore = try importer.importDocument(data: data)
+            let scoreItemID = try persistence.persistScoreDocument(
+                score: importedScore,
+                data: data,
+                sourceType: .musicXML,
+                preferredFileName: url.deletingPathExtension().lastPathComponent
+            )
+            setScore(importedScore, scoreItemID: scoreItemID)
             createScanReviewCandidate(sourceName: url.lastPathComponent, inputKind: .musicXML)
             statusMessage = L10n.tr("Imported %@.", url.lastPathComponent)
             errorMessage = nil
@@ -135,10 +171,21 @@ final class ShenghaiWorkspace: ObservableObject {
     func loadComposedScore(_ composedScore: ComposedScore) {
         let normalizedScore = composedScore.applyingLocalizedFallbacks()
         let generatedScore = MusicXMLComposer.makeScoreDocument(from: normalizedScore)
-        setScore(generatedScore)
-        statusMessage = L10n.tr("Created %d notes from Compose.", normalizedScore.notes.count)
-        errorMessage = nil
-        selectedSection = .scoreWorkspace
+        do {
+            let xml = MusicXMLComposer.makeMusicXML(from: normalizedScore)
+            let scoreItemID = try persistence.persistScoreDocument(
+                score: generatedScore,
+                data: Data(xml.utf8),
+                sourceType: .composed,
+                preferredFileName: normalizedScore.title
+            )
+            setScore(generatedScore, scoreItemID: scoreItemID)
+            statusMessage = L10n.tr("Created %d notes from Compose.", normalizedScore.notes.count)
+            errorMessage = nil
+            selectedSection = .scoreWorkspace
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func exportMusicXML(_ composedScore: ComposedScore) {
@@ -205,12 +252,68 @@ final class ShenghaiWorkspace: ObservableObject {
         selectedSection = .scoreWorkspace
     }
 
-    private func setScore(_ newScore: ScoreDocument) {
+    func bootstrapIfNeeded() {
+        guard !hasBootstrapped else {
+            return
+        }
+        hasBootstrapped = true
+
+        appSettingsReload()
+        usageTracking.reloadFromPersistence()
+        syncStatus = persistence.syncStatusSnapshot()
+        isSyncEnabled = persistence.settingsSnapshot().syncEnabled
+        shouldPromptForSyncChoice = persistence.settingsSnapshot().didChooseSyncOnLaunch == false
+
+        if let restored = try? persistence.loadPersistedScore() {
+            setScore(restored.score, scoreItemID: restored.scoreItemID, annotationStrokes: restored.annotationStrokes)
+            statusMessage = L10n.tr("score.restore_previous_session")
+            errorMessage = nil
+        }
+    }
+
+    func completeFirstRunSyncChoice(enableSync: Bool) {
+        syncStatus = persistence.completeFirstRunSyncChoice(enableSync: enableSync)
+        isSyncEnabled = persistence.settingsSnapshot().syncEnabled
+        shouldPromptForSyncChoice = false
+        appSettingsReload()
+        usageTracking.reloadFromPersistence()
+    }
+
+    func setSyncEnabled(_ enabled: Bool) {
+        syncStatus = persistence.setSyncEnabled(enabled)
+        isSyncEnabled = persistence.settingsSnapshot().syncEnabled
+        appSettingsReload()
+        usageTracking.reloadFromPersistence()
+        if let restored = try? persistence.loadPersistedScore() {
+            setScore(restored.score, scoreItemID: restored.scoreItemID, annotationStrokes: restored.annotationStrokes)
+        }
+    }
+
+    private func setScore(
+        _ newScore: ScoreDocument,
+        scoreItemID: String?,
+        annotationStrokes restoredAnnotationStrokes: [ScoreAnnotationStrokePayload]? = nil
+    ) {
         score = newScore
         selectedPartID = newScore.parts.first?.id
         exportedMIDIURL = nil
         exportedMusicXMLURL = nil
         scannedMusicXMLCandidate = nil
+        currentScoreItemID = scoreItemID
+        persistence.setSelectedScoreItemID(scoreItemID)
+        annotationPersistenceEnabled = false
+        if let restoredAnnotationStrokes {
+            annotationStrokes = restoredAnnotationStrokes
+        } else if let scoreItemID {
+            annotationStrokes = persistence.loadAnnotationStrokes(for: scoreItemID)
+        } else {
+            annotationStrokes = []
+        }
+        annotationPersistenceEnabled = true
+    }
+
+    private func appSettingsReload() {
+        AppSettingsStore.shared.reloadFromPersistence()
     }
 }
 

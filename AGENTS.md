@@ -65,6 +65,15 @@ Localized text update includes:
 
 Do not add a new user-facing string as a one-language-only placeholder unless it is clearly temporary and blocked from release.
 
+## Backup Rule
+
+Every time the program is modified, treat backup as part of the same work cycle.
+
+- Review `git status` before finishing.
+- Stage and commit meaningful source, docs, and resource changes when the task is ready for backup.
+- Push the backup to GitHub when network/auth permissions allow it.
+- If push is blocked, explicitly report the backup status and what remains local.
+
 ## Implementation Guidance
 
 - Keep user-facing copy localizable through the app localization system.
@@ -77,7 +86,8 @@ Do not add a new user-facing string as a one-language-only placeholder unless it
 Before closing a task or PR, confirm:
 
 - `C4 impact checked`
-- `Localized strings updated for en / zh-Hant / ja`
+- `Localized strings updated for all shipped languages`
+- `Backup status checked and reported`
 - `Screenshot or UI copy QA completed where needed`
 
 ## Documentation Alignment

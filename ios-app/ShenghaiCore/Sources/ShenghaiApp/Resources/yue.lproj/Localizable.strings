@@ -2,62 +2,61 @@
 "annotation.annotations" = "Annotations";
 "app.shenghai" = "Shenghai";
 "app.shenghai_studio" = "Shenghai Studio";
-"nav.compose" = "Ã¦ÂÂÃ¨Â­Â";
-"nav.experimental" = "Ã¥Â¯Â¦Ã©Â©ÂÃ¥ÂÂÃ¨ÂÂ½";
+"nav.compose" = "打譜";
+"nav.experimental" = "實驗功能";
 "nav.experimental_sing_to_dismiss_alarm" = "Experimental Sing-to-Dismiss Alarm";
-"nav.experimental_singing_support_lab" = "Experimental Singing Support Lab";
 "nav.experimental_text_rhythm_speech_lab" = "Experimental Text Rhythm Speech Lab";
-"nav.overview" = "Ã§Â¸Â½Ã¨Â¦Â½";
-"nav.practice" = "Ã§Â·Â´Ã§Â¿Â";
+"nav.overview" = "總覽";
+"nav.practice" = "練習";
 "nav.practice_display" = "Practice Display";
 "nav.practice_metrics" = "Practice metrics";
-"nav.score" = "Ã¦Â¨ÂÃ¨Â­Â";
+"nav.score" = "樂譜";
 "nav.score_aligned_target_timeline" = "Score-aligned target timeline";
 "nav.score_mode" = "Score Mode";
 "nav.score_sequence" = "Score Sequence";
 "nav.score_settings" = "Score Settings";
 "nav.scoredocument_wrapper" = "ScoreDocument wrapper";
-"nav.settings" = "Ã¨Â¨Â­Ã¥Â®Â";
-"omr.checklist.compare_source" = "å°æ¯ä¸æ¢è­è¡¨ãå°ç¯ãé³ç¬¦ãä¼æ­¢ãæ­è©ãååº¦ãéåº¦è©ãåè¦åæç·´è¨èé½ååå§ PDF/åçéä¸å°ç§ã";
-"omr.checklist.correct_candidate" = "åä¿®æ­£ MusicXML åé¸æªï¼åç¨ä¿®æ­£å¾æªæ¡åè¨»è¨ãæ­æ¾ãé³é«è¿½è¹¤åç·´ç¿ç´éã";
-"omr.checklist.do_not_treat_as_final" = "åºæ­æ¾é©è­åè¦è¦ºå¯©æ¥é½ééä¹åï¼åå¥½ç¶ OMR è¼¸åºå·²ç¶ä¿æçµçµæã";
-"omr.element.directions" = "æå­æç¤ºåè¨è";
-"omr.element.layout" = "çé¢";
-"omr.element.lyrics" = "æ­è©";
-"omr.element.measures" = "å°ç¯";
-"omr.element.metadata" = "æ¨é¡åç½²åè³è¨";
-"omr.element.notes" = "é³ç¬¦";
-"omr.element.parts" = "è²é¨åè­è¡¨";
-"omr.element.repeats" = "åè¦è¨è";
-"omr.element.rests" = "ä¼æ­¢ç¬¦";
-"omr.input.image" = "åç";
+"nav.settings" = "設定";
+"omr.checklist.compare_source" = "Compare every staff, measure, note, rest, lyric, dynamic, tempo word, repeat, and rehearsal marking against the original PDF/image.";
+"omr.checklist.correct_candidate" = "Correct the MusicXML candidate before using it for practice.";
+"omr.checklist.do_not_treat_as_final" = "喺播放驗證同視覺審查都通過之前，唔好當 OMR 輸出已經係最終結果。";
+"omr.element.directions" = "文字指示同記號";
+"omr.element.layout" = "版面";
+"omr.element.lyrics" = "歌詞";
+"omr.element.measures" = "小節";
+"omr.element.metadata" = "標題同署名資訊";
+"omr.element.notes" = "音符";
+"omr.element.parts" = "聲部同譜表";
+"omr.element.repeats" = "反覆記號";
+"omr.element.rests" = "休止符";
+"omr.input.image" = "圖片";
 "omr.input.musicxml" = "MusicXML";
 "omr.input.pdf" = "PDF";
-"omr.provider.homr.best_for" = "é©åææ©æç§ãå¿«é MusicXML æ¸¬è©¦ï¼ååä¹å¾ Mac/ä¼ºæå¨è¼å©ç ç©¶ã";
-"omr.provider.homr.license_note" = "AGPL-3.0 å°æ¡ï¼æ­£å¼ä¸ç·åæ³åå¯©æ¥ä¹åï¼æ«æä¿æåå¤é¨æµç¨ã";
-"omr.provider.homr.summary" = "ä»¥ç¸æ©åç¸ççºä¸»å OMRï¼å¯ä»¥ç¢çæ©å¨å¯è®å MusicXMLã";
-"omr.provider.oemer.best_for" = "é©åç ç©¶æ¯è¼ãå¾æåçï¼åå MusicXML è¼¸åºåºæºæ¸¬è©¦ã";
-"omr.provider.oemer.license_note" = "éæºæ©å¨å­¸ç¿å·¥å·ï¼é£æ¨¡åæª¢æ¥é»ä¸é½ï¼æ´ååè¦åæª¢æ¥ç¨å¼åæ¨¡åææ¬ã";
-"omr.provider.oemer.summary" = "ä»¥æ·±åº¦å­¸ç¿ååºç¤å OMRï¼é©åå¾ææèææ©å½±åºååæ¨è­åçã";
-"omr.review.directions.note" = "æª¢æ¥éåº¦è©ãååº¦ãæç·´æå­åè¡¨æè¨èã";
-"omr.review.layout.note" = "è«å°ç§åå§ PDF æèåçï¼ç¨èç¼æª¢æ¥é é¢åç³»çµ±çé¢ã";
-"omr.review.lyrics.note" = "æª¢æ¥é³ç¯ãé£å­ãå»¶é³åæ®µèã";
-"omr.review.measures.note" = "æª¢æ¥å°ç¯æ¸ãæèè®ååå°ç¯ç·ã";
-"omr.review.metadata.note" = "æª¢æ¥æ¨é¡ãä½æ²ãä½è©ãç·¨æ²åçæ¬è³è¨ã";
-"omr.review.notes.note" = "æª¢æ¥é³é«ãå«åº¦ãç¯å¥ãé£çµç·åè²é¨åéã";
-"omr.review.parts.note" = "æª¢æ¥ SATB/æ¨å¨åç¨±åè­è¡¨å°æã";
-"omr.review.repeats.note" = "æª¢æ¥åè¦èµ·é»ãçµæ­¢ãD.C./D.S.ãcoda åå±éå¾åæ­æ¾æ¬¡åºã";
-"omr.review.rests.note" = "æª¢æ¥ä¼æ­¢åç©ºå°ç¯ã";
-"omr.stage.capture_or_import.note" = "ç¨ iOS æä»¶/ç¸çå¯å¥ï¼æè macOS æªæ¡å¯å¥ã";
-"omr.stage.editable_musicxml_review.note" = "ç¨æ¶è¦åæª¢æ¥ææåºåå MusicXML åé¸æªï¼ä¹å¾åç¨ååç­è¨ãæ­æ¾åç·´ç¿åé¥ã";
-"omr.stage.full_page_element_capture.note" = "å°é³ç¬¦ãä¼æ­¢ãæ­è©ãååº¦ãéåº¦æå­ãè¡¨æè¨èãåè¦è¨èåçé¢ééµæ¨è¨æ·åæå¯ç·¨è¼¯ MusicXMLã";
-"omr.stage.image_preprocessing.note" = "è¾¨è­ååªååæ ¡æ­£å¾æãå°æ¯æ­£è¦ååä¹¾æ·¨äºå¼åã";
-"omr.stage.manual_correction.note" = "å çº OMR æºç¢ºçåæç¾åç¾ï¼å°¤å¶ä¿å¯éæ¨è­ï¼æä»¥ä»ç¶éè¦æåä¿®æ­£ã";
-"omr.stage.musicxml_export.note" = "MusicXML ä»ç¶ä¿æ¨æºäº¤ææ ¼å¼ã";
-"omr.stage.omr_recognition.choose_provider" = "è«æ homr æè oemer ä½çºå¤é¨ MusicXML ç¢çå OMR æµç¨ã";
-"omr.stage.omr_recognition.use_provider" = "ååº app å¤é¢ç¨ %@ï¼åå¯å¥ä½¢è¼¸åºå MusicXMLã";
-"omr.stage.playback_validation.note" = "ç¾æ MIDIWriter å¯ä»¥åºå¯å¥å¾é©è­é³ç¬¦ä¿åªå¯æ­æ¾ã";
-"omr.stage.scoredocument_import.note" = "ç¾æ MusicXMLImporter æå°è¼¸åºè½æ ScoreDocumentã";
+"omr.provider.homr.best_for" = "Best for quick score photos and early MusicXML trials.";
+"omr.provider.homr.license_note" = "AGPL-3.0 專案；正式上線同法務審查之前，暫時保持做外部流程。";
+"omr.provider.homr.summary" = "Phone-photo-oriented OMR that can export MusicXML for review.";
+"omr.provider.oemer.best_for" = "適合研究比較、傾斜圖片，同埋 MusicXML 輸出基準測試。";
+"omr.provider.oemer.license_note" = "Review model weights and upstream licenses before shipping.";
+"omr.provider.oemer.summary" = "Deep-learning OMR baseline for skewed or phone-taken score images.";
+"omr.review.directions.note" = "Check tempo words, dynamics, rehearsal text, and expressive markings.";
+"omr.review.layout.note" = "Check page and system layout against the source score.";
+"omr.review.lyrics.note" = "檢查音節、連字、延音同段號。";
+"omr.review.measures.note" = "檢查小節數、拍號變化同小節線。";
+"omr.review.metadata.note" = "檢查標題、作曲、作詞、編曲同版權資訊。";
+"omr.review.notes.note" = "Check pitch, octave, rhythm, ties, and voice assignment.";
+"omr.review.parts.note" = "檢查 SATB/樂器名稱同譜表對應。";
+"omr.review.repeats.note" = "Check repeat starts, endings, D.C./D.S., coda, and expanded playback order.";
+"omr.review.rests.note" = "檢查休止同空小節。";
+"omr.stage.capture_or_import.note" = "Capture or import PDF/image source material before recognition begins.";
+"omr.stage.editable_musicxml_review.note" = "Review the editable MusicXML candidate against the original score.";
+"omr.stage.full_page_element_capture.note" = "Capture notes, rests, lyrics, dynamics, repeats, and layout-critical markings.";
+"omr.stage.image_preprocessing.note" = "Deskew, normalize contrast, and clean the page before recognition.";
+"omr.stage.manual_correction.note" = "Correct notes, lyrics, repeats, and layout details before practice.";
+"omr.stage.musicxml_export.note" = "MusicXML 仍然係標準交換格式。";
+"omr.stage.omr_recognition.choose_provider" = "Choose homr or oemer as an external MusicXML-producing OMR pipeline.";
+"omr.stage.omr_recognition.use_provider" = "Run the selected provider and import the generated MusicXML result.";
+"omr.stage.playback_validation.note" = "Validate playback order, pitches, and rhythms before training.";
+"omr.stage.scoredocument_import.note" = "現有 MusicXMLImporter 會將輸出轉成 ScoreDocument。";
 "practice.metronome" = "Metronome";
 "practice.pitch" = "Pitch";
 "practice.pitch_drill" = "Pitch Drill";
@@ -79,10 +78,9 @@
 "practice.stop_metronome" = "Stop Metronome";
 "practice.stop_playback" = "Stop Playback";
 "practice.tuning_fork" = "Tuning Fork";
-"research.research" = "Ã§Â ÂÃ§Â©Â¶";
-"research.research_backed_unusual_singing_features" = "Research-backed, unusual singing features";
+"research.research" = "研究";
+"research.research_backed_unusual_singing_features" = "仲喺測試中嘅有趣功能";
 "research.research_comparison_skewed_images_and_musicxml_output_benchmarking" = "Research comparison, skewed images, and MusicXML output benchmarking.";
-"research.research_map" = "Research Map";
 "score.export_midi" = "Export MIDI";
 "score.export_musicxml" = "Export MusicXML";
 "score.exported_midi_for_placeholder" = "Exported MIDI for %@.";
@@ -98,12 +96,42 @@
 "score.musicxml_parsed" = "MusicXML parsed";
 "score.musicxml_preview" = "MusicXML preview";
 "score.musicxml_remains_the_canonical_interchange_output" = "MusicXML remains the canonical interchange output.";
-"settings.display_language" = "Ã©Â¡Â¯Ã§Â¤ÂºÃ¨ÂªÂÃ¨Â¨Â";
-"support.changelog" = "Changelog";
+"score.restore_previous_session" = "Restored previous score session.";
+"settings.display_language" = "顯示語言";
+"settings.sync.description" = "Sync scores, annotations, usage history, language, and training records across devices signed into the same Apple ID.";
+"settings.sync.enable" = "啟用同步";
+"settings.sync.error_prefix" = "同步問題：%@";
+"settings.sync.first_run.message" = "Choose whether Shenghai should sync your scores, annotations, usage history, language, and training records across your Apple devices.";
+"settings.sync.first_run.title" = "要唔要啟用 iCloud 同步？";
+"settings.sync.last_synced_label" = "上次同步";
+"settings.sync.not_now" = "Not Now";
+"settings.sync.not_yet_synced" = "未同步過";
+"settings.sync.section" = "同步";
+"settings.sync.state.error" = "錯誤";
+"settings.sync.state.off" = "已關閉";
+"settings.sync.state.on" = "已開啟";
+"settings.sync.state.syncing" = "同步中";
+"settings.sync.state.unavailable" = "未能使用";
+"settings.sync.status_label" = "同步狀態";
+"settings.sync.toggle" = "iCloud 同步";
+"settings.sync.unavailable.account" = "請先登入 iCloud 先可以開啟同步。";
+"settings.sync.unavailable.cloudkit" = "呢個版本未完成 CloudKit capability 設定，所以雲端同步暫時未用得。";
+"support.changelog" = "更新日誌";
 "support.feedback" = "Feedback";
+"support.feedback.backend_not_configured" = "回饋服務仲未設定好。";
+"support.feedback.cooldown" = "請等一陣先再送出下一則回饋。";
+"support.feedback.details" = "Details";
+"support.feedback.invalid_response" = "The feedback service returned an unexpected response.";
+"support.feedback.network" = "送唔到回饋。請檢查連線之後再試。";
+"support.feedback.privacy" = "回饋只會送出你揀咗填寫嘅內容。";
+"support.feedback.reply_email" = "回覆電郵（選填）";
+"support.feedback.send" = "送出回饋";
+"support.feedback.sending" = "送出中...";
+"support.feedback.sent" = "回饋已送出，多謝你。";
+"support.feedback.server" = "回饋服務拒絕咗今次送出。";
 "support.feedback_sends_only_what_you_choose_to_include_for_private_repos_github_issues_are_useful_for_invited_internal_testers_mail_draft_is_the_fallback" = "Feedback sends only what you choose to include. For private repos, GitHub Issues are useful for invited internal testers; Mail Draft is the fallback.";
-"support.official_website" = "å®æ¹ç¶²ç«";
-"support.user_manual" = "User Manual";
+"support.official_website" = "官方網站";
+"support.user_manual" = "使用手冊";
 "text.accidental" = "Accidental";
 "text.active" = "Active";
 "text.add_note" = "Add Note";
@@ -144,7 +172,7 @@
 "text.completion" = "Completion";
 "text.confidence" = "Confidence";
 "text.confidence_decimal2" = "confidence %.2f";
-"text.contact" = "Contact";
+"text.contact" = "聯絡方式";
 "text.core_deviation_model_exists_live_tracker_is_next" = "Core deviation model exists; live tracker is next.";
 "text.correct_candidate_first_then_use_it_for_notes_annotations_playback_and_practice" = "Correct candidate first; then use it for notes, annotations, playback, and practice.";
 "text.correct_the_musicxml_candidate_first_then_use_the_corrected_file_for_annotation_playback_pitch_tracking_and_practice_history" = "Correct the MusicXML candidate first; then use the corrected file for annotation, playback, pitch tracking, and practice history.";
@@ -160,6 +188,7 @@
 "text.daily_practice_trend_and_feature_time" = "Daily practice trend and feature time";
 "text.daily_trend" = "Daily Trend";
 "text.decimal1_cents_confidence_decimal2" = "%.1f cents, confidence %.2f";
+"text.decimal2_beats" = "%.2f 拍";
 "text.deep_learning_omr_baseline_for_skewed_or_phone_taken_score_images" = "Deep-learning OMR baseline for skewed or phone-taken score images.";
 "text.demo_song" = "Demo song";
 "text.directions_and_markings" = "Directions and markings";
@@ -171,14 +200,13 @@
 "text.english_only_sessions_can_also_report_words_min_placeholder" = "English-only sessions can also report words/min: %@.";
 "text.eraser" = "Eraser";
 "text.events" = "Events";
-"text.evidence_notes" = "Evidence Notes";
 "text.existing_midiwriter_can_validate_playable_notes_after_import" = "Existing MIDIWriter can validate playable notes after import.";
 "text.existing_musicxmlimporter_converts_the_output_into_scoredocument" = "Existing MusicXMLImporter converts the output into ScoreDocument.";
 "text.external_omr_engine_execution" = "External OMR engine execution";
 "text.external_omr_provider_execution" = "External OMR provider execution";
 "text.feature" = "Feature";
 "text.feature_time" = "Feature Time";
-"text.feel_free_to_contact_me" = "Feel free to contact me";
+"text.feel_free_to_contact_me" = "歡迎隨時聯絡我";
 "text.flat" = "flat";
 "text.flat_2" = "Flat";
 "text.follow_score" = "follow score";
@@ -187,7 +215,6 @@
 "text.full_score_musicxml_review" = "Full-Score MusicXML Review";
 "text.full_song_in_app_challenge_model_exists_os_level_alarm_behavior_depends_on_platform_apis" = "Full-song in-app challenge model exists; OS-level alarm behavior depends on platform APIs.";
 "text.generate_midi_events_first_move_to_avaudioengine_sampler_when_richer_practice_controls_are_needed" = "Generate MIDI events first; move to AVAudioEngine sampler when richer practice controls are needed.";
-"text.gentle_call_and_response" = "Gentle Call-and-Response";
 "text.github_issue" = "GitHub Issue";
 "text.guide" = "Guide";
 "text.half" = "Half";
@@ -204,7 +231,7 @@
 "text.intonation" = "intonation";
 "text.intonation_trace" = "Intonation Trace";
 "text.language" = "Language";
-"text.language_usage_documentation_contact_and_feedback" = "Language, usage, documentation, contact, and feedback";
+"text.language_usage_documentation_contact_and_feedback" = "語言、同步、使用記錄、文件、聯絡同回饋";
 "text.layout" = "Layout";
 "text.length" = "Length";
 "text.let_users_choose_homr_or_oemer_as_external_musicxml_producing_providers_keep_audiveris_as_a_benchmark_path" = "Let users choose homr or oemer as external MusicXML-producing providers; keep Audiveris as a benchmark path.";
@@ -238,13 +265,14 @@
 "text.mixer" = "Mixer";
 "text.modes" = "Modes";
 "text.mute" = "Mute";
-"text.mvp_chain" = "MVP Chain";
+"text.mvp_chain" = "功能一覽";
 "text.natural" = "natural";
 "text.needed_because_omr_accuracy_is_not_perfect_especially_with_dense_scores" = "Needed because OMR accuracy is not perfect, especially with dense scores.";
 "text.needs_apple_developer_program_and_app_store_connect_setup" = "Needs Apple Developer Program and App Store Connect setup.";
 "text.new_features_fixes_and_known_issues" = "New features, fixes, and known issues.";
 "text.no_notes_yet" = "No notes yet";
 "text.no_part_selected" = "No Part Selected";
+"text.no_pitch" = "未偵測到音高";
 "text.no_score_loaded" = "No score loaded";
 "text.no_score_loaded_2" = "No Score Loaded";
 "text.non_medical_research_prototype_with_safety_guardrails" = "Non-medical research prototype with safety guardrails.";
@@ -296,10 +324,9 @@
 "text.requires_microphone_permission_and_input_calibration" = "Requires microphone permission and input calibration.";
 "text.rest" = "Rest";
 "text.rests" = "Rests";
-"text.review_checklist" = "å¯©é±æ¸å®";
+"text.review_checklist" = "校對清單";
 "text.rhythm" = "Rhythm";
 "text.run_provider_import_generated_musicxml_then_validate_every_recognized_element" = "Run provider, import generated MusicXML, then validate every recognized element.";
-"text.safety_boundary" = "Safety Boundary";
 "text.sample_prompt" = "Sample prompt";
 "text.scan_correct_and_practice_from_editable_musicxml" = "Scan, correct, and practice from editable MusicXML";
 "text.segmentation" = "Segmentation";
@@ -315,7 +342,7 @@
 "text.start" = "Start";
 "text.start_metronome" = "Start Metronome";
 "text.status" = "Status";
-"text.summary" = "æè¦";
+"text.summary" = "摘要";
 "text.target" = "Target";
 "text.target_2" = "target";
 "text.tempo" = "Tempo";
@@ -331,10 +358,11 @@
 "text.treat_moises_like_stem_controls_as_post_mvp_research_unless_a_simple_api_prototype_is_available" = "Treat Moises-like stem controls as post-MVP research unless a simple API/prototype is available.";
 "text.type" = "Type";
 "text.undo" = "Undo";
+"text.unknown" = "未知";
 "text.unmute" = "Unmute";
 "text.untitled_shenghai_score" = "Untitled Shenghai Score";
 "text.usability" = "Usability";
-"text.usage" = "Ã¤Â½Â¿Ã§ÂÂ¨Ã§ÂµÂ±Ã¨Â¨Â";
+"text.usage" = "使用統計";
 "text.usage_appears_after_you_switch_between_sections" = "Usage appears after you switch between sections.";
 "text.use_a_yin_baseline_for_live_monophonic_pitch_smooth_contours_and_keep_crepe_pyin_as_replaceable_higher_accuracy_trackers" = "Use a YIN baseline for live monophonic pitch, smooth contours, and keep CREPE/pYIN as replaceable higher-accuracy trackers.";
 "text.use_ios_document_photo_import_or_macos_file_import" = "Use iOS document/photo import or macOS file import.";
@@ -351,14 +379,3 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
-"support.feedback.reply_email" = "回覆電郵（選填）";
-"support.feedback.details" = "詳細內容";
-"support.feedback.send" = "送出回饋";
-"support.feedback.sending" = "送出中...";
-"support.feedback.backend_not_configured" = "回饋服務仲未設定好。";
-"support.feedback.privacy" = "送出回饋時，聲海會連同表單內容、app 版本、平台、而家頁面同顯示語言一齊送出，方便重現問題。";
-"support.feedback.sent" = "回饋已送出，多謝你。";
-"support.feedback.cooldown" = "請等 %d 秒之後再送下一則回饋。";
-"support.feedback.invalid_response" = "回饋服務傳返咗無法識別嘅結果。";
-"support.feedback.network" = "送唔到回饋。請檢查連線之後再試。";
-"support.feedback.server" = "回饋服務拒絕咗今次送出。";

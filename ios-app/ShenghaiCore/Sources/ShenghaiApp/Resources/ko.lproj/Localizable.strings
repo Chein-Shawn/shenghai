@@ -2,13 +2,12 @@
 "annotation.annotations" = "Annotations";
 "app.shenghai" = "Shenghai";
 "app.shenghai_studio" = "Shenghai Studio";
-"nav.compose" = "Ã¬ÂÂÃ«Â³Â´";
-"nav.experimental" = "Ã¬ÂÂ¤Ã­ÂÂ ÃªÂ¸Â°Ã«ÂÂ¥";
+"nav.compose" = "작보";
+"nav.experimental" = "실험 기능";
 "nav.experimental_sing_to_dismiss_alarm" = "Experimental Sing-to-Dismiss Alarm";
-"nav.experimental_singing_support_lab" = "Experimental Singing Support Lab";
 "nav.experimental_text_rhythm_speech_lab" = "Experimental Text Rhythm Speech Lab";
-"nav.overview" = "ÃªÂ°ÂÃ¬ÂÂ";
-"nav.practice" = "Ã¬ÂÂ°Ã¬ÂÂµ";
+"nav.overview" = "개요";
+"nav.practice" = "연습";
 "nav.practice_display" = "Practice Display";
 "nav.practice_metrics" = "Practice metrics";
 "nav.score" = "Score";
@@ -17,47 +16,47 @@
 "nav.score_sequence" = "Score Sequence";
 "nav.score_settings" = "Score Settings";
 "nav.scoredocument_wrapper" = "ScoreDocument wrapper";
-"nav.settings" = "Ã¬ÂÂ¤Ã¬Â Â";
-"omr.checklist.compare_source" = "ê° ë³´í, ë§ë, ìí, ì¼í, ê°ì¬, ë¤ì´ë´ë¯¹, íí¬ ë¨ì´, ë°ë³µ, ë¦¬íì¤ ê¸°í¸ë¥¼ ìë³¸ PDF/ì´ë¯¸ì§ì ë¹êµí©ëë¤.";
-"omr.checklist.correct_candidate" = "ë¨¼ì  MusicXML íë³´ë¥¼ ìì í ë¤, ìì ë íì¼ì ì£¼ì, ì¬ì, ìì  ì¶ì , ì°ìµ ê¸°ë¡ì ì¬ì©í©ëë¤.";
-"omr.checklist.do_not_treat_as_final" = "ì¬ì ê²ì¦ê³¼ ìê° ê²í ê° ëª¨ë íµê³¼íê¸° ì ìë OMR ì¶ë ¥ì ìµì¢ë³¸ì¼ë¡ ê°ì£¼íì§ ë§ì¸ì.";
-"omr.element.directions" = "ì§ìë¬¸ê³¼ ê¸°í¸";
-"omr.element.layout" = "ë ì´ìì";
-"omr.element.lyrics" = "ê°ì¬";
-"omr.element.measures" = "ë§ë";
-"omr.element.metadata" = "ì ëª© ë° í¬ë ë§";
-"omr.element.notes" = "ìí";
-"omr.element.parts" = "íí¸ì ë³´í";
-"omr.element.repeats" = "ë°ë³µ ê¸°í¸";
-"omr.element.rests" = "ì¼í";
-"omr.input.image" = "ì´ë¯¸ì§";
+"nav.settings" = "설정";
+"omr.checklist.compare_source" = "Compare every staff, measure, note, rest, lyric, dynamic, tempo word, repeat, and rehearsal marking against the original PDF/image.";
+"omr.checklist.correct_candidate" = "먼저 MusicXML 후보를 수정한 뒤, 수정된 파일을 주석, 재생, 음정 추적, 연습 기록에 사용합니다.";
+"omr.checklist.do_not_treat_as_final" = "Do not treat OMR output as final until playback and visual review both pass.";
+"omr.element.directions" = "지시문과 기호";
+"omr.element.layout" = "레이아웃";
+"omr.element.lyrics" = "가사";
+"omr.element.measures" = "마디";
+"omr.element.metadata" = "제목 및 크레딧";
+"omr.element.notes" = "음표";
+"omr.element.parts" = "파트와 보표";
+"omr.element.repeats" = "반복 기호";
+"omr.element.rests" = "쉼표";
+"omr.input.image" = "이미지";
 "omr.input.musicxml" = "MusicXML";
 "omr.input.pdf" = "PDF";
-"omr.provider.homr.best_for" = "í´ëí° ì¬ì§, ë¹ ë¥¸ MusicXML ì¤í, í¥í Mac/ìë² ë³´ì¡° ì°êµ¬ì ì í©í©ëë¤.";
-"omr.provider.homr.license_note" = "AGPL-3.0 íë¡ì í¸ìëë¤. ì¶ìì ë²ì  ê²í  ì ê¹ì§ë ì¸ë¶ íì´íë¼ì¸ì¼ë¡ ì ì§íì¸ì.";
-"omr.provider.homr.summary" = "ì¹´ë©ë¼/ì¬ì§ ì¤ì¬ì OMRë¡ ê¸°ê³ê° ì½ì ì ìë MusicXMLì ìì±í©ëë¤.";
-"omr.provider.oemer.best_for" = "ì°êµ¬ ë¹êµ, ê¸°ì¸ì´ì§ ì´ë¯¸ì§, MusicXML ì¶ë ¥ ë²¤ì¹ë§í¬ì ì í©í©ëë¤.";
-"omr.provider.oemer.license_note" = "ëª¨ë¸ ì²´í¬í¬ì¸í¸ë¥¼ í¬í¨í ì¤íìì¤ ML ëêµ¬ìëë¤. ë²ë¤ë§ ì ì ì½ëì ëª¨ë¸ ë¼ì´ì ì¤ë¥¼ ê²í í´ì¼ í©ëë¤.";
-"omr.provider.oemer.summary" = "ê¸°ì¸ì´ì§ ì´ë¯¸ì§ë í´ëí° ì´¬ì ìë³´ë¥¼ ìí ë¥ë¬ë ê¸°ë° OMRìëë¤.";
-"omr.review.directions.note" = "íí¬ ë¨ì´, ë¤ì´ë´ë¯¹, ë¦¬íì¤ íì¤í¸, íí ê¸°í¸ë¥¼ íì¸í©ëë¤.";
-"omr.review.layout.note" = "ìë³¸ PDF/ì´ë¯¸ì§ì ë¹êµíì¬ íì´ì§/ìì¤í ë ì´ììì ìê°ì ì¼ë¡ íì¸í©ëë¤.";
-"omr.review.lyrics.note" = "ìì , íì´í, ë©ë¦¬ì¤ë§, ì  ë²í¸ë¥¼ íì¸í©ëë¤.";
-"omr.review.measures.note" = "ë§ë ì, ë°ìí ë³ê²½, ë§ëì ì íì¸í©ëë¤.";
-"omr.review.metadata.note" = "ì ëª©, ìê³¡, ìì¬, í¸ê³¡, ì ìê¶ì íì¸í©ëë¤.";
-"omr.review.notes.note" = "ìëì´, ì¥íë¸, ë¦¬ë¬, íì´, ì±ë¶ ë°°ì ì íì¸í©ëë¤.";
-"omr.review.parts.note" = "SATB/ìê¸° ì´ë¦ê³¼ ë³´í ë§¤íì íì¸í©ëë¤.";
-"omr.review.repeats.note" = "ë°ë³µ ìì, ìë©, D.C./D.S., ì½ë¤, íì¥ë ì¬ì ììë¥¼ íì¸í©ëë¤.";
-"omr.review.rests.note" = "ì¼íì ë¹ ë§ëë¥¼ íì¸í©ëë¤.";
-"omr.stage.capture_or_import.note" = "iOS ë¬¸ì/ì¬ì§ ê°ì ¸ì¤ê¸° ëë macOS íì¼ ê°ì ¸ì¤ê¸°ë¥¼ ì¬ì©í©ëë¤.";
-"omr.stage.editable_musicxml_review.note" = "ì¬ì©ìë ë©ëª¨, ì¬ì, ì°ìµ í¼ëë°±ì ì¬ì©íê¸° ì ì ì¤ìºë MusicXML íë³´ë¥¼ ê²í í©ëë¤.";
-"omr.stage.full_page_element_capture.note" = "ìí, ì¼í, ê°ì¬, ë¤ì´ë´ë¯¹, íí¬ íì¤í¸, ìí°íë ì´ì, ë°ë³µ, ë ì´ìì íµì¬ íìë¥¼ í¸ì§ ê°ë¥í MusicXMLë¡ ìº¡ì²í©ëë¤.";
-"omr.stage.image_preprocessing.note" = "ì¸ì ì ì ê¸°ì¸ê¸° ë³´ì , ëë¹ ì ê·í, ê¹¨ëí ì´ì§íë¥¼ ì°ì í©ëë¤.";
-"omr.stage.manual_correction.note" = "OMR ì íëë ìë²½íì§ ìì¼ë©° í¹í ë³µì¡í ìë³´ììë ìë ìì ì´ íìí©ëë¤.";
-"omr.stage.musicxml_export.note" = "MusicXMLì ì¬ì í íì¤ êµí íììëë¤.";
-"omr.stage.omr_recognition.choose_provider" = "ì¸ë¶ MusicXML ìì± OMR íì´íë¼ì¸ì¼ë¡ homr ëë oemerë¥¼ ì ííì¸ì.";
-"omr.stage.omr_recognition.use_provider" = "ì± ë°ìì %@ë¥¼ ì¬ì©í ë¤ í´ë¹ MusicXML ì¶ë ¥ì ê°ì ¸ìµëë¤.";
-"omr.stage.playback_validation.note" = "ê¸°ì¡´ MIDIWriterê° ê°ì ¸ì¨ ë¤ ì¬ì ê°ë¥í ìíë¥¼ ê²ì¦í  ì ììµëë¤.";
-"omr.stage.scoredocument_import.note" = "ê¸°ì¡´ MusicXMLImporterê° ì¶ë ¥ì ScoreDocumentë¡ ë³íí©ëë¤.";
+"omr.provider.homr.best_for" = "휴대폰 사진, 빠른 MusicXML 실험, 향후 Mac/서버 보조 연구에 적합합니다.";
+"omr.provider.homr.license_note" = "Review the project and model licenses before bundling or redistribution.";
+"omr.provider.homr.summary" = "카메라/사진 중심의 OMR로 기계가 읽을 수 있는 MusicXML을 생성합니다.";
+"omr.provider.oemer.best_for" = "연구 비교, 기울어진 이미지, MusicXML 출력 벤치마크에 적합합니다.";
+"omr.provider.oemer.license_note" = "Review model weights and upstream licenses before shipping.";
+"omr.provider.oemer.summary" = "Deep-learning OMR baseline for skewed or phone-taken score images.";
+"omr.review.directions.note" = "Check tempo words, dynamics, rehearsal text, and expressive markings.";
+"omr.review.layout.note" = "Check page and system layout against the source score.";
+"omr.review.lyrics.note" = "음절, 하이픈, 멜리스마, 절 번호를 확인합니다.";
+"omr.review.measures.note" = "마디 수, 박자표 변경, 마디선을 확인합니다.";
+"omr.review.metadata.note" = "제목, 작곡, 작사, 편곡, 저작권을 확인합니다.";
+"omr.review.notes.note" = "음높이, 옥타브, 리듬, 타이, 성부 배정을 확인합니다.";
+"omr.review.parts.note" = "Check SATB/instrument names and staff mapping.";
+"omr.review.repeats.note" = "반복 시작, 엔딩, D.C./D.S., 코다, 확장된 재생 순서를 확인합니다.";
+"omr.review.rests.note" = "쉼표와 빈 마디를 확인합니다.";
+"omr.stage.capture_or_import.note" = "iOS 문서/사진 가져오기 또는 macOS 파일 가져오기를 사용합니다.";
+"omr.stage.editable_musicxml_review.note" = "사용자는 메모, 재생, 연습 피드백에 사용하기 전에 스캔된 MusicXML 후보를 검토합니다.";
+"omr.stage.full_page_element_capture.note" = "Capture notes, rests, lyrics, dynamics, repeats, and layout-critical markings.";
+"omr.stage.image_preprocessing.note" = "인식 전에 기울기 보정, 대비 정규화, 깨끗한 이진화를 우선합니다.";
+"omr.stage.manual_correction.note" = "Correct notes, lyrics, repeats, and layout details before practice.";
+"omr.stage.musicxml_export.note" = "MusicXML remains the canonical interchange output.";
+"omr.stage.omr_recognition.choose_provider" = "외부 MusicXML 생성 OMR 파이프라인으로 homr 또는 oemer를 선택하세요.";
+"omr.stage.omr_recognition.use_provider" = "앱 밖에서 %@를 사용한 뒤 해당 MusicXML 출력을 가져옵니다.";
+"omr.stage.playback_validation.note" = "기존 MIDIWriter가 가져온 뒤 재생 가능한 음표를 검증할 수 있습니다.";
+"omr.stage.scoredocument_import.note" = "기존 MusicXMLImporter가 출력을 ScoreDocument로 변환합니다.";
 "practice.metronome" = "Metronome";
 "practice.pitch" = "Pitch";
 "practice.pitch_drill" = "Pitch Drill";
@@ -79,10 +78,9 @@
 "practice.stop_metronome" = "Stop Metronome";
 "practice.stop_playback" = "Stop Playback";
 "practice.tuning_fork" = "Tuning Fork";
-"research.research" = "Ã¬ÂÂ°ÃªÂµÂ¬";
-"research.research_backed_unusual_singing_features" = "Research-backed, unusual singing features";
+"research.research" = "연구";
+"research.research_backed_unusual_singing_features" = "아직 테스트 중인 흥미로운 기능";
 "research.research_comparison_skewed_images_and_musicxml_output_benchmarking" = "Research comparison, skewed images, and MusicXML output benchmarking.";
-"research.research_map" = "Research Map";
 "score.export_midi" = "Export MIDI";
 "score.export_musicxml" = "Export MusicXML";
 "score.exported_midi_for_placeholder" = "Exported MIDI for %@.";
@@ -98,12 +96,42 @@
 "score.musicxml_parsed" = "MusicXML parsed";
 "score.musicxml_preview" = "MusicXML preview";
 "score.musicxml_remains_the_canonical_interchange_output" = "MusicXML remains the canonical interchange output.";
-"settings.display_language" = "Ã­ÂÂÃ¬ÂÂ Ã¬ÂÂ¸Ã¬ÂÂ´";
-"support.changelog" = "Changelog";
+"score.restore_previous_session" = "Restored previous score session.";
+"settings.display_language" = "표시 언어";
+"settings.sync.description" = "Sync scores, annotations, usage history, language, and training records across devices signed into the same Apple ID.";
+"settings.sync.enable" = "동기화 켜기";
+"settings.sync.error_prefix" = "동기화 문제: %@";
+"settings.sync.first_run.message" = "Choose whether Shenghai should sync your scores, annotations, usage history, language, and training records across your Apple devices.";
+"settings.sync.first_run.title" = "iCloud 동기화를 켤까요?";
+"settings.sync.last_synced_label" = "마지막 동기화";
+"settings.sync.not_now" = "나중에";
+"settings.sync.not_yet_synced" = "아직 동기화되지 않음";
+"settings.sync.section" = "동기화";
+"settings.sync.state.error" = "오류";
+"settings.sync.state.off" = "끔";
+"settings.sync.state.on" = "켬";
+"settings.sync.state.syncing" = "동기화 중";
+"settings.sync.state.unavailable" = "사용 불가";
+"settings.sync.status_label" = "상태";
+"settings.sync.toggle" = "iCloud 동기화";
+"settings.sync.unavailable.account" = "동기화를 켜려면 iCloud에 로그인하세요.";
+"settings.sync.unavailable.cloudkit" = "이 빌드에서는 CloudKit capability가 설정되기 전까지 클라우드 동기화를 사용할 수 없습니다.";
+"support.changelog" = "업데이트 기록";
 "support.feedback" = "Feedback";
+"support.feedback.backend_not_configured" = "피드백 서비스가 아직 설정되지 않았습니다.";
+"support.feedback.cooldown" = "다음 피드백을 보내기 전에 %d초 기다려 주세요.";
+"support.feedback.details" = "세부 내용";
+"support.feedback.invalid_response" = "피드백 서비스가 예상하지 못한 응답을 반환했습니다.";
+"support.feedback.network" = "피드백을 보낼 수 없습니다. 연결을 확인한 뒤 다시 시도해 주세요.";
+"support.feedback.privacy" = "피드백을 보내면 문제 재현을 돕기 위해 양식 내용과 함께 app 버전, 플랫폼, 현재 화면, 표시 언어가 전송됩니다.";
+"support.feedback.reply_email" = "답장 받을 이메일(선택)";
+"support.feedback.send" = "피드백 보내기";
+"support.feedback.sending" = "보내는 중...";
+"support.feedback.sent" = "피드백을 보냈습니다. 감사합니다.";
+"support.feedback.server" = "피드백 서비스가 이 제출을 거부했습니다.";
 "support.feedback_sends_only_what_you_choose_to_include_for_private_repos_github_issues_are_useful_for_invited_internal_testers_mail_draft_is_the_fallback" = "Feedback sends only what you choose to include. For private repos, GitHub Issues are useful for invited internal testers; Mail Draft is the fallback.";
-"support.official_website" = "ê³µì ì¹ì¬ì´í¸";
-"support.user_manual" = "User Manual";
+"support.official_website" = "공식 웹사이트";
+"support.user_manual" = "사용 설명서";
 "text.accidental" = "Accidental";
 "text.active" = "Active";
 "text.add_note" = "Add Note";
@@ -144,7 +172,7 @@
 "text.completion" = "Completion";
 "text.confidence" = "Confidence";
 "text.confidence_decimal2" = "confidence %.2f";
-"text.contact" = "Contact";
+"text.contact" = "연락처";
 "text.core_deviation_model_exists_live_tracker_is_next" = "Core deviation model exists; live tracker is next.";
 "text.correct_candidate_first_then_use_it_for_notes_annotations_playback_and_practice" = "Correct candidate first; then use it for notes, annotations, playback, and practice.";
 "text.correct_the_musicxml_candidate_first_then_use_the_corrected_file_for_annotation_playback_pitch_tracking_and_practice_history" = "Correct the MusicXML candidate first; then use the corrected file for annotation, playback, pitch tracking, and practice history.";
@@ -160,6 +188,7 @@
 "text.daily_practice_trend_and_feature_time" = "Daily practice trend and feature time";
 "text.daily_trend" = "Daily Trend";
 "text.decimal1_cents_confidence_decimal2" = "%.1f cents, confidence %.2f";
+"text.decimal2_beats" = "%.2f 박";
 "text.deep_learning_omr_baseline_for_skewed_or_phone_taken_score_images" = "Deep-learning OMR baseline for skewed or phone-taken score images.";
 "text.demo_song" = "Demo song";
 "text.directions_and_markings" = "Directions and markings";
@@ -171,14 +200,13 @@
 "text.english_only_sessions_can_also_report_words_min_placeholder" = "English-only sessions can also report words/min: %@.";
 "text.eraser" = "Eraser";
 "text.events" = "Events";
-"text.evidence_notes" = "Evidence Notes";
 "text.existing_midiwriter_can_validate_playable_notes_after_import" = "Existing MIDIWriter can validate playable notes after import.";
 "text.existing_musicxmlimporter_converts_the_output_into_scoredocument" = "Existing MusicXMLImporter converts the output into ScoreDocument.";
 "text.external_omr_engine_execution" = "External OMR engine execution";
 "text.external_omr_provider_execution" = "External OMR provider execution";
 "text.feature" = "Feature";
 "text.feature_time" = "Feature Time";
-"text.feel_free_to_contact_me" = "Feel free to contact me";
+"text.feel_free_to_contact_me" = "편하게 연락해 주세요";
 "text.flat" = "flat";
 "text.flat_2" = "Flat";
 "text.follow_score" = "follow score";
@@ -187,7 +215,6 @@
 "text.full_score_musicxml_review" = "Full-Score MusicXML Review";
 "text.full_song_in_app_challenge_model_exists_os_level_alarm_behavior_depends_on_platform_apis" = "Full-song in-app challenge model exists; OS-level alarm behavior depends on platform APIs.";
 "text.generate_midi_events_first_move_to_avaudioengine_sampler_when_richer_practice_controls_are_needed" = "Generate MIDI events first; move to AVAudioEngine sampler when richer practice controls are needed.";
-"text.gentle_call_and_response" = "Gentle Call-and-Response";
 "text.github_issue" = "GitHub Issue";
 "text.guide" = "Guide";
 "text.half" = "Half";
@@ -204,7 +231,7 @@
 "text.intonation" = "intonation";
 "text.intonation_trace" = "Intonation Trace";
 "text.language" = "Language";
-"text.language_usage_documentation_contact_and_feedback" = "Language, usage, documentation, contact, and feedback";
+"text.language_usage_documentation_contact_and_feedback" = "언어, 동기화, 사용 현황, 문서, 연락처 및 피드백";
 "text.layout" = "Layout";
 "text.length" = "Length";
 "text.let_users_choose_homr_or_oemer_as_external_musicxml_producing_providers_keep_audiveris_as_a_benchmark_path" = "Let users choose homr or oemer as external MusicXML-producing providers; keep Audiveris as a benchmark path.";
@@ -238,13 +265,14 @@
 "text.mixer" = "Mixer";
 "text.modes" = "Modes";
 "text.mute" = "Mute";
-"text.mvp_chain" = "MVP Chain";
+"text.mvp_chain" = "기능 한눈에 보기";
 "text.natural" = "natural";
 "text.needed_because_omr_accuracy_is_not_perfect_especially_with_dense_scores" = "Needed because OMR accuracy is not perfect, especially with dense scores.";
 "text.needs_apple_developer_program_and_app_store_connect_setup" = "Needs Apple Developer Program and App Store Connect setup.";
 "text.new_features_fixes_and_known_issues" = "New features, fixes, and known issues.";
 "text.no_notes_yet" = "No notes yet";
 "text.no_part_selected" = "No Part Selected";
+"text.no_pitch" = "음정 없음";
 "text.no_score_loaded" = "No score loaded";
 "text.no_score_loaded_2" = "No Score Loaded";
 "text.non_medical_research_prototype_with_safety_guardrails" = "Non-medical research prototype with safety guardrails.";
@@ -296,10 +324,9 @@
 "text.requires_microphone_permission_and_input_calibration" = "Requires microphone permission and input calibration.";
 "text.rest" = "Rest";
 "text.rests" = "Rests";
-"text.review_checklist" = "ê²í  ì²´í¬ë¦¬ì¤í¸";
+"text.review_checklist" = "검토 체크리스트";
 "text.rhythm" = "Rhythm";
 "text.run_provider_import_generated_musicxml_then_validate_every_recognized_element" = "Run provider, import generated MusicXML, then validate every recognized element.";
-"text.safety_boundary" = "Safety Boundary";
 "text.sample_prompt" = "Sample prompt";
 "text.scan_correct_and_practice_from_editable_musicxml" = "Scan, correct, and practice from editable MusicXML";
 "text.segmentation" = "Segmentation";
@@ -315,7 +342,7 @@
 "text.start" = "Start";
 "text.start_metronome" = "Start Metronome";
 "text.status" = "Status";
-"text.summary" = "ìì½";
+"text.summary" = "요약";
 "text.target" = "Target";
 "text.target_2" = "target";
 "text.tempo" = "Tempo";
@@ -331,10 +358,11 @@
 "text.treat_moises_like_stem_controls_as_post_mvp_research_unless_a_simple_api_prototype_is_available" = "Treat Moises-like stem controls as post-MVP research unless a simple API/prototype is available.";
 "text.type" = "Type";
 "text.undo" = "Undo";
+"text.unknown" = "알 수 없음";
 "text.unmute" = "Unmute";
 "text.untitled_shenghai_score" = "Untitled Shenghai Score";
 "text.usability" = "Usability";
-"text.usage" = "Ã¬ÂÂ¬Ã¬ÂÂ© Ã­ÂÂµÃªÂ³Â";
+"text.usage" = "사용 통계";
 "text.usage_appears_after_you_switch_between_sections" = "Usage appears after you switch between sections.";
 "text.use_a_yin_baseline_for_live_monophonic_pitch_smooth_contours_and_keep_crepe_pyin_as_replaceable_higher_accuracy_trackers" = "Use a YIN baseline for live monophonic pitch, smooth contours, and keep CREPE/pYIN as replaceable higher-accuracy trackers.";
 "text.use_ios_document_photo_import_or_macos_file_import" = "Use iOS document/photo import or macOS file import.";
@@ -351,14 +379,3 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
-"support.feedback.reply_email" = "답장 받을 이메일(선택)";
-"support.feedback.details" = "세부 내용";
-"support.feedback.send" = "피드백 보내기";
-"support.feedback.sending" = "보내는 중...";
-"support.feedback.backend_not_configured" = "피드백 서비스가 아직 설정되지 않았습니다.";
-"support.feedback.privacy" = "피드백을 보내면 문제 재현을 돕기 위해 양식 내용과 함께 app 버전, 플랫폼, 현재 화면, 표시 언어가 전송됩니다.";
-"support.feedback.sent" = "피드백을 보냈습니다. 감사합니다.";
-"support.feedback.cooldown" = "다음 피드백을 보내기 전에 %d초 기다려 주세요.";
-"support.feedback.invalid_response" = "피드백 서비스가 예상하지 못한 응답을 반환했습니다.";
-"support.feedback.network" = "피드백을 보낼 수 없습니다. 연결을 확인한 뒤 다시 시도해 주세요.";
-"support.feedback.server" = "피드백 서비스가 이 제출을 거부했습니다.";

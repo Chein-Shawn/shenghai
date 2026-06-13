@@ -22,14 +22,13 @@ struct DashboardView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    SectionTitle(L10n.tr("MVP Chain"))
+                    SectionTitle(L10n.tr("Feature Overview"))
                     PipelineRow(title: L10n.tr("MusicXML composer"), state: .ready)
                     PipelineRow(title: L10n.tr("MusicXML import"), state: .ready)
                     PipelineRow(title: L10n.tr("PDF/image -> editable MusicXML review"), state: .ready, detail: L10n.tr("Main workflow gate: check scanned notes, lyrics, directions, repeats, and layout before practice."))
                     PipelineRow(title: L10n.tr("ScoreDocument wrapper"), state: .ready)
                     PipelineRow(title: L10n.tr("MIDI event timeline"), state: .ready)
                     PipelineRow(title: L10n.tr("MIDI playback/export"), state: .ready)
-                    PipelineRow(title: L10n.tr("Experimental Singing Support Lab"), state: .ready, detail: L10n.tr("Non-medical research prototype with safety guardrails."))
                     PipelineRow(title: L10n.tr("Experimental Sing-to-Dismiss Alarm"), state: .planned, detail: L10n.tr("Full-song in-app challenge model exists; OS-level alarm behavior depends on platform APIs."))
                     PipelineRow(title: L10n.tr("Experimental Text Rhythm Speech Lab"), state: .planned, detail: L10n.tr("Paragraph rhythm guide and speech-practice scoring model exists."))
                     PipelineRow(title: L10n.tr("External OMR engine execution"), state: .planned, detail: L10n.tr("homr/oemer/Audiveris execution still runs outside the Apple app, then imports MusicXML."))
