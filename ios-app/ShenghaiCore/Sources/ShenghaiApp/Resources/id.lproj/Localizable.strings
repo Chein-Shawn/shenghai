@@ -379,3 +379,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
+"omr.provider.native_prototype.summary" = "Prototipe OMR native bawaan untuk menguji alur PDF multi-halaman ke MusicXML di Simulator.";
+"omr.provider.native_prototype.best_for" = "Paling cocok untuk memvalidasi rasterisasi PDF di aplikasi, penyambungan antarhalaman, dan alur review MusicXML lebih dulu.";
+"omr.provider.native_prototype.license_note" = "Jalur prototipe: eksekusi native Apple, cakupan notasi sempit, dan keluaran yang mengutamakan review.";
+"score.import_native_omr_description" = "Impor MusicXML, PDF, atau gambar partitur. Saat Shenghai Native dipilih, file PDF atau gambar akan diproses lebih dulu oleh prototipe OMR native di aplikasi sebelum review MusicXML.";
+"score.native_omr.processing" = "Sedang memproses %@ dengan prototipe OMR native Shenghai.";
+"score.native_omr.completed" = "Prototipe OMR native menghasilkan kandidat MusicXML yang bisa ditinjau dari %d halaman.";
+"score.native_omr.completed_with_review" = "Prototipe OMR native memproses %d halaman, dan %d halaman memerlukan peninjauan tambahan.";
+"score.native_omr.review_needed" = "Halaman ini memerlukan peninjauan tambahan: %@.";
+"score.native_omr.failed" = "Impor prototipe OMR native gagal: %@";
+"text.pages" = "Halaman";

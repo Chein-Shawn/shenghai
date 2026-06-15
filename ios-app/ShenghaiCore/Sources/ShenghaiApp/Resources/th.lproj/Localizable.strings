@@ -379,3 +379,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
+"omr.provider.native_prototype.summary" = "ต้นแบบ OMR แบบเนทีฟที่ฝังมาในแอป สำหรับทดสอบเส้นทาง PDF หลายหน้าสู่ MusicXML บน Simulator";
+"omr.provider.native_prototype.best_for" = "เหมาะที่สุดสำหรับตรวจสอบการแปลง PDF เป็นภาพในแอป การต่อข้อมูลข้ามหน้า และโฟลว์รีวิว MusicXML ก่อน";
+"omr.provider.native_prototype.license_note" = "เส้นทางต้นแบบ: รันแบบเนทีฟของ Apple, ขอบเขตสัญลักษณ์แบบแคบ, และผลลัพธ์ที่เน้นการรีวิวก่อน";
+"score.import_native_omr_description" = "นำเข้า MusicXML, PDF หรือรูปภาพโน้ตเพลง เมื่อเลือก Shenghai Native ไฟล์ PDF / รูปภาพจะผ่านต้นแบบ OMR แบบเนทีฟในแอปก่อนเข้าสู่การรีวิว MusicXML";
+"score.native_omr.processing" = "กำลังประมวลผล %@ ด้วยต้นแบบ OMR แบบเนทีฟของ Shenghai";
+"score.native_omr.completed" = "ต้นแบบ OMR แบบเนทีฟสร้าง MusicXML ที่ตรวจทานได้จาก %d หน้าแล้ว";
+"score.native_omr.completed_with_review" = "ต้นแบบ OMR แบบเนทีฟประมวลผลแล้ว %d หน้า และมี %d หน้าที่ต้องตรวจทานเพิ่ม";
+"score.native_omr.review_needed" = "หน้าที่ต้องตรวจทานเพิ่ม: %@";
+"score.native_omr.failed" = "การนำเข้าต้นแบบ OMR แบบเนทีฟล้มเหลว: %@";
+"text.pages" = "จำนวนหน้า";

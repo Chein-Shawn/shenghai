@@ -115,7 +115,11 @@ struct ScoreWorkspaceView: View {
                 ContentUnavailableView(
                     L10n.tr("No Score Loaded"),
                     systemImage: "music.note.list",
-                    description: Text(L10n.tr("Import MusicXML, PDF, or score images. MusicXML opens directly; PDF/image currently enters the OMR intake path before review."))
+                    description: Text(
+                        workspace.selectedOMRProvider.runsInsideAppleApp
+                        ? L10n.tr("score.import_native_omr_description")
+                        : L10n.tr("Import MusicXML, PDF, or score images. MusicXML opens directly; PDF/image currently enters the OMR intake path before review.")
+                    )
                 )
             }
         }
@@ -499,7 +503,10 @@ private struct ScoreInspectorPanel: View {
                 }
                 .pickerStyle(.segmented)
 
-                OMRProviderSummary(provider: workspace.selectedOMRProvider)
+                OMRProviderSummary(
+                    provider: workspace.selectedOMRProvider,
+                    latestNativeSession: workspace.selectedOMRProvider.runsInsideAppleApp ? workspace.latestNativeOMRSession : nil
+                )
 
                 PipelineRow(title: L10n.tr("MusicXML parsed"), state: .ready, detail: L10n.tr("%d notes", workspace.scoreSummary.noteCount))
                 PipelineRow(title: L10n.tr("%@ full-score OMR", workspace.selectedOMRProvider.displayName), state: .planned, detail: L10n.tr("Run provider, import generated MusicXML, then validate every recognized element."))
@@ -537,6 +544,7 @@ private struct ScoreInspectorPanel: View {
 
 private struct OMRProviderSummary: View {
     var provider: OMRProvider
+    var latestNativeSession: NativeOMRPrototypeSessionResult?
 
     private var commandPlan: OMRProviderCommandPlan {
         OMRProviderCommandPlan(
@@ -565,13 +573,35 @@ private struct OMRProviderSummary: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            Text(commandPlan.shellPreview)
-                .font(.caption.monospaced())
-                .textSelection(.enabled)
-                .lineLimit(3)
-                .padding(8)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+            if provider.runsInsideAppleApp {
+                if let latestNativeSession {
+                    HStack {
+                        ValuePill(
+                            title: L10n.tr("text.pages"),
+                            value: "\(latestNativeSession.scoreNotation.pageResults.count)",
+                            systemImage: "doc.richtext"
+                        )
+                        ValuePill(
+                            title: L10n.tr("Measures"),
+                            value: "\(latestNativeSession.scoreNotation.mergedMeasures.count)",
+                            systemImage: "number"
+                        )
+                        ValuePill(
+                            title: L10n.tr("Status"),
+                            value: "\(latestNativeSession.scoreNotation.failedPageIndices.count)",
+                            systemImage: latestNativeSession.scoreNotation.failedPageIndices.isEmpty ? "checkmark.circle" : "exclamationmark.circle"
+                        )
+                    }
+                }
+            } else {
+                Text(commandPlan.shellPreview)
+                    .font(.caption.monospaced())
+                    .textSelection(.enabled)
+                    .lineLimit(3)
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
+            }
         }
         .padding(10)
         .background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))

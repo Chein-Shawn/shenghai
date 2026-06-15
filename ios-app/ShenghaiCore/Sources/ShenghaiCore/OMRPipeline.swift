@@ -37,6 +37,7 @@ public enum OMRPipelineStatus: String, Codable, Sendable {
 public enum OMRProvider: String, Codable, CaseIterable, Sendable {
     case homr
     case oemer
+    case nativePrototype
 
     public var displayName: String {
         switch self {
@@ -44,6 +45,8 @@ public enum OMRProvider: String, Codable, CaseIterable, Sendable {
             return "homr"
         case .oemer:
             return "oemer"
+        case .nativePrototype:
+            return "Shenghai Native"
         }
     }
 
@@ -53,6 +56,8 @@ public enum OMRProvider: String, Codable, CaseIterable, Sendable {
             return LocalizedTextToken("omr.provider.homr.summary")
         case .oemer:
             return LocalizedTextToken("omr.provider.oemer.summary")
+        case .nativePrototype:
+            return LocalizedTextToken("omr.provider.native_prototype.summary")
         }
     }
 
@@ -62,6 +67,8 @@ public enum OMRProvider: String, Codable, CaseIterable, Sendable {
             return LocalizedTextToken("omr.provider.homr.best_for")
         case .oemer:
             return LocalizedTextToken("omr.provider.oemer.best_for")
+        case .nativePrototype:
+            return LocalizedTextToken("omr.provider.native_prototype.best_for")
         }
     }
 
@@ -71,11 +78,13 @@ public enum OMRProvider: String, Codable, CaseIterable, Sendable {
             return LocalizedTextToken("omr.provider.homr.license_note")
         case .oemer:
             return LocalizedTextToken("omr.provider.oemer.license_note")
+        case .nativePrototype:
+            return LocalizedTextToken("omr.provider.native_prototype.license_note")
         }
     }
 
     public var runsInsideAppleApp: Bool {
-        false
+        self == .nativePrototype
     }
 }
 
@@ -328,6 +337,8 @@ public struct OMRProviderCommandPlan: Codable, Equatable, Sendable {
                 outputPath,
                 inputPath
             ]
+        case .nativePrototype:
+            return []
         }
     }
 
@@ -337,11 +348,16 @@ public struct OMRProviderCommandPlan: Codable, Equatable, Sendable {
             return "Install and run homr in a reviewed external environment, then import the MusicXML output into Shenghai."
         case .oemer:
             return "Install oemer and its model checkpoints in a reviewed external environment, then import the MusicXML output into Shenghai."
+        case .nativePrototype:
+            return "Run Shenghai's native prototype pipeline in-app: rasterize pages, estimate notation structure, generate MusicXML, then review every page."
         }
     }
 
     public var shellPreview: String {
-        ([commandName] + arguments)
+        guard !provider.runsInsideAppleApp else {
+            return provider.displayName
+        }
+        return ([commandName] + arguments)
             .map(Self.shellEscaped)
             .joined(separator: " ")
     }

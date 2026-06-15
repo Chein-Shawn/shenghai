@@ -389,3 +389,125 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - SwiftData macro/plugin expansion failed under the current environment (`SwiftDataMacros ... malformed response`)
   - this build failure is outside the localization repair itself
 - `swift build` still cannot be treated as a clean signal in the current sandbox because SwiftPM tries to write to cache/module paths under the user home directory unless run in a less restricted environment.
+
+### 2026-06-15
+
+- Started `oemer` baseline inference work outside iOS before any Core ML conversion.
+- Created a local baseline runtime workspace:
+  - `research/omr/baseline-2026-06-15/`
+  - `samples/scores/oemer-baseline-input/`
+  - `samples/scores/oemer-baseline-output/`
+  - `samples/scores/oemer-validation-pack/`
+- Created a dedicated Python virtual environment at `.omr-baseline-venv`.
+- Installed the minimum inference runtime needed to exercise `oemer` locally:
+  - `onnxruntime`
+  - `opencv-python-headless`
+  - `pillow`
+  - `numpy`
+  - `scikit-learn`
+  - `scipy`
+  - `matplotlib`
+  - `typing-extensions`
+- Installed the local `oemer-main` checkout into that virtual environment as an editable package.
+- Verified the earlier checkpoint gap was real:
+  - the repo copy only had `arch.json` and `metadata.pkl`
+  - no `model.onnx` files were present initially
+- Downloaded the official `oemer` checkpoint assets into the expected local folders:
+  - `oemer/checkpoints/unet_big/model.onnx`
+  - `oemer/checkpoints/unet_big/weights.h5`
+  - `oemer/checkpoints/seg_net/model.onnx`
+  - `oemer/checkpoints/seg_net/weights.h5`
+- Ran the first successful local baseline sample on:
+  - `samples/scores/oemer-baseline-input/chula.png`
+- Produced:
+  - `samples/scores/oemer-baseline-output/chula.musicxml`
+  - `samples/scores/oemer-baseline-output/chula_teaser.png`
+- Confirmed the baseline is structurally alive rather than failing closed:
+  - MusicXML parsed successfully
+  - quick counts from the first output:
+    - measures: 19
+    - notes: 177
+    - rests: 21
+    - clefs: 2
+    - keys: 3
+- Built a first frozen 10-image validation pack from currently available local score-like samples:
+  - `samples/scores/oemer-validation-pack/01-chula.png`
+  - `.../02-girl_merge.jpg`
+  - `.../03-wind2_deskew.jpg`
+  - `.../04-chihiro_3.jpg`
+  - `.../05-secret_deskew.jpg`
+  - `.../06-eoe_deskew.jpg`
+  - `.../07-river_1.jpg`
+  - `.../08-tabi_merge.jpg`
+  - `.../09-tabi.jpg`
+  - `.../10-tabi.png`
+
+### Encountered / Discovered
+
+- `oemer`'s built-in checkpoint auto-download failed on this machine because Python `urllib` hit an SSL certificate verification error.
+- Direct `curl` downloads worked immediately, so the baseline blocker was the downloader path, not the checkpoint host.
+- The first sample completed, but its overlay/output showed clear false positives where score-adjacent text was interpreted as notation.
+- `scikit-learn` warned that bundled pickled SVC models were created with an older sklearn version (`1.2.0`) than the runtime used in this environment (`1.9.0`); this did not block inference, but it is a reproducibility and accuracy risk.
+- `numpy` emitted `Mean of empty slice` during staffline extraction on the first sample, suggesting brittle intermediate assumptions in some regions.
+- `build_system.py` emitted an overflow warning while reconciling durations, and several notes were marked invalid during export.
+- First interpretation of the result:
+  - baseline is good enough to justify continuing
+  - but not good enough to port blindly without either more validation or a narrowed symbol scope
+
+- Started the first true in-app native OMR prototype path for Shenghai's Apple app.
+- Added a new shared-core native OMR data model in:
+  - `ios-app/ShenghaiCore/Sources/ShenghaiCore/NativeOMRPrototype.swift`
+- Fixed a real compile blocker in:
+  - `ios-app/ShenghaiCore/Sources/ShenghaiCore/ScoreDocument.swift`
+  - the `expandedMeasureOrder` property name had been split/corrupted
+- Added a new app-side service in:
+  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Services/NativeOMRPrototypeService.swift`
+  - current scope:
+    - native PDF/image intake
+    - multi-page rasterization
+    - page/tile metadata preservation
+    - heuristic page analysis for system/measure estimation
+    - multi-page merge
+    - prototype MusicXML generation through the existing composer/importer path
+- Extended `OMRProvider` with:
+  - `nativePrototype`
+  - this path is explicitly marked as in-app/native and kept separate from external `homr` / `oemer`
+- Wired `ShenghaiWorkspace.importScoreFile(...)` so:
+  - PDF/image files use the native path when `nativePrototype` is selected
+  - external-provider behavior remains unchanged for `homr` / `oemer`
+- Reused the existing review flow instead of inventing a second OMR surface:
+  - native prototype output becomes MusicXML
+  - `MusicXMLImporter` parses it back into `ScoreDocument`
+  - `scannedMusicXMLCandidate` is populated for the current score-review UI
+- Updated `ScoreWorkspaceView` so the OMR provider summary can show native page/measure status for the latest native session instead of a shell command preview.
+- Added all new native-OMR user-facing strings across the shipped app locales:
+  - provider summary / best-for / license note
+  - native import description
+  - native processing / completion / review-needed / failure status strings
+  - page-count label
+
+### Encountered / Discovered
+
+- The requested product shape and the actually feasible one-turn implementation are not identical:
+  - the app now has a real native multi-page PDF -> MusicXML -> review path
+  - but the recognition stage is still a prototype estimator, not yet a trained bundled Core ML notation model
+- The current architecture is ready for that later swap:
+  - page rasterization
+  - page ordering
+  - geometry preservation
+  - multi-page merge
+  - MusicXML re-entry
+  - review workflow reuse
+  are now explicit seams
+- `swift build` still cannot be trusted in the default sandbox because SwiftPM manifest evaluation hits a sandbox permission failure (`sandbox_apply: Operation not permitted`) even after redirecting cache paths; build verification will need escalated local tool execution or Xcode-side validation.
+- After running outside the sandbox:
+  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
+  - completed successfully
+- Xcode project integration required a second step:
+  - `ios-app/Shenghai.xcodeproj/project.pbxproj`
+  - had to be updated manually so the app target included:
+    - `NativeOMRPrototypeService.swift`
+    - `NativeOMRPrototype.swift`
+- The iOS Simulator target now compiles and links through the new native OMR code path, but the local environment still blocks the final app-bundle codesign step because copied resources carry Finder/provenance metadata:
+  - `resource fork, Finder information, or similar detritus not allowed`
+- Stripping xattrs and re-signing the built `.app` works manually, which suggests the remaining issue is local bundle hygiene / Xcode packaging state rather than the new OMR implementation itself.

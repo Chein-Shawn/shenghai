@@ -102,6 +102,12 @@ App Services
     - builds native feedback payload
     - posts to Google Apps Script
     - handles cooldown and submission state
+  NativeOMRPrototypeService
+    - rasterizes PDF/image pages natively
+    - preserves per-page geometry and tile metadata
+    - estimates narrow notation structure page by page
+    - merges multi-page results into one score-level candidate
+    - emits prototype MusicXML for the existing importer/review flow
   PersistenceCoordinator
     - bootstraps local / cloud-backed stores
     - migrates legacy settings and usage data
@@ -208,6 +214,20 @@ Display language / sync preference / usage records
   -> same-Apple-ID device sync when cloud path is available
 ```
 
+### Native OMR Prototype
+
+```text
+PDF/image import
+  -> NativeOMRPrototypeService
+  -> native page rasterization
+  -> page-level notation estimates + geometry metadata
+  -> multi-page merge
+  -> MusicXMLComposer prototype output
+  -> MusicXMLImporter
+  -> ScoreDocument
+  -> existing Score workspace review flow
+```
+
 ## Current Architecture Judgment
 
 The app is correctly moving toward a shared-core architecture:
@@ -217,4 +237,6 @@ The app is correctly moving toward a shared-core architecture:
 - Localization stays in `ShenghaiApp`; core exposes semantic identifiers instead of localized strings.
 - iOS, iPadOS, and macOS share the same parser, pitch timeline, alignment, and usage analytics.
 - Durable user data now belongs in a structured persistence layer rather than scattered `UserDefaults` blobs.
-- OMR remains outside the shipped app until a legal, reliable, and App-Store-safe path is selected.
+- External OMR providers remain the higher-accuracy research baselines.
+- The shipped app now has a narrow native OMR prototype path for simulator/debug validation of PDF rasterization, page stitching, and MusicXML re-entry.
+- A real bundled recognition model can replace the current prototype estimator later without changing the surrounding review workflow.

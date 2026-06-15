@@ -378,3 +378,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
+"omr.provider.native_prototype.summary" = "内建原生 OMR 原型，用于在模拟器中测试多页 PDF 到 MusicXML 的流程。";
+"omr.provider.native_prototype.best_for" = "最适合先验证 app 内 PDF 光栅化、跨页拼接与 MusicXML 审阅流程。";
+"omr.provider.native_prototype.license_note" = "原型路径：使用 Apple 原生执行、缩小记谱范围，并以审阅优先。";
+"score.import_native_omr_description" = "导入 MusicXML、PDF 或乐谱图片。若选择 Shenghai Native，PDF / 图片会先走 app 内原生原型 OMR，再进入 MusicXML 审阅。";
+"score.native_omr.processing" = "正在用 Shenghai 原生 OMR 原型处理 %@。";
+"score.native_omr.completed" = "原生 OMR 原型已从 %d 页生成可审阅的 MusicXML 候选。";
+"score.native_omr.completed_with_review" = "原生 OMR 原型已处理 %d 页，其中 %d 页需要额外审阅。";
+"score.native_omr.review_needed" = "以下页面需要额外审阅：%@。";
+"score.native_omr.failed" = "原生 OMR 原型导入失败：%@";
+"text.pages" = "页数";

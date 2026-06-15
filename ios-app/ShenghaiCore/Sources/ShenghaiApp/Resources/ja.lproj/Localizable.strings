@@ -341,7 +341,7 @@
 "text.source_separation" = "Source Separation";
 "text.start" = "開始";
 "text.start_metronome" = "メトロノーム開始";
-"text.status" = "Status";
+"text.status" = "状態";
 "text.summary" = "概要";
 "text.target" = "目標";
 "text.target_2" = "目標";
@@ -379,3 +379,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN トラッカーアダプタ";
 "text.zoom" = "ズーム";
+"omr.provider.native_prototype.summary" = "シミュレータで多ページ PDF から MusicXML への流れを試すための、内蔵ネイティブ OMR プロトタイプです。";
+"omr.provider.native_prototype.best_for" = "まずはアプリ内 PDF ラスタライズ、ページ連結、MusicXML レビューの流れを検証するのに適しています。";
+"omr.provider.native_prototype.license_note" = "プロトタイプ経路: Apple ネイティブ実行、限定的な記譜範囲、レビュー優先の出力。";
+"score.import_native_omr_description" = "MusicXML、PDF、または楽譜画像を読み込みます。Shenghai Native を選ぶと、PDF / 画像は MusicXML レビュー前にアプリ内ネイティブ OMR プロトタイプを通ります。";
+"score.native_omr.processing" = "Shenghai ネイティブ OMR プロトタイプで %@ を処理しています。";
+"score.native_omr.completed" = "ネイティブ OMR プロトタイプが %d ページからレビュー可能な MusicXML 候補を生成しました。";
+"score.native_omr.completed_with_review" = "ネイティブ OMR プロトタイプは %d ページを処理し、%d ページに追加レビューが必要です。";
+"score.native_omr.review_needed" = "追加レビューが必要なページ: %@。";
+"score.native_omr.failed" = "ネイティブ OMR プロトタイプの取り込みに失敗しました: %@";
+"text.pages" = "ページ数";

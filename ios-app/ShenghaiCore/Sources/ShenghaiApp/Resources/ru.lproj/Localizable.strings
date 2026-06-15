@@ -379,3 +379,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
+"omr.provider.native_prototype.summary" = "Встроенный нативный прототип OMR для проверки в симуляторе пути от многостраничного PDF к MusicXML.";
+"omr.provider.native_prototype.best_for" = "Лучше всего подходит для первой проверки растеризации PDF в приложении, склейки страниц и потока ревью MusicXML.";
+"omr.provider.native_prototype.license_note" = "Прототипный путь: нативное выполнение Apple, узкий объём нотации и результат, ориентированный прежде всего на проверку.";
+"score.import_native_omr_description" = "Импортируйте MusicXML, PDF или изображения нот. Если выбран Shenghai Native, PDF и изображения проходят через нативный OMR-прототип в приложении перед ревью MusicXML.";
+"score.native_omr.processing" = "Обработка %@ нативным OMR-прототипом Shenghai.";
+"score.native_omr.completed" = "Нативный OMR-прототип создал пригодный для проверки кандидат MusicXML из %d страниц.";
+"score.native_omr.completed_with_review" = "Нативный OMR-прототип обработал %d страниц, и %d страницам нужна дополнительная проверка.";
+"score.native_omr.review_needed" = "Этим страницам нужна дополнительная проверка: %@.";
+"score.native_omr.failed" = "Не удалось импортировать нативный OMR-прототип: %@";
+"text.pages" = "Страницы";

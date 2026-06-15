@@ -372,3 +372,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
+"omr.provider.native_prototype.summary" = "نموذج OMR أصلي مضمّن لاختبار مسار PDF متعدد الصفحات إلى MusicXML داخل المحاكي.";
+"omr.provider.native_prototype.best_for" = "مناسب أولاً للتحقق من تحويل PDF إلى صور داخل التطبيق، وربط الصفحات، ومسار مراجعة MusicXML.";
+"omr.provider.native_prototype.license_note" = "مسار تجريبي: تنفيذ أصلي من Apple، ونطاق ترميز موسيقي محدود، ومخرجات تركّز على المراجعة أولاً.";
+"score.import_native_omr_description" = "استورد MusicXML أو PDF أو صور النوتة. عند اختيار Shenghai Native، تمر ملفات PDF أو الصور عبر نموذج OMR الأصلي داخل التطبيق قبل مراجعة MusicXML.";
+"score.native_omr.processing" = "جارٍ معالجة %@ باستخدام نموذج OMR الأصلي من Shenghai.";
+"score.native_omr.completed" = "أنشأ نموذج OMR الأصلي مرشح MusicXML قابل للمراجعة من %d صفحات.";
+"score.native_omr.completed_with_review" = "عالج نموذج OMR الأصلي %d صفحات، وتحتاج %d صفحات إلى مراجعة إضافية.";
+"score.native_omr.review_needed" = "هذه الصفحات تحتاج إلى مراجعة إضافية: %@.";
+"score.native_omr.failed" = "فشل استيراد نموذج OMR الأصلي: %@";
+"text.pages" = "الصفحات";

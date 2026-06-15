@@ -379,3 +379,13 @@
 "text.wrap_imported_scores_in_shenghai_scoredocument_for_corrections_repeats_sync_points_and_practice_logs" = "Wrap imported scores in Shenghai ScoreDocument for corrections, repeats, sync points, and practice logs.";
 "text.yin_tracker_adapter" = "YIN tracker adapter";
 "text.zoom" = "Zoom";
+"omr.provider.native_prototype.summary" = "Integrierter nativer OMR-Prototyp, um im Simulator den Weg von mehrseitigem PDF zu MusicXML zu testen.";
+"omr.provider.native_prototype.best_for" = "Am besten geeignet, um zuerst die PDF-Rasterisierung in der App, das Zusammenfügen der Seiten und den MusicXML-Review-Flow zu prüfen.";
+"omr.provider.native_prototype.license_note" = "Prototyp-Pfad: native Apple-Ausführung, enger Notationsumfang und ausgabeseitig zuerst auf Review ausgerichtet.";
+"score.import_native_omr_description" = "Importiere MusicXML, PDF oder Notenbilder. Wenn Shenghai Native ausgewählt ist, laufen PDF- oder Bilddateien vor dem MusicXML-Review durch den nativen OMR-Prototyp in der App.";
+"score.native_omr.processing" = "Verarbeite %@ mit dem nativen OMR-Prototyp von Shenghai.";
+"score.native_omr.completed" = "Der native OMR-Prototyp hat aus %d Seiten einen überprüfbaren MusicXML-Kandidaten erzeugt.";
+"score.native_omr.completed_with_review" = "Der native OMR-Prototyp hat %d Seiten verarbeitet, und %d Seiten brauchen zusätzliche Prüfung.";
+"score.native_omr.review_needed" = "Diese Seiten brauchen zusätzliche Prüfung: %@.";
+"score.native_omr.failed" = "Import des nativen OMR-Prototyps fehlgeschlagen: %@";
+"text.pages" = "Seiten";

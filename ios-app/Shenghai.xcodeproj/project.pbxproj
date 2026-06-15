@@ -41,6 +41,8 @@
 		101000000000000000000021 /* PersistenceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000022 /* PersistenceModels.swift */; };
 		101000000000000000000022 /* ImportedAssetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000023 /* ImportedAssetStore.swift */; };
 		101000000000000000000023 /* PersistenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000024 /* PersistenceCoordinator.swift */; };
+		101000000000000000000024 /* NativeOMRPrototypeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000025 /* NativeOMRPrototypeService.swift */; };
+		101000000000000000000025 /* NativeOMRPrototype.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000026 /* NativeOMRPrototype.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -79,6 +81,8 @@
 		102000000000000000000022 /* PersistenceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceModels.swift; sourceTree = "<group>"; };
 		102000000000000000000023 /* ImportedAssetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportedAssetStore.swift; sourceTree = "<group>"; };
 		102000000000000000000024 /* PersistenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceCoordinator.swift; sourceTree = "<group>"; };
+		102000000000000000000025 /* NativeOMRPrototypeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOMRPrototypeService.swift; sourceTree = "<group>"; };
+		102000000000000000000026 /* NativeOMRPrototype.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOMRPrototype.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -140,6 +144,7 @@
 				102000000000000000000022 /* PersistenceModels.swift */,
 				102000000000000000000023 /* ImportedAssetStore.swift */,
 				102000000000000000000024 /* PersistenceCoordinator.swift */,
+				102000000000000000000025 /* NativeOMRPrototypeService.swift */,
 				102000000000000000000015 /* LivePitchCaptureService.swift */,
 				102000000000000000000016 /* UsageTrackingStore.swift */,
 			);
@@ -194,6 +199,7 @@
 				10200000000000000000001C /* ExperimentalFeature.swift */,
 				102000000000000000000019 /* MusicXMLComposer.swift */,
 				10200000000000000000000F /* MusicXMLImporter.swift */,
+				102000000000000000000026 /* NativeOMRPrototype.swift */,
 				102000000000000000000013 /* OMRPipeline.swift */,
 				102000000000000000000010 /* PitchAnalysis.swift */,
 				102000000000000000000011 /* ScoreDocument.swift */,
@@ -304,7 +310,9 @@
 				10100000000000000000001F /* FeedbackConfiguration.swift in Sources */,
 				101000000000000000000018 /* MusicXMLComposer.swift in Sources */,
 				10100000000000000000000F /* MusicXMLImporter.swift in Sources */,
+				101000000000000000000024 /* NativeOMRPrototypeService.swift in Sources */,
 				101000000000000000000022 /* ImportedAssetStore.swift in Sources */,
+				101000000000000000000025 /* NativeOMRPrototype.swift in Sources */,
 				101000000000000000000012 /* OMRPipeline.swift in Sources */,
 				101000000000000000000023 /* PersistenceCoordinator.swift in Sources */,
 				101000000000000000000021 /* PersistenceModels.swift in Sources */,
