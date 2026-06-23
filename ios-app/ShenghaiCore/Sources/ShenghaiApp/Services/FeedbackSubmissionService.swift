@@ -89,6 +89,10 @@ actor FeedbackSubmissionService {
             }
         }
 
+        let platform = await MainActor.run {
+            AppBuildInfo.platform
+        }
+
         let payload = FeedbackSubmissionPayload(
             source: "shenghai-apple-app",
             appName: "Shenghai",
@@ -102,7 +106,7 @@ actor FeedbackSubmissionService {
             currentScreenTitle: currentSection.title,
             appVersion: AppBuildInfo.version,
             buildNumber: AppBuildInfo.build,
-            platform: AppBuildInfo.platform,
+            platform: platform,
             osVersion: AppBuildInfo.osVersion,
             displayLanguage: selectedLanguage.rawValue,
             website: ""
@@ -152,6 +156,7 @@ private enum AppBuildInfo {
         ProcessInfo.processInfo.operatingSystemVersionString
     }
 
+    @MainActor
     static var platform: String {
         #if os(iOS)
         return UIDevice.current.userInterfaceIdiom == .pad ? "iPadOS" : "iOS"

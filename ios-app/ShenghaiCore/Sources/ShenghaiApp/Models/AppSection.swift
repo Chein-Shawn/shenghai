@@ -64,3 +64,19 @@ enum AppSection: String, CaseIterable, Identifiable {
         }
     }
 }
+
+enum ScoreHubMode: String, CaseIterable, Identifiable {
+    case workspace
+    case compose
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .workspace:
+            return L10n.tr("Score")
+        case .compose:
+            return L10n.tr("Compose")
+        }
+    }
+}

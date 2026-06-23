@@ -20,10 +20,14 @@ final class ShenghaiWorkspace: ObservableObject {
     @Published var exportedMusicXMLURL: URL?
     @Published var isImportingScore = false
     @Published var isPlaying = false
-    @Published var selectedOMRProvider: OMRProvider = .homr
+    @Published var selectedOMRProvider: OMRProvider = .nativePrototype
     @Published var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
     @Published var latestNativeOMRSession: NativeOMRPrototypeSessionResult?
+    @Published var scoreReviewSession: ScoreReviewSession?
+    @Published var selectedReviewPageIndex = 0
+    @Published var selectedReviewSymbolID: String?
     @Published var currentScoreItemID: String?
+    @Published var compactScoreMode: ScoreHubMode = .workspace
     @Published var annotationStrokes: [ScoreAnnotationStrokePayload] = [] {
         didSet {
             guard annotationPersistenceEnabled, let currentScoreItemID else {
@@ -81,8 +85,11 @@ final class ShenghaiWorkspace: ObservableObject {
                 preferredFileName: importedScore.metadata.title ?? "twinkle-demo"
             )
             setScore(importedScore, scoreItemID: scoreItemID)
+            refreshReviewArtifacts(sourceName: importedScore.metadata.title ?? "twinkle-demo", inputKind: .musicXML)
             statusMessage = L10n.tr("Loaded demo score: Twinkle excerpt.")
             errorMessage = nil
+            compactScoreMode = .workspace
+            selectedSection = .scoreWorkspace
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -107,8 +114,11 @@ final class ShenghaiWorkspace: ObservableObject {
             )
             setScore(importedScore, scoreItemID: scoreItemID)
             createScanReviewCandidate(sourceName: url.lastPathComponent, inputKind: .musicXML)
+            refreshReviewArtifacts(sourceName: url.lastPathComponent, inputKind: .musicXML)
             statusMessage = L10n.tr("Imported %@.", url.lastPathComponent)
             errorMessage = nil
+            compactScoreMode = .workspace
+            selectedSection = .scoreWorkspace
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -192,6 +202,7 @@ final class ShenghaiWorkspace: ObservableObject {
             setScore(generatedScore, scoreItemID: scoreItemID)
             statusMessage = L10n.tr("Created %d notes from Compose.", normalizedScore.notes.count)
             errorMessage = nil
+            compactScoreMode = .workspace
             selectedSection = .scoreWorkspace
         } catch {
             errorMessage = error.localizedDescription
@@ -260,6 +271,10 @@ final class ShenghaiWorkspace: ObservableObject {
         errorMessage = L10n.tr("PDF/image import is accepted, but in-app OMR is not implemented yet. Convert it to MusicXML first, then import the MusicXML result.")
         scannedMusicXMLCandidate = nil
         latestNativeOMRSession = nil
+        scoreReviewSession = nil
+        selectedReviewSymbolID = nil
+        selectedReviewPageIndex = 0
+        compactScoreMode = .workspace
         selectedSection = .scoreWorkspace
     }
 
@@ -292,6 +307,20 @@ final class ShenghaiWorkspace: ObservableObject {
                 provider: selectedOMRProvider,
                 score: importedScore
             )
+            refreshReviewArtifacts(
+                sourceName: url.lastPathComponent,
+                inputKind: session.inputKind,
+                pages: session.renderedPages.map { page in
+                    ScoreReviewPage(
+                        pageIndex: page.pageIndex,
+                        pixelWidth: page.pixelWidth,
+                        pixelHeight: page.pixelHeight,
+                        imageData: page.imageData,
+                        status: session.scoreNotation.pageResults.first(where: { $0.pageIndex == page.pageIndex })?.status ?? .recognized
+                    )
+                },
+                scoreNotation: session.scoreNotation
+            )
 
             if session.scoreNotation.failedPageIndices.isEmpty {
                 statusMessage = L10n.tr(
@@ -311,6 +340,7 @@ final class ShenghaiWorkspace: ObservableObject {
                 )
             }
 
+            compactScoreMode = .workspace
             selectedSection = .scoreWorkspace
         } catch {
             latestNativeOMRSession = nil
@@ -356,6 +386,186 @@ final class ShenghaiWorkspace: ObservableObject {
         }
     }
 
+    var selectedReviewSymbol: ScoreReviewSymbol? {
+        guard let selectedReviewSymbolID else {
+            return nil
+        }
+        return scoreReviewSession?.symbols.first(where: { $0.id == selectedReviewSymbolID })
+    }
+
+    func selectReviewPage(_ pageIndex: Int) {
+        selectedReviewPageIndex = pageIndex
+    }
+
+    func selectReviewSymbol(_ symbolID: String?) {
+        selectedReviewSymbolID = symbolID
+        if let symbol = symbolID.flatMap({ id in
+            scoreReviewSession?.symbols.first(where: { $0.id == id })
+        }), let pageIndex = symbol.pageIndex {
+            selectedReviewPageIndex = pageIndex
+        }
+    }
+
+    func reviewMeasure(for symbol: ScoreReviewSymbol) -> ScoreMeasure? {
+        guard let part = score?.parts.first(where: { $0.id == symbol.partID }) else {
+            return nil
+        }
+        return part.measures.first(where: { $0.number == symbol.measureNumber })
+    }
+
+    func reviewNote(for symbol: ScoreReviewSymbol) -> ScoreNote? {
+        guard let measure = reviewMeasure(for: symbol), let noteID = symbol.noteID else {
+            return nil
+        }
+        return measure.notes.first(where: { $0.id == noteID })
+    }
+
+    func reviewDirection(for symbol: ScoreReviewSymbol) -> ScoreDirection? {
+        guard let measure = reviewMeasure(for: symbol), let directionID = symbol.directionID else {
+            return nil
+        }
+        return measure.directions.first(where: { $0.id == directionID })
+    }
+
+    func reviewLyric(for symbol: ScoreReviewSymbol) -> ScoreLyric? {
+        guard let note = reviewNote(for: symbol), let lyricID = symbol.lyricID else {
+            return nil
+        }
+        return note.lyrics.first(where: { $0.id == lyricID })
+    }
+
+    func applyReviewNoteEdit(
+        symbol: ScoreReviewSymbol,
+        step: String?,
+        alter: Int,
+        octave: Int?,
+        noteType: String,
+        isRest: Bool,
+        lyricText: String
+    ) {
+        guard var score else {
+            return
+        }
+        guard let partIndex = score.parts.firstIndex(where: { $0.id == symbol.partID }) else {
+            return
+        }
+        guard let measureIndex = score.parts[partIndex].measures.firstIndex(where: { $0.number == symbol.measureNumber }) else {
+            return
+        }
+        guard let noteIndex = score.parts[partIndex].measures[measureIndex].notes.firstIndex(where: { $0.id == symbol.noteID }) else {
+            return
+        }
+
+        let normalizedStep = isRest ? nil : step
+        let normalizedOctave = isRest ? nil : octave
+        let duration = durationUnits(for: noteType)
+        let durationTick = duration * score.ticksPerQuarter / max(score.divisions, 1)
+        let midi = isRest ? nil : Self.midiNumber(step: normalizedStep, alter: alter, octave: normalizedOctave)
+
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].step = normalizedStep
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].alter = alter
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].octave = normalizedOctave
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].noteType = noteType
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].duration = duration
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].durationTick = durationTick
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].isRest = isRest
+        score.parts[partIndex].measures[measureIndex].notes[noteIndex].midi = midi
+
+        let trimmedLyric = lyricText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedLyric.isEmpty {
+            score.parts[partIndex].measures[measureIndex].notes[noteIndex].lyrics.removeAll()
+        } else if score.parts[partIndex].measures[measureIndex].notes[noteIndex].lyrics.isEmpty {
+            score.parts[partIndex].measures[measureIndex].notes[noteIndex].lyrics = [ScoreLyric(text: trimmedLyric)]
+        } else {
+            score.parts[partIndex].measures[measureIndex].notes[noteIndex].lyrics[0].text = trimmedLyric
+        }
+
+        recordCorrection(
+            in: &score,
+            partID: symbol.partID,
+            measureNumber: symbol.measureNumber,
+            symbolID: symbol.id,
+            symbolKind: symbol.kind.rawValue,
+            field: "note",
+            value: isRest ? "rest" : "\(normalizedStep ?? "C"):\(alter):\(normalizedOctave ?? 4):\(noteType):\(trimmedLyric)"
+        )
+        self.score = score
+        persistReviewedScore(statusKey: "score.review.note_saved")
+    }
+
+    func applyReviewMeasureEdit(
+        symbol: ScoreReviewSymbol,
+        beats: Int,
+        beatType: Int,
+        keyFifths: Int,
+        clefSign: String,
+        clefLine: Int,
+        repeatStart: Bool,
+        repeatEnd: Bool
+    ) {
+        guard var score else {
+            return
+        }
+        guard let partIndex = score.parts.firstIndex(where: { $0.id == symbol.partID }) else {
+            return
+        }
+        guard let measureIndex = score.parts[partIndex].measures.firstIndex(where: { $0.number == symbol.measureNumber }) else {
+            return
+        }
+
+        score.parts[partIndex].measures[measureIndex].beats = beats
+        score.parts[partIndex].measures[measureIndex].beatType = beatType
+        score.parts[partIndex].measures[measureIndex].keyFifths = keyFifths
+        score.parts[partIndex].measures[measureIndex].clefSign = clefSign
+        score.parts[partIndex].measures[measureIndex].clefLine = clefLine
+        score.parts[partIndex].measures[measureIndex].repeatStart = repeatStart
+        score.parts[partIndex].measures[measureIndex].repeatEnd = repeatEnd
+        recordCorrection(
+            in: &score,
+            partID: symbol.partID,
+            measureNumber: symbol.measureNumber,
+            symbolID: symbol.id,
+            symbolKind: symbol.kind.rawValue,
+            field: "measure",
+            value: "\(beats)/\(beatType);key=\(keyFifths);clef=\(clefSign)\(clefLine);repeat=\(repeatStart)-\(repeatEnd)"
+        )
+        self.score = score
+        persistReviewedScore(statusKey: "score.review.measure_saved")
+    }
+
+    func applyReviewDirectionEdit(
+        symbol: ScoreReviewSymbol,
+        value: String,
+        placement: String?
+    ) {
+        guard var score else {
+            return
+        }
+        guard let partIndex = score.parts.firstIndex(where: { $0.id == symbol.partID }) else {
+            return
+        }
+        guard let measureIndex = score.parts[partIndex].measures.firstIndex(where: { $0.number == symbol.measureNumber }) else {
+            return
+        }
+        guard let directionIndex = score.parts[partIndex].measures[measureIndex].directions.firstIndex(where: { $0.id == symbol.directionID }) else {
+            return
+        }
+
+        score.parts[partIndex].measures[measureIndex].directions[directionIndex].value = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        score.parts[partIndex].measures[measureIndex].directions[directionIndex].placement = placement?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
+        recordCorrection(
+            in: &score,
+            partID: symbol.partID,
+            measureNumber: symbol.measureNumber,
+            symbolID: symbol.id,
+            symbolKind: symbol.kind.rawValue,
+            field: "direction",
+            value: "\(value)|\(placement ?? "")"
+        )
+        self.score = score
+        persistReviewedScore(statusKey: "score.review.direction_saved")
+    }
+
     private func setScore(
         _ newScore: ScoreDocument,
         scoreItemID: String?,
@@ -367,6 +577,9 @@ final class ShenghaiWorkspace: ObservableObject {
         exportedMusicXMLURL = nil
         scannedMusicXMLCandidate = nil
         latestNativeOMRSession = nil
+        scoreReviewSession = nil
+        selectedReviewSymbolID = nil
+        selectedReviewPageIndex = 0
         currentScoreItemID = scoreItemID
         persistence.setSelectedScoreItemID(scoreItemID)
         annotationPersistenceEnabled = false
@@ -380,8 +593,147 @@ final class ShenghaiWorkspace: ObservableObject {
         annotationPersistenceEnabled = true
     }
 
+    private func refreshReviewArtifacts(
+        sourceName: String? = nil,
+        inputKind: OMRInputKind? = nil,
+        pages: [ScoreReviewPage]? = nil,
+        scoreNotation: NativeOMRScoreNotation? = nil
+    ) {
+        guard let score else {
+            scoreReviewSession = nil
+            scannedMusicXMLCandidate = nil
+            return
+        }
+
+        let resolvedSourceName = sourceName
+            ?? scoreReviewSession?.sourceName
+            ?? scannedMusicXMLCandidate?.sourceName
+            ?? score.metadata.title
+            ?? "Current score"
+        let resolvedInputKind = inputKind
+            ?? scoreReviewSession?.inputKind
+            ?? scannedMusicXMLCandidate?.inputKind
+            ?? .musicXML
+        let resolvedPages = pages ?? scoreReviewSession?.pages ?? []
+        let resolvedNotation = scoreNotation ?? latestNativeOMRSession?.scoreNotation
+
+        scoreReviewSession = ScoreReviewSessionBuilder.make(
+            sourceName: resolvedSourceName,
+            inputKind: resolvedInputKind,
+            score: score,
+            pages: resolvedPages,
+            scoreNotation: resolvedNotation
+        )
+        scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
+            sourceName: resolvedSourceName,
+            inputKind: resolvedInputKind,
+            provider: selectedOMRProvider,
+            score: score
+        )
+
+        if let selectedReviewSymbolID,
+           scoreReviewSession?.symbols.contains(where: { $0.id == selectedReviewSymbolID }) == false {
+            self.selectedReviewSymbolID = nil
+        }
+        if let firstPageIndex = scoreReviewSession?.pages.first?.pageIndex,
+           scoreReviewSession?.pages.contains(where: { $0.pageIndex == selectedReviewPageIndex }) == false {
+            selectedReviewPageIndex = firstPageIndex
+        }
+    }
+
+    private func persistReviewedScore(statusKey: String) {
+        guard let score else {
+            return
+        }
+
+        do {
+            let xml = MusicXMLComposer.makeMusicXML(from: score)
+            let data = Data(xml.utf8)
+            let scoreItemID = try persistence.overwriteScoreDocument(
+                itemID: currentScoreItemID,
+                score: score,
+                data: data,
+                sourceType: .musicXML,
+                preferredFileName: score.metadata.title ?? scoreReviewSession?.sourceName ?? "reviewed-score"
+            )
+            currentScoreItemID = scoreItemID
+            refreshReviewArtifacts()
+            statusMessage = L10n.tr(statusKey)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func durationUnits(for noteType: String) -> Int {
+        switch noteType.lowercased() {
+        case "whole":
+            return 8
+        case "half":
+            return 4
+        case "eighth":
+            return 1
+        default:
+            return 2
+        }
+    }
+
+    private static func midiNumber(step: String?, alter: Int, octave: Int?) -> Int? {
+        guard let step, let octave else {
+            return nil
+        }
+        let semitoneByStep = [
+            "C": 0,
+            "D": 2,
+            "E": 4,
+            "F": 5,
+            "G": 7,
+            "A": 9,
+            "B": 11
+        ]
+        guard let semitone = semitoneByStep[step.uppercased()] else {
+            return nil
+        }
+        return (octave + 1) * 12 + semitone + alter
+    }
+
+    private func recordCorrection(
+        in score: inout ScoreDocument,
+        partID: String,
+        measureNumber: String,
+        symbolID: String,
+        symbolKind: String,
+        field: String,
+        value: String
+    ) {
+        let correction = ScoreCorrection(
+            partID: partID,
+            measureNumber: measureNumber,
+            symbolID: symbolID,
+            symbolKind: symbolKind,
+            field: field,
+            value: value
+        )
+        if let index = score.corrections.firstIndex(where: {
+            $0.partID == partID &&
+            $0.measureNumber == measureNumber &&
+            $0.symbolID == symbolID &&
+            $0.field == field
+        }) {
+            score.corrections[index] = correction
+        } else {
+            score.corrections.append(correction)
+        }
+    }
+
     private func appSettingsReload() {
         AppSettingsStore.shared.reloadFromPersistence()
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
     }
 }
 

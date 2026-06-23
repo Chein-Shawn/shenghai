@@ -295,6 +295,49 @@ final class PersistenceCoordinator {
         return item.id
     }
 
+    func overwriteScoreDocument(
+        itemID: String?,
+        score: ScoreDocument,
+        data: Data,
+        sourceType: PersistedScoreSourceType,
+        preferredFileName: String
+    ) throws -> String {
+        guard let itemID else {
+            return try persistScoreDocument(
+                score: score,
+                data: data,
+                sourceType: sourceType,
+                preferredFileName: preferredFileName
+            )
+        }
+
+        let storedAsset = try importedAssetStore.writeScoreData(data, preferredName: preferredFileName, fileExtension: "musicxml")
+        let context = activeContext
+        let descriptor = FetchDescriptor<ScoreLibraryItemRecord>(
+            predicate: #Predicate { $0.id == itemID }
+        )
+        let now = Date()
+
+        if let existing = try? context.fetch(descriptor).first {
+            existing.title = score.metadata.title ?? preferredFileName
+            existing.sourceTypeRawValue = sourceType.rawValue
+            existing.relativeFilePath = storedAsset.relativePath
+            existing.checksum = storedAsset.checksum
+            existing.updatedAt = now
+            save(context)
+            setSelectedScoreItemID(existing.id)
+            updateCloudSaveTimestampIfNeeded()
+            return existing.id
+        }
+
+        return try persistScoreDocument(
+            score: score,
+            data: data,
+            sourceType: sourceType,
+            preferredFileName: preferredFileName
+        )
+    }
+
     func loadPersistedScore() throws -> PersistedScoreLoadResult? {
         let context = activeContext
         let settings = ensureUserSettings(in: context)

@@ -7,9 +7,13 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.omr-baseline-venv/
 
 # Xcode / Swift
 DerivedData/
+.deriveddata/
+.derived-data/
+.swiftpm-module-cache/
 *.xcuserstate
 xcuserdata/
 .build/
@@ -19,3 +23,7 @@ ios-app/Shenghai.xcodeproj/project.xcworkspace/
 # Generated research outputs that may become large
 samples/audio/*.wav
 samples/audio/*.aac
+
+# Local OMR runtime assets
+oemer-main/oemer/checkpoints/*.onnx
+oemer-main/oemer/checkpoints/*.h5

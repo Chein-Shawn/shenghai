@@ -8,8 +8,16 @@ import ShenghaiCore
 struct NativeOMRPrototypeSessionResult {
     var sourceName: String
     var inputKind: OMRInputKind
+    var renderedPages: [NativeOMRRenderedPage]
     var scoreNotation: NativeOMRScoreNotation
     var generatedMusicXML: String
+}
+
+struct NativeOMRRenderedPage {
+    var pageIndex: Int
+    var pixelWidth: Int
+    var pixelHeight: Int
+    var imageData: Data
 }
 
 enum NativeOMRPrototypeError: LocalizedError {
@@ -67,6 +75,7 @@ final class NativeOMRPrototypeService {
         return NativeOMRPrototypeSessionResult(
             sourceName: sourceName,
             inputKind: inputKind,
+            renderedPages: try pageImages.map(makeRenderedPage),
             scoreNotation: scoreNotation,
             generatedMusicXML: musicXML
         )
@@ -81,6 +90,18 @@ final class NativeOMRPrototypeService {
         case .musicXML:
             throw NativeOMRPrototypeError.unsupportedInput
         }
+    }
+
+    private func makeRenderedPage(from preparedPage: PreparedPageImage) throws -> NativeOMRRenderedPage {
+        guard let data = pngData(from: preparedPage.image) else {
+            throw NativeOMRPrototypeError.rasterizationFailed(pageIndex: preparedPage.pageIndex)
+        }
+        return NativeOMRRenderedPage(
+            pageIndex: preparedPage.pageIndex,
+            pixelWidth: preparedPage.image.width,
+            pixelHeight: preparedPage.image.height,
+            imageData: data
+        )
     }
 
     private func loadPDFPages(from sourceURL: URL) throws -> [PreparedPageImage] {
@@ -348,6 +369,18 @@ final class NativeOMRPrototypeService {
         default:
             return .whole
         }
+    }
+
+    private func pngData(from image: CGImage) -> Data? {
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil) else {
+            return nil
+        }
+        CGImageDestinationAddImage(destination, image, nil)
+        guard CGImageDestinationFinalize(destination) else {
+            return nil
+        }
+        return data as Data
     }
 
     private func makeTiles(pageIndex: Int, width: Int, height: Int) -> [NativeOMRTileMetadata] {

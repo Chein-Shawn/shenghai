@@ -43,6 +43,7 @@
 		101000000000000000000023 /* PersistenceCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000024 /* PersistenceCoordinator.swift */; };
 		101000000000000000000024 /* NativeOMRPrototypeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000025 /* NativeOMRPrototypeService.swift */; };
 		101000000000000000000025 /* NativeOMRPrototype.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000026 /* NativeOMRPrototype.swift */; };
+		101000000000000000000026 /* ScoreReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000027 /* ScoreReviewSession.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -83,6 +84,7 @@
 		102000000000000000000024 /* PersistenceCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceCoordinator.swift; sourceTree = "<group>"; };
 		102000000000000000000025 /* NativeOMRPrototypeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOMRPrototypeService.swift; sourceTree = "<group>"; };
 		102000000000000000000026 /* NativeOMRPrototype.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOMRPrototype.swift; sourceTree = "<group>"; };
+		102000000000000000000027 /* ScoreReviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreReviewSession.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -167,6 +169,7 @@
 				10200000000000000000001D /* Localization.swift */,
 				10200000000000000000001F /* LocalizedPresentation.swift */,
 				102000000000000000000020 /* FeedbackConfiguration.swift */,
+				102000000000000000000027 /* ScoreReviewSession.swift */,
 				102000000000000000000005 /* SampleScoreLibrary.swift */,
 				102000000000000000000006 /* ScoreFormatting.swift */,
 				10200000000000000000001E /* Resources */,
@@ -313,6 +316,7 @@
 				101000000000000000000024 /* NativeOMRPrototypeService.swift in Sources */,
 				101000000000000000000022 /* ImportedAssetStore.swift in Sources */,
 				101000000000000000000025 /* NativeOMRPrototype.swift in Sources */,
+				101000000000000000000026 /* ScoreReviewSession.swift in Sources */,
 				101000000000000000000012 /* OMRPipeline.swift in Sources */,
 				101000000000000000000023 /* PersistenceCoordinator.swift in Sources */,
 				101000000000000000000021 /* PersistenceModels.swift in Sources */,
@@ -449,6 +453,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";

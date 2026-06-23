@@ -182,6 +182,33 @@ public enum MusicXMLComposer {
         """
     }
 
+    public static func makeMusicXML(from scoreDocument: ScoreDocument) -> String {
+        let title = scoreDocument.metadata.title?.trimmedOrFallback(ComposedScore.defaultTitle) ?? ComposedScore.defaultTitle
+        let partsXML = scoreDocument.parts.map { part in
+            """
+            <score-part id="\(escapeXML(part.id))">
+              <part-name>\(escapeXML(part.name.trimmedOrFallback(ComposedScore.defaultPartName)))</part-name>
+            </score-part>
+            """
+        }.joined(separator: "\n")
+        let partBodies = scoreDocument.parts.map { makeMusicXMLPart(part: $0, scoreDocument: scoreDocument) }
+            .joined(separator: "\n")
+
+        return """
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "https://www.musicxml.org/dtds/partwise.dtd">
+        <score-partwise version="4.0">
+          <work>
+            <work-title>\(escapeXML(title))</work-title>
+          </work>
+          <part-list>
+        \(partsXML)
+          </part-list>
+        \(partBodies)
+        </score-partwise>
+        """
+    }
+
     private static func makeMeasures(from composedScore: ComposedScore) -> [ScoreMeasure] {
         let groups = makeMeasureGroups(from: composedScore)
         var absoluteTick = 0
@@ -286,6 +313,98 @@ public enum MusicXMLComposer {
         return lines.joined(separator: "\n")
     }
 
+    private static func makeMusicXMLPart(part: ScorePart, scoreDocument: ScoreDocument) -> String {
+        var lines: [String] = ["  <part id=\"\(escapeXML(part.id))\">"]
+        var activeBeats: Int?
+        var activeBeatType: Int?
+        var activeKeyFifths: Int?
+        var activeClefSign: String?
+        var activeClefLine: Int?
+
+        for (index, measure) in part.measures.enumerated() {
+            lines.append("    <measure number=\"\(escapeXML(measure.number))\">")
+
+            let nextBeats = measure.beats ?? activeBeats
+            let nextBeatType = measure.beatType ?? activeBeatType
+            let nextKeyFifths = measure.keyFifths ?? activeKeyFifths ?? 0
+            let nextClefSign = measure.clefSign ?? activeClefSign ?? "G"
+            let nextClefLine = measure.clefLine ?? activeClefLine ?? 2
+            let shouldEmitAttributes =
+                index == 0 ||
+                measure.beats != nil ||
+                measure.beatType != nil ||
+                measure.keyFifths != nil ||
+                measure.clefSign != nil ||
+                measure.clefLine != nil
+
+            if shouldEmitAttributes {
+                lines.append("      <attributes>")
+                lines.append("        <divisions>\(scoreDocument.divisions)</divisions>")
+                lines.append("        <key>")
+                lines.append("          <fifths>\(nextKeyFifths)</fifths>")
+                lines.append("        </key>")
+                if let beats = nextBeats, let beatType = nextBeatType {
+                    lines.append("        <time>")
+                    lines.append("          <beats>\(beats)</beats>")
+                    lines.append("          <beat-type>\(beatType)</beat-type>")
+                    lines.append("        </time>")
+                }
+                lines.append("        <clef>")
+                lines.append("          <sign>\(escapeXML(nextClefSign))</sign>")
+                lines.append("          <line>\(nextClefLine)</line>")
+                lines.append("        </clef>")
+                lines.append("      </attributes>")
+            }
+
+            if index == 0 {
+                lines.append("""
+                      <direction placement="above">
+                        <direction-type>
+                          <metronome>
+                            <beat-unit>quarter</beat-unit>
+                            <per-minute>\(scoreDocument.tempoBPM)</per-minute>
+                          </metronome>
+                        </direction-type>
+                        <sound tempo="\(scoreDocument.tempoBPM)"/>
+                      </direction>
+                """)
+            }
+
+            for direction in measure.directions {
+                lines.append(makeMusicXMLDirection(direction))
+            }
+
+            for note in measure.notes {
+                lines.append(makeMusicXMLNote(note))
+            }
+
+            if measure.repeatStart {
+                lines.append("""
+                      <barline location="left">
+                        <repeat direction="forward"/>
+                      </barline>
+                """)
+            }
+            if measure.repeatEnd {
+                lines.append("""
+                      <barline location="right">
+                        <repeat direction="backward"/>
+                      </barline>
+                """)
+            }
+
+            lines.append("    </measure>")
+            activeBeats = nextBeats
+            activeBeatType = nextBeatType
+            activeKeyFifths = nextKeyFifths
+            activeClefSign = nextClefSign
+            activeClefLine = nextClefLine
+        }
+
+        lines.append("  </part>")
+        return lines.joined(separator: "\n")
+    }
+
     private static func makeMusicXMLNote(_ note: ComposedScoreNote) -> String {
         let pitchXML: String
         if let pitch = note.pitch {
@@ -307,6 +426,78 @@ public enum MusicXMLComposer {
                 <type>\(note.value.musicXMLType)</type>
               </note>
         """
+    }
+
+    private static func makeMusicXMLNote(_ note: ScoreNote) -> String {
+        let pitchXML: String
+        if let step = note.step, let octave = note.octave, !note.isRest {
+            let alterXML = note.alter == 0 ? "" : "\n        <alter>\(note.alter)</alter>"
+            pitchXML = """
+              <pitch>
+                <step>\(escapeXML(step))</step>\(alterXML)
+                <octave>\(octave)</octave>
+              </pitch>
+            """
+        } else {
+            pitchXML = "      <rest/>"
+        }
+
+        let lyricXML = note.lyrics.map { lyric in
+            let numberAttribute = lyric.number.map { " number=\"\(escapeXML($0))\"" } ?? ""
+            var lines = ["      <lyric\(numberAttribute)>"]
+            if let syllabic = lyric.syllabic {
+                lines.append("        <syllabic>\(escapeXML(syllabic))</syllabic>")
+            }
+            lines.append("        <text>\(escapeXML(lyric.text))</text>")
+            lines.append("      </lyric>")
+            return lines.joined(separator: "\n")
+        }.joined(separator: "\n")
+
+        let lyricBlock = lyricXML.isEmpty ? "" : "\n\(lyricXML)"
+
+        return """
+              <note>
+        \(pitchXML)
+                <duration>\(max(note.duration, 1))</duration>
+                <type>\(escapeXML(note.noteType ?? noteType(for: note.duration)))</type>\(lyricBlock)
+              </note>
+        """
+    }
+
+    private static func makeMusicXMLDirection(_ direction: ScoreDirection) -> String {
+        let placementAttribute = direction.placement.map { " placement=\"\(escapeXML($0))\"" } ?? ""
+        if direction.kind == "dynamics" {
+            return """
+                  <direction\(placementAttribute)>
+                    <direction-type>
+                      <dynamics>
+                        <\(escapeXML(direction.value))/>
+                      </dynamics>
+                    </direction-type>
+                  </direction>
+            """
+        }
+
+        return """
+              <direction\(placementAttribute)>
+                <direction-type>
+                  <words>\(escapeXML(direction.value))</words>
+                </direction-type>
+              </direction>
+        """
+    }
+
+    private static func noteType(for duration: Int) -> String {
+        switch duration {
+        case ..<2:
+            return "eighth"
+        case 2..<4:
+            return "quarter"
+        case 4..<8:
+            return "half"
+        default:
+            return "whole"
+        }
     }
 
     private static func escapeXML(_ value: String) -> String {

@@ -73,6 +73,9 @@ public struct ScoreMeasure: Codable, Equatable, Sendable, Identifiable {
     public var number: String
     public var beats: Int?
     public var beatType: Int?
+    public var keyFifths: Int?
+    public var clefSign: String?
+    public var clefLine: Int?
     public var repeatStart: Bool
     public var repeatEnd: Bool
     public var directions: [ScoreDirection]
@@ -82,6 +85,9 @@ public struct ScoreMeasure: Codable, Equatable, Sendable, Identifiable {
         number: String,
         beats: Int? = nil,
         beatType: Int? = nil,
+        keyFifths: Int? = nil,
+        clefSign: String? = nil,
+        clefLine: Int? = nil,
         repeatStart: Bool = false,
         repeatEnd: Bool = false,
         directions: [ScoreDirection] = [],
@@ -90,6 +96,9 @@ public struct ScoreMeasure: Codable, Equatable, Sendable, Identifiable {
         self.number = number
         self.beats = beats
         self.beatType = beatType
+        self.keyFifths = keyFifths
+        self.clefSign = clefSign
+        self.clefLine = clefLine
         self.repeatStart = repeatStart
         self.repeatEnd = repeatEnd
         self.directions = directions
@@ -178,14 +187,18 @@ public struct ExpandedMeasure: Codable, Equatable, Sendable {
 }
 
 public struct ScoreCorrection: Codable, Equatable, Sendable {
+    public var partID: String
     public var measureNumber: String
-    public var noteID: String
+    public var symbolID: String
+    public var symbolKind: String
     public var field: String
     public var value: String
 
-    public init(measureNumber: String, noteID: String, field: String, value: String) {
+    public init(partID: String, measureNumber: String, symbolID: String, symbolKind: String, field: String, value: String) {
+        self.partID = partID
         self.measureNumber = measureNumber
-        self.noteID = noteID
+        self.symbolID = symbolID
+        self.symbolKind = symbolKind
         self.field = field
         self.value = value
     }

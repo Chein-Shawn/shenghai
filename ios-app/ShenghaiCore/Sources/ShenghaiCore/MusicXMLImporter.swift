@@ -36,10 +36,16 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
     private var parsedTempoBPM: Int?
     private var activeBeats: Int?
     private var activeBeatType: Int?
+    private var activeKeyFifths: Int?
+    private var activeClefSign: String?
+    private var activeClefLine: Int?
     private var currentMeasureNumber: String?
     private var currentMeasureNotes: [ScoreNote] = []
     private var currentMeasureBeats: Int?
     private var currentMeasureBeatType: Int?
+    private var currentMeasureKeyFifths: Int?
+    private var currentMeasureClefSign: String?
+    private var currentMeasureClefLine: Int?
     private var currentMeasureRepeatStart = false
     private var currentMeasureRepeatEnd = false
     private var currentMeasureDirections: [ScoreDirection] = []
@@ -111,12 +117,18 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
             activeDivisions = globalDivisions
             activeBeats = nil
             activeBeatType = nil
+            activeKeyFifths = nil
+            activeClefSign = nil
+            activeClefLine = nil
         case "measure":
             currentMeasureNumber = attributeDict["number"] ?? "\(currentPartMeasures.count + 1)"
             currentMeasureNotes = []
             currentMeasureDirections = []
             currentMeasureBeats = activeBeats
             currentMeasureBeatType = activeBeatType
+            currentMeasureKeyFifths = activeKeyFifths
+            currentMeasureClefSign = activeClefSign
+            currentMeasureClefLine = activeClefLine
             currentMeasureRepeatStart = false
             currentMeasureRepeatEnd = false
         case "creator":
@@ -217,6 +229,21 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
                 activeBeatType = beatType
                 currentMeasureBeatType = beatType
             }
+        case "fifths":
+            if isInside("key"), let fifths = Int(value) {
+                activeKeyFifths = fifths
+                currentMeasureKeyFifths = fifths
+            }
+        case "sign":
+            if isInside("clef"), !value.isEmpty {
+                activeClefSign = value
+                currentMeasureClefSign = value
+            }
+        case "line":
+            if isInside("clef"), let line = Int(value), line > 0 {
+                activeClefLine = line
+                currentMeasureClefLine = line
+            }
         case "step":
             if inNote {
                 noteStep = value
@@ -306,11 +333,17 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         parsedTempoBPM = nil
         activeBeats = nil
         activeBeatType = nil
+        activeKeyFifths = nil
+        activeClefSign = nil
+        activeClefLine = nil
         currentMeasureNumber = nil
         currentMeasureNotes = []
         currentMeasureDirections = []
         currentMeasureBeats = nil
         currentMeasureBeatType = nil
+        currentMeasureKeyFifths = nil
+        currentMeasureClefSign = nil
+        currentMeasureClefLine = nil
         currentMeasureRepeatStart = false
         currentMeasureRepeatEnd = false
         currentTick = 0
@@ -359,6 +392,9 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
                 number: number,
                 beats: currentMeasureBeats,
                 beatType: currentMeasureBeatType,
+                keyFifths: currentMeasureKeyFifths,
+                clefSign: currentMeasureClefSign,
+                clefLine: currentMeasureClefLine,
                 repeatStart: currentMeasureRepeatStart,
                 repeatEnd: currentMeasureRepeatEnd,
                 directions: currentMeasureDirections,
@@ -373,6 +409,9 @@ public final class MusicXMLImporter: NSObject, XMLParserDelegate {
         currentMeasureDirections = []
         currentMeasureBeats = nil
         currentMeasureBeatType = nil
+        currentMeasureKeyFifths = nil
+        currentMeasureClefSign = nil
+        currentMeasureClefLine = nil
         currentMeasureRepeatStart = false
         currentMeasureRepeatEnd = false
     }

@@ -119,12 +119,11 @@ struct ContentView: View {
 
 private struct CompactScoreHubView: View {
     @ObservedObject var workspace: ShenghaiWorkspace
-    @State private var mode: CompactScoreMode = .workspace
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Picker(L10n.tr("Score Mode"), selection: $mode) {
-                ForEach(CompactScoreMode.allCases) { mode in
+            Picker(L10n.tr("Score Mode"), selection: $workspace.compactScoreMode) {
+                ForEach(ScoreHubMode.allCases) { mode in
                     Text(mode.title).tag(mode)
                 }
             }
@@ -133,7 +132,7 @@ private struct CompactScoreHubView: View {
             .padding(.top)
 
             Group {
-                switch mode {
+                switch workspace.compactScoreMode {
                 case .workspace:
                     ScoreWorkspaceView(workspace: workspace)
                 case .compose:
@@ -142,26 +141,10 @@ private struct CompactScoreHubView: View {
             }
         }
         .onAppear {
-            workspace.usageTracking.switchTo(mode == .workspace ? .scoreWorkspace : .scoreComposer)
+            workspace.usageTracking.switchTo(workspace.compactScoreMode == .workspace ? .scoreWorkspace : .scoreComposer)
         }
-        .onChange(of: mode) { _, newMode in
+        .onChange(of: workspace.compactScoreMode) { _, newMode in
             workspace.usageTracking.switchTo(newMode == .workspace ? .scoreWorkspace : .scoreComposer)
-        }
-    }
-}
-
-private enum CompactScoreMode: String, CaseIterable, Identifiable {
-    case workspace
-    case compose
-
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .workspace:
-            return L10n.tr("Score")
-        case .compose:
-            return L10n.tr("Compose")
         }
     }
 }

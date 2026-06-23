@@ -74,6 +74,7 @@ Notion Workspace
 SwiftUI App
   ContentView
     SidebarView
+    CompactScoreHubView
     DashboardView
     ScoreWorkspaceView
     PracticeView
@@ -86,6 +87,7 @@ App Services
   ShenghaiWorkspace
     - app state
     - selected score and part
+    - compact iPhone Score hub mode coordination
     - playback state
     - restored score session bootstrap
     - sync status / first-run sync choice state

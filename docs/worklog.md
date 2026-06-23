@@ -1,5 +1,21 @@
 # Worklog
 
+## Codex 實作工作日誌｜2026-06-22
+
+### Done
+
+- Fixed the iOS Simulator / Debug build path so local simulator builds no longer block on selecting a development team.
+- Fixed a malformed multi-line string path in `MusicXMLComposer.swift`.
+- Added `ScoreReviewSession.swift` to the Xcode project target so Xcode and SwiftPM now see the same review-session types.
+- Verified `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -configuration Debug -destination 'generic/platform=iOS Simulator' build` succeeds.
+- Traced an iPhone Score-tab workflow issue where `Compose -> Load Score` updated the data model but left the compact Score hub stuck in `Compose`, which made the action look like it did nothing.
+- Moved compact Score hub mode into `ShenghaiWorkspace` so importing MusicXML/PDF and loading a composed score now force the compact iPhone Score hub back to the review/workspace view.
+
+### Notes
+
+- `Great Great Joy!` is not currently a real built-in score template. In the current app, changing the draft title only changes metadata; it does not auto-generate notes for that song.
+- The user-visible “no reaction” symptom on iPhone was caused by compact navigation state, not by the composed score failing to load.
+
 ## Codex 實作工作日誌｜2026-06-05
 
 ### Done
