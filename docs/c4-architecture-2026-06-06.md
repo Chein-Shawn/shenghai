@@ -22,6 +22,7 @@ External Systems
   -> App Store Connect / TestFlight: internal testing and distribution
   -> YouTube: reference link or official player only
   -> Audiveris / OMR tools: development or server-side score recognition baseline
+  -> OSMD web renderer: bundled local MusicXML engraving surface inside the app
 ```
 
 ## Level 2: Containers
@@ -32,6 +33,7 @@ Shenghai Apple App
   - SwiftUI app shell
   - local-first data and practice UI
   - Settings sync control and first-run sync choice
+  - Score area split into direct MusicXML editing and scan-to-MusicXML intake
 
 ShenghaiCore
   - MusicXML parser
@@ -77,6 +79,7 @@ SwiftUI App
     CompactScoreHubView
     DashboardView
     ScoreWorkspaceView
+    MusicXMLScoreWebView
     PracticeView
     ExperimentalFeaturesView
     ResearchStatusView
@@ -88,11 +91,13 @@ App Services
     - app state
     - selected score and part
     - compact iPhone Score hub mode coordination
+    - score landing mode coordination (`MusicXML Editor` vs `Scan to MusicXML`)
     - playback state
     - restored score session bootstrap
     - sync status / first-run sync choice state
     - persisted annotation state
     - localized compose fallback normalization before core import/export
+    - sample score orchestration and benchmark status
   MIDIPlaybackService
     - plays generated MIDI
   LivePitchCaptureService
@@ -109,7 +114,11 @@ App Services
     - preserves per-page geometry and tile metadata
     - estimates narrow notation structure page by page
     - merges multi-page results into one score-level candidate
-    - emits prototype MusicXML for the existing importer/review flow
+    - emits prototype MusicXML for the editor/review flow
+  MusicXML editor bridge
+    - local `WKWebView` host
+    - bundled `OSMD` renderer
+    - Swift <-> JavaScript bridge for render / rerender / selection sync
   PersistenceCoordinator
     - bootstraps local / cloud-backed stores
     - migrates legacy settings and usage data
@@ -126,6 +135,7 @@ App Services
 
 Core Domain
   MusicXMLImporter
+  MusicXMLComposer
   ScoreDocument
   MIDIWriter
   ScoreTimelineBuilder
@@ -147,6 +157,33 @@ MusicXML file
   -> MIDIWriter
   -> MIDIPlaybackService
   -> AVAudio / platform playback
+```
+
+### Direct MusicXML Editing
+
+```text
+Pasted or imported MusicXML
+  -> ShenghaiWorkspace import path
+  -> MusicXMLImporter
+  -> ScoreDocument
+  -> MusicXMLEditorSession
+  -> WKWebView + OSMD
+  -> Inspector edits
+  -> MusicXMLComposer
+  -> refreshed MusicXML + ScoreDocument
+```
+
+### Scan To MusicXML
+
+```text
+PDF/image import
+  -> NativeOMRPrototypeService
+  -> page images + page-aware geometry metadata
+  -> prototype MusicXML candidate
+  -> MusicXMLImporter
+  -> ScoreDocument
+  -> MusicXMLEditorSession
+  -> left source sidebar + right OSMD editor
 ```
 
 ### Live Practice Feedback
@@ -227,7 +264,23 @@ PDF/image import
   -> MusicXMLComposer prototype output
   -> MusicXMLImporter
   -> ScoreDocument
-  -> existing Score workspace review flow
+  -> ScoreReviewSession
+  -> shared MusicXML editor / review flow
+```
+
+### Sample Verification
+
+```text
+Bundled Twinkle intact / scanned fixtures
+  -> SampleScoreLibrary
+  -> direct ground-truth editor load or prototype OMR run
+  -> benchmark checks
+    - parser/import success
+    - page count
+    - measure count
+    - playable note count
+    - pitch sequence
+  -> visible benchmark summary in Score workspace
 ```
 
 ## Current Architecture Judgment
@@ -242,3 +295,5 @@ The app is correctly moving toward a shared-core architecture:
 - External OMR providers remain the higher-accuracy research baselines.
 - The shipped app now has a narrow native OMR prototype path for simulator/debug validation of PDF rasterization, page stitching, and MusicXML re-entry.
 - A real bundled recognition model can replace the current prototype estimator later without changing the surrounding review workflow.
+- The `Score` area is now intentionally split: direct MusicXML editing iterates separately from scan-to-MusicXML, while both converge on the same editor surface and score model.
+- The current formal engraving layer is bundled `OSMD` inside a local web view, while the native Swift symbolic panels remain the structured editing and benchmark surface.

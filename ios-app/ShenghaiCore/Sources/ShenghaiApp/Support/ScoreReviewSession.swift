@@ -3,6 +3,24 @@ import Foundation
 import ShenghaiCore
 #endif
 
+enum MusicXMLEditorSourceKind: String, CaseIterable, Identifiable {
+    case directMusicXML
+    case scanCandidate
+    case sampleIntact
+    case sampleScanned
+
+    var id: String { rawValue }
+}
+
+struct MusicXMLEditorSession: Equatable {
+    var sourceKind: MusicXMLEditorSourceKind
+    var sourceName: String
+    var musicXMLString: String
+    var scoreDocument: ScoreDocument
+    var reviewSession: ScoreReviewSession?
+    var selectedSymbolID: String?
+}
+
 struct ScoreReviewPage: Identifiable, Equatable {
     var id: Int { pageIndex }
     var pageIndex: Int

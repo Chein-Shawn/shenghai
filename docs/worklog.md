@@ -470,6 +470,65 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - baseline is good enough to justify continuing
   - but not good enough to port blindly without either more validation or a narrowed symbol scope
 
+### 2026-07-03
+
+- Split the `Score` area into two explicit flows:
+  - `MusicXML Editor`
+  - `Scan to MusicXML`
+- Stopped treating the old score workspace as one mixed import/review bucket; direct MusicXML work and scan-derived candidate work now converge only after `MusicXML` exists.
+- Added a bundled `OSMD` renderer path inside the app resources:
+  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/OSMD/opensheetmusicdisplay.min.js`
+  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/OSMD/musicxml-editor.html`
+  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/OSMD/LICENSE-OSMD.txt`
+- Added `MusicXMLEditorSession` so the app can track:
+  - whether the editor source is direct MusicXML, scan candidate, intact sample, or scanned sample
+  - the current `MusicXML` string
+  - the current `ScoreDocument`
+  - the page-aware review session used to map source pages to score symbols
+- Reworked `ShenghaiWorkspace` so it now has explicit editor and scan entry points:
+  - paste/import `MusicXML`
+  - import PDF/image for scan intake
+  - open bundled sample ground truth
+  - run bundled intact/scanned Twinkle samples through the native prototype and then open the shared editor
+- Reworked `ScoreWorkspaceView` into a clearer editor host:
+  - landing surface for `MusicXML Editor` vs `Scan to MusicXML`
+  - left source sidebar for sample/PDF/image pages
+  - center `OSMD` rendered score
+  - lower symbolic navigator panel that still uses Shenghai's own structured score components for precise selection/editing
+  - right inspector plus visible sample benchmark summary
+- Added bundled sample fixtures under app resources so the editor and scan flow can be exercised without external files:
+  - `SampleScores/twinkle-multipage-ground-truth.musicxml`
+  - `SampleScores/twinkle_intact/*`
+  - `SampleScores/twinkle_scanned/*`
+- Expanded `SampleScoreLibrary` from an inline XML constant into a real fixture loader plus benchmark verifier.
+- Added benchmark checks for bundled Twinkle fixtures:
+  - MusicXML import success
+  - page count
+  - measure count
+  - playable note count
+  - pitch sequence
+- Added a new score sample test:
+  - `ios-app/ShenghaiCore/Tests/ShenghaiCoreTests/TwinkleSamplePackTests.swift`
+- Ran verification:
+  - `python3 tools/localization/check_localization.py`
+  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
+  - `swift test --package-path ios-app/ShenghaiCore --filter TwinkleSamplePackTests`
+  - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build`
+- Updated all 14 shipped app languages for the newly added Score-editor / sample / scan text surface.
+- Updated `AGENTS.md` so score-editor / scan-flow changes now explicitly require a sample verification run in the same cycle.
+
+### Encountered / Discovered
+
+- `OSMD` is a good fit for the first commercial-friendly MusicXML score surface because the renderer is usable locally in a bundled web view and ships under BSD-3-Clause.
+- The current `OSMD` bridge is already enough to prove:
+  - local bundled rendering
+  - rerender after score changes
+  - editor/session separation from scan intake
+  but it does not yet provide true symbol-by-symbol SVG mapping inside the web layer.
+- Because of that current limitation, the precise editable selection path still lives in Shenghai's structured Swift symbol navigator and inspector; the `OSMD` panel is the formal engraved rendering layer, not yet the single source of editing truth.
+- The native scan prototype is now productively decoupled from the editor, but the actual recognition quality is still bounded by the current prototype estimator and not by the editor architecture.
+- The new bundled Twinkle intact/scanned pack gives us a repeatable correctness fixture and a separate real-photo stress fixture, which is much better than relying on ad hoc local files.
+
 - Started the first true in-app native OMR prototype path for Shenghai's Apple app.
 - Added a new shared-core native OMR data model in:
   - `ios-app/ShenghaiCore/Sources/ShenghaiCore/NativeOMRPrototype.swift`

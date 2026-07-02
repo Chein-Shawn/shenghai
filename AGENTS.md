@@ -88,6 +88,7 @@ Before closing a task or PR, confirm:
 - `C4 impact checked`
 - `Localized strings updated for all shipped languages`
 - `Backup status checked and reported`
+- `Sample verification run for score-editor / scan changes`
 - `Screenshot or UI copy QA completed where needed`
 
 ## Documentation Alignment

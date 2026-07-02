@@ -1,5 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
+#if canImport(WebKit)
+import WebKit
+#endif
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
@@ -11,6 +14,7 @@ import ShenghaiCore
 
 struct ScoreWorkspaceView: View {
     @ObservedObject var workspace: ShenghaiWorkspace
+    @State private var musicXMLDraft = ""
     @State private var pageScale = 1.0
     @State private var showPitchOverlay = true
     @State private var showMeasureNumbers = true
@@ -24,12 +28,18 @@ struct ScoreWorkspaceView: View {
     @State private var soloPartID: String?
 
     private var importableScoreTypes: [UTType] {
-        [
-            .xml,
-            UTType(filenameExtension: "musicxml"),
-            .pdf,
-            .image
-        ].compactMap { $0 }
+        switch workspace.pendingScoreImportFlow {
+        case .musicXML:
+            return [
+                .xml,
+                UTType(filenameExtension: "musicxml")
+            ].compactMap { $0 }
+        case .scan:
+            return [
+                .pdf,
+                .image
+            ].compactMap { $0 }
+        }
     }
 
     var body: some View {
@@ -136,14 +146,9 @@ struct ScoreWorkspaceView: View {
                     }
                 }
             } else {
-                ContentUnavailableView(
-                    L10n.tr("No Score Loaded"),
-                    systemImage: "music.note.list",
-                    description: Text(
-                        workspace.selectedOMRProvider.runsInsideAppleApp
-                        ? L10n.tr("score.import_native_omr_description")
-                        : L10n.tr("Import MusicXML, PDF, or score images. MusicXML opens directly; PDF/image currently enters the OMR intake path before review.")
-                    )
+                ScoreLandingView(
+                    workspace: workspace,
+                    musicXMLDraft: $musicXMLDraft
                 )
             }
         }
@@ -201,13 +206,44 @@ private struct ScoreToolbar: View {
 
             Spacer()
 
-            ToolIconButton(title: L10n.tr("Import Score File"), systemImage: "square.and.arrow.down") {
-                workspace.isImportingScore = true
+            Picker(L10n.tr("Score Mode"), selection: Binding(
+                get: { workspace.scoreLandingMode },
+                set: { workspace.scoreLandingMode = $0 }
+            )) {
+                Text(L10n.tr("score.mode.musicxml_editor")).tag(ScoreLandingMode.editor)
+                Text(L10n.tr("score.mode.scan_to_musicxml")).tag(ScoreLandingMode.scan)
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 360)
+
+            ToolIconButton(title: L10n.tr("score.editor.import_musicxml_file"), systemImage: "doc.badge.plus") {
+                workspace.startMusicXMLImport()
             }
 
-            ToolIconButton(title: L10n.tr("Load Demo"), systemImage: "sparkles") {
-                workspace.loadDemoScore()
+            ToolIconButton(title: L10n.tr("score.scan.import_pdf_or_image"), systemImage: "photo.badge.plus") {
+                workspace.startScanImport()
             }
+
+            Menu {
+                Button(L10n.tr("score.sample.open_ground_truth")) {
+                    workspace.loadSampleGroundTruth()
+                }
+                Button(L10n.tr("score.sample.run_intact_omr")) {
+                    workspace.runSampleIntactOMR()
+                }
+                Button(L10n.tr("score.sample.run_scanned_omr")) {
+                    workspace.runSampleScannedOMR()
+                }
+            } label: {
+                Label(L10n.tr("score.try_sample_score"), systemImage: "sparkles")
+                    .frame(height: 34)
+            }
+            .buttonStyle(.bordered)
+
+            ToolIconButton(title: L10n.tr("score.editor.export_current_musicxml"), systemImage: "square.and.arrow.up.on.square") {
+                workspace.exportCurrentMusicXML()
+            }
+            .disabled(workspace.score == nil)
 
             ToolIconButton(
                 title: workspace.isPlaying ? L10n.tr("Stop Playback") : L10n.tr("Play Selected Part"),
@@ -222,6 +258,16 @@ private struct ScoreToolbar: View {
                 workspace.exportMIDI()
             }
             .disabled(workspace.score == nil)
+
+            if let exportedMusicXMLURL = workspace.exportedMusicXMLURL {
+                ShareLink(item: exportedMusicXMLURL) {
+                    Label(L10n.tr("score.editor.share_musicxml"), systemImage: "arrowshape.turn.up.right")
+                        .labelStyle(.iconOnly)
+                        .frame(width: 34, height: 34)
+                }
+                .buttonStyle(.bordered)
+                .help(L10n.tr("score.editor.share_musicxml"))
+            }
 
             if let exportedMIDIURL = workspace.exportedMIDIURL {
                 ShareLink(item: exportedMIDIURL) {
@@ -273,6 +319,122 @@ private struct StatusBanner: View {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(tint.opacity(0.25), lineWidth: 1)
         )
+    }
+}
+
+private struct ScoreLandingView: View {
+    @ObservedObject var workspace: ShenghaiWorkspace
+    @Binding var musicXMLDraft: String
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                Picker(L10n.tr("Score Mode"), selection: $workspace.scoreLandingMode) {
+                    Text(L10n.tr("score.mode.musicxml_editor")).tag(ScoreLandingMode.editor)
+                    Text(L10n.tr("score.mode.scan_to_musicxml")).tag(ScoreLandingMode.scan)
+                }
+                .pickerStyle(.segmented)
+
+                if workspace.scoreLandingMode == .editor {
+                    StudioPanel(title: L10n.tr("score.mode.musicxml_editor"), systemImage: "music.note.list") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(L10n.tr("score.landing.editor_description"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            TextEditor(text: $musicXMLDraft)
+                                .font(.system(.caption, design: .monospaced))
+                                .frame(minHeight: 220)
+                                .padding(8)
+                                .background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
+
+                            HStack {
+                                Button {
+                                    workspace.importMusicXMLText(musicXMLDraft)
+                                } label: {
+                                    Label(L10n.tr("score.editor.open_pasted_musicxml"), systemImage: "arrow.down.doc")
+                                }
+                                .buttonStyle(.borderedProminent)
+
+                                Button {
+                                    workspace.startMusicXMLImport()
+                                } label: {
+                                    Label(L10n.tr("score.editor.import_musicxml_file"), systemImage: "doc.badge.plus")
+                                }
+                                .buttonStyle(.bordered)
+
+                                Button {
+                                    workspace.loadSampleGroundTruth()
+                                } label: {
+                                    Label(L10n.tr("score.sample.open_ground_truth"), systemImage: "sparkles")
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                    }
+                } else {
+                    StudioPanel(title: L10n.tr("score.mode.scan_to_musicxml"), systemImage: "photo.badge.plus") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(L10n.tr("score.landing.scan_description"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Picker(L10n.tr("Provider"), selection: $workspace.selectedOMRProvider) {
+                                ForEach(OMRProvider.allCases, id: \.self) { provider in
+                                    Text(provider.displayName).tag(provider)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+
+                            OMRProviderSummary(
+                                provider: workspace.selectedOMRProvider,
+                                latestNativeSession: workspace.selectedOMRProvider.runsInsideAppleApp ? workspace.latestNativeOMRSession : nil
+                            )
+
+                            HStack {
+                                Button {
+                                    workspace.startScanImport()
+                                } label: {
+                                    Label(L10n.tr("score.scan.import_pdf_or_image"), systemImage: "photo.badge.plus")
+                                }
+                                .buttonStyle(.borderedProminent)
+
+                                Button {
+                                    workspace.runSampleIntactOMR()
+                                } label: {
+                                    Label(L10n.tr("score.sample.run_intact_omr"), systemImage: "doc.viewfinder")
+                                }
+                                .buttonStyle(.bordered)
+
+                                Button {
+                                    workspace.runSampleScannedOMR()
+                                } label: {
+                                    Label(L10n.tr("score.sample.run_scanned_omr"), systemImage: "camera.viewfinder")
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                    }
+                }
+
+                StudioPanel(title: L10n.tr("Compose"), systemImage: "square.and.pencil") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(L10n.tr("text.create_a_simple_musicxml_score_then_load_it_into_practice"))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        Button {
+                            workspace.compactScoreMode = .compose
+                            workspace.selectedSection = .scoreComposer
+                        } label: {
+                            Label(L10n.tr("nav.compose"), systemImage: "square.and.pencil")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+            }
+            .padding()
+        }
     }
 }
 
@@ -397,18 +559,44 @@ private struct SymbolicScoreReviewPanel: View {
                     .foregroundStyle(.secondary)
                 }
 
+                StudioPanel(title: L10n.tr("score.editor.rendered_score"), systemImage: "music.quarternote.3") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        if let session = workspace.musicXMLEditorSession {
+                            MusicXMLScoreWebView(
+                                musicXMLString: session.musicXMLString,
+                                selectedSymbolID: session.selectedSymbolID,
+                                sourceName: session.sourceName
+                            )
+                            .frame(minHeight: 520)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                        } else {
+                            ContentUnavailableView(
+                                L10n.tr("score.editor.no_musicxml_loaded"),
+                                systemImage: "music.note.list",
+                                description: Text(L10n.tr("score.editor.no_musicxml_loaded_description"))
+                            )
+                        }
+
+                        Text(L10n.tr("score.editor.navigator_hint"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 if let part = workspace.selectedPart {
-                    VStack(alignment: .leading, spacing: 22) {
-                        ForEach(part.measures) { measure in
-                            StaffMeasureView(
-                                measure: measure,
-                                measureSymbols: symbols(for: part.id, measureNumber: measure.number),
-                                selectedSymbolID: workspace.selectedReviewSymbolID,
-                                ticksPerQuarter: score.ticksPerQuarter,
-                                showPitchOverlay: showPitchOverlay,
-                                showMeasureNumber: showMeasureNumbers
-                            ) { symbolID in
-                                workspace.selectReviewSymbol(symbolID)
+                    StudioPanel(title: L10n.tr("score.editor.symbol_navigator"), systemImage: "slider.horizontal.below.rectangle") {
+                        VStack(alignment: .leading, spacing: 22) {
+                            ForEach(part.measures) { measure in
+                                StaffMeasureView(
+                                    measure: measure,
+                                    measureSymbols: symbols(for: part.id, measureNumber: measure.number),
+                                    selectedSymbolID: workspace.selectedReviewSymbolID,
+                                    ticksPerQuarter: score.ticksPerQuarter,
+                                    showPitchOverlay: showPitchOverlay,
+                                    showMeasureNumber: showMeasureNumbers
+                                ) { symbolID in
+                                    workspace.selectReviewSymbol(symbolID)
+                                }
                             }
                         }
                     }
@@ -487,6 +675,21 @@ private struct ScoreInspectorPanel: View {
             }
 
             SelectedReviewSymbolPanel(workspace: workspace)
+
+            if let benchmark = workspace.currentSampleBenchmarkResult {
+                StudioPanel(title: L10n.tr("score.sample.benchmark_title"), systemImage: benchmark.passed ? "checkmark.seal.fill" : "exclamationmark.triangle.fill") {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ValuePill(
+                            title: L10n.tr("Status"),
+                            value: benchmark.passed ? L10n.tr("score.sample.benchmark_passed") : L10n.tr("score.sample.benchmark_review_needed"),
+                            systemImage: benchmark.passed ? "checkmark.circle" : "exclamationmark.circle"
+                        )
+                        ValuePill(title: L10n.tr("Measures"), value: "\(benchmark.actualMeasureCount)/\(benchmark.spec.expectedMeasureCount)", systemImage: "number")
+                        ValuePill(title: L10n.tr("Playable Notes"), value: "\(benchmark.actualPlayableNoteCount)/\(benchmark.spec.expectedPlayableNoteCount)", systemImage: "music.note")
+                        ValuePill(title: L10n.tr("text.pages"), value: "\(benchmark.actualPageCount)/\(benchmark.spec.expectedPageCount)", systemImage: "doc.richtext")
+                    }
+                }
+            }
 
             StudioPanel(title: L10n.tr("score.review.review_summary"), systemImage: "checklist") {
                 VStack(alignment: .leading, spacing: 8) {
@@ -1317,6 +1520,147 @@ private struct NoteGlyph: View {
         return CGFloat(min(max(18 + ratio * 10, 18), 38))
     }
 }
+
+#if canImport(WebKit)
+private struct MusicXMLScoreWebView: View {
+    var musicXMLString: String
+    var selectedSymbolID: String?
+    var sourceName: String
+
+    var body: some View {
+        MusicXMLScoreWebViewRepresentable(
+            musicXMLString: musicXMLString,
+            selectedSymbolID: selectedSymbolID,
+            sourceName: sourceName
+        )
+        .background(.white)
+    }
+}
+
+#if os(iOS)
+private struct MusicXMLScoreWebViewRepresentable: UIViewRepresentable {
+    var musicXMLString: String
+    var selectedSymbolID: String?
+    var sourceName: String
+
+    func makeCoordinator() -> MusicXMLScoreWebViewCoordinator {
+        MusicXMLScoreWebViewCoordinator()
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        context.coordinator.makeWebView()
+    }
+
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        context.coordinator.render(
+            webView: webView,
+            musicXMLString: musicXMLString,
+            selectedSymbolID: selectedSymbolID,
+            sourceName: sourceName
+        )
+    }
+}
+#elseif os(macOS)
+private struct MusicXMLScoreWebViewRepresentable: NSViewRepresentable {
+    var musicXMLString: String
+    var selectedSymbolID: String?
+    var sourceName: String
+
+    func makeCoordinator() -> MusicXMLScoreWebViewCoordinator {
+        MusicXMLScoreWebViewCoordinator()
+    }
+
+    func makeNSView(context: Context) -> WKWebView {
+        context.coordinator.makeWebView()
+    }
+
+    func updateNSView(_ webView: WKWebView, context: Context) {
+        context.coordinator.render(
+            webView: webView,
+            musicXMLString: musicXMLString,
+            selectedSymbolID: selectedSymbolID,
+            sourceName: sourceName
+        )
+    }
+}
+#endif
+
+private final class MusicXMLScoreWebViewCoordinator: NSObject, WKNavigationDelegate {
+    private var didLoadShell = false
+    private var lastRenderedXML: String?
+    private var pendingXML: String?
+    private var pendingSelectedSymbolID: String?
+    private var pendingSourceName: String?
+
+    func makeWebView() -> WKWebView {
+        let configuration = WKWebViewConfiguration()
+        configuration.defaultWebpagePreferences.allowsContentJavaScript = true
+        let webView = WKWebView(frame: .zero, configuration: configuration)
+        webView.navigationDelegate = self
+        #if os(iOS)
+        webView.isOpaque = false
+        #endif
+        webView.setValue(false, forKey: "drawsBackground")
+        loadShell(into: webView)
+        return webView
+    }
+
+    func render(webView: WKWebView, musicXMLString: String, selectedSymbolID: String?, sourceName: String) {
+        pendingXML = musicXMLString
+        pendingSelectedSymbolID = selectedSymbolID
+        pendingSourceName = sourceName
+
+        guard didLoadShell else {
+            return
+        }
+
+        if lastRenderedXML != musicXMLString {
+            lastRenderedXML = musicXMLString
+            let escapedXML = jsonEscaped(musicXMLString)
+            let escapedTitle = jsonEscaped(sourceName)
+            webView.evaluateJavaScript("window.shenghaiRenderScore(\(escapedXML), \(escapedTitle));")
+        }
+
+        let escapedSelection = jsonEscaped(selectedSymbolID ?? "")
+        webView.evaluateJavaScript("window.shenghaiSetSelection(\(escapedSelection));")
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        didLoadShell = true
+        if let pendingXML, let pendingSourceName {
+            render(
+                webView: webView,
+                musicXMLString: pendingXML,
+                selectedSymbolID: pendingSelectedSymbolID,
+                sourceName: pendingSourceName
+            )
+        }
+    }
+
+    private func loadShell(into webView: WKWebView) {
+        guard let htmlURL = L10n.baseBundle.url(forResource: "musicxml-editor", withExtension: "html", subdirectory: "OSMD") else {
+            webView.loadHTMLString("<html><body><p>Missing MusicXML editor resource.</p></body></html>", baseURL: nil)
+            return
+        }
+        webView.loadFileURL(htmlURL, allowingReadAccessTo: htmlURL.deletingLastPathComponent())
+    }
+
+    private func jsonEscaped(_ value: String) -> String {
+        let data = try? JSONEncoder().encode(value)
+        return String(data: data ?? Data("".utf8), encoding: .utf8) ?? "\"\""
+    }
+}
+#else
+private struct MusicXMLScoreWebView: View {
+    var musicXMLString: String
+    var selectedSymbolID: String?
+    var sourceName: String
+
+    var body: some View {
+        Text(L10n.tr("score.editor.webview_unavailable"))
+    }
+}
+#endif
 
 #if os(iOS)
 private typealias AppPlatformImage = UIImage

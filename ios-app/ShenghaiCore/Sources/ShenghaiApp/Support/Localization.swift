@@ -151,7 +151,7 @@ enum L10n {
         return object
     }()
 
-    fileprivate static var baseBundle: Bundle {
+    static var baseBundle: Bundle {
         #if SWIFT_PACKAGE
         return .module
         #else
