@@ -5,6 +5,18 @@ import UniformTypeIdentifiers
 import ShenghaiCore
 #endif
 
+enum ScoreLandingMode: String, CaseIterable, Identifiable {
+    case editor
+    case scan
+
+    var id: String { rawValue }
+}
+
+enum ScoreImportFlow {
+    case musicXML
+    case scan
+}
+
 @MainActor
 final class ShenghaiWorkspace: ObservableObject {
     @Published var selectedSection: AppSection = .dashboard {
@@ -24,10 +36,14 @@ final class ShenghaiWorkspace: ObservableObject {
     @Published var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
     @Published var latestNativeOMRSession: NativeOMRPrototypeSessionResult?
     @Published var scoreReviewSession: ScoreReviewSession?
+    @Published var musicXMLEditorSession: MusicXMLEditorSession?
     @Published var selectedReviewPageIndex = 0
     @Published var selectedReviewSymbolID: String?
     @Published var currentScoreItemID: String?
-    @Published var compactScoreMode: ScoreHubMode = .workspace
+    @Published var compactScoreMode: ScoreHubMode = .editor
+    @Published var scoreLandingMode: ScoreLandingMode = .editor
+    @Published var pendingScoreImportFlow: ScoreImportFlow = .musicXML
+    @Published var currentSampleBenchmarkResult: SampleBenchmarkResult?
     @Published var annotationStrokes: [ScoreAnnotationStrokePayload] = [] {
         didSet {
             guard annotationPersistenceEnabled, let currentScoreItemID else {
@@ -75,21 +91,60 @@ final class ShenghaiWorkspace: ObservableObject {
     }
 
     func loadDemoScore() {
+        loadSampleGroundTruth()
+    }
+
+    func loadSampleGroundTruth() {
         do {
-            let data = Data(SampleScoreLibrary.twinkleMusicXML.utf8)
+            let pack = try SampleScoreLibrary.bundledTwinklePack()
+            let data = Data(pack.groundTruthMusicXML.utf8)
             let importedScore = try importer.importDocument(data: data)
             let scoreItemID = try persistence.persistScoreDocument(
                 score: importedScore,
                 data: data,
                 sourceType: .demo,
-                preferredFileName: importedScore.metadata.title ?? "twinkle-demo"
+                preferredFileName: importedScore.metadata.title ?? "twinkle-ground-truth"
             )
             setScore(importedScore, scoreItemID: scoreItemID)
-            refreshReviewArtifacts(sourceName: importedScore.metadata.title ?? "twinkle-demo", inputKind: .musicXML)
-            statusMessage = L10n.tr("Loaded demo score: Twinkle excerpt.")
+            latestNativeOMRSession = nil
+            refreshReviewArtifacts(
+                sourceName: importedScore.metadata.title ?? "twinkle-ground-truth",
+                inputKind: .musicXML,
+                pages: pack.intactPages
+            )
+            refreshEditorSession(
+                sourceKind: .sampleIntact,
+                sourceName: pack.displayName,
+                musicXMLString: pack.groundTruthMusicXML
+            )
+            currentSampleBenchmarkResult = SampleScoreLibrary.verify(
+                score: importedScore,
+                pageCount: pack.intactPages.count,
+                spec: pack.benchmark
+            )
+            statusMessage = L10n.tr("score.sample.loaded_ground_truth")
             errorMessage = nil
-            compactScoreMode = .workspace
+            compactScoreMode = .editor
+            scoreLandingMode = .editor
             selectedSection = .scoreWorkspace
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func runSampleIntactOMR() {
+        do {
+            let pack = try SampleScoreLibrary.bundledTwinklePack()
+            try runNativeOMRImport(url: pack.intactPDFURL, sourceKind: .sampleIntact)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func runSampleScannedOMR() {
+        do {
+            let pack = try SampleScoreLibrary.bundledTwinklePack()
+            try runNativeOMRImport(url: pack.scannedPDFURL, sourceKind: .sampleScanned)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -115,9 +170,50 @@ final class ShenghaiWorkspace: ObservableObject {
             setScore(importedScore, scoreItemID: scoreItemID)
             createScanReviewCandidate(sourceName: url.lastPathComponent, inputKind: .musicXML)
             refreshReviewArtifacts(sourceName: url.lastPathComponent, inputKind: .musicXML)
+            refreshEditorSession(
+                sourceKind: .directMusicXML,
+                sourceName: url.lastPathComponent,
+                musicXMLString: String(decoding: data, as: UTF8.self)
+            )
+            currentSampleBenchmarkResult = nil
             statusMessage = L10n.tr("Imported %@.", url.lastPathComponent)
             errorMessage = nil
-            compactScoreMode = .workspace
+            compactScoreMode = .editor
+            scoreLandingMode = .editor
+            selectedSection = .scoreWorkspace
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    func importMusicXMLText(_ musicXML: String, sourceName: String = "Pasted MusicXML") {
+        let trimmed = musicXML.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            errorMessage = L10n.tr("score.editor.empty_musicxml")
+            return
+        }
+
+        do {
+            let data = Data(trimmed.utf8)
+            let importedScore = try importer.importDocument(data: data)
+            let scoreItemID = try persistence.persistScoreDocument(
+                score: importedScore,
+                data: data,
+                sourceType: .musicXML,
+                preferredFileName: sourceName
+            )
+            setScore(importedScore, scoreItemID: scoreItemID)
+            refreshReviewArtifacts(sourceName: sourceName, inputKind: .musicXML)
+            refreshEditorSession(
+                sourceKind: .directMusicXML,
+                sourceName: sourceName,
+                musicXMLString: trimmed
+            )
+            currentSampleBenchmarkResult = nil
+            statusMessage = L10n.tr("score.editor.loaded_pasted_musicxml")
+            errorMessage = nil
+            compactScoreMode = .editor
+            scoreLandingMode = .editor
             selectedSection = .scoreWorkspace
         } catch {
             errorMessage = error.localizedDescription
@@ -133,7 +229,7 @@ final class ShenghaiWorkspace: ObservableObject {
         }
 
         if lowercasedExtension == "pdf" {
-            if selectedOMRProvider.runsInsideAppleApp {
+            if pendingScoreImportFlow == .scan && selectedOMRProvider.runsInsideAppleApp {
                 runNativeOMRImport(url: url)
             } else {
                 handlePendingOMRImport(url: url, inputKind: .pdf)
@@ -143,7 +239,7 @@ final class ShenghaiWorkspace: ObservableObject {
 
         if let type = UTType(filenameExtension: lowercasedExtension),
            type.conforms(to: .image) {
-            if selectedOMRProvider.runsInsideAppleApp {
+            if pendingScoreImportFlow == .scan && selectedOMRProvider.runsInsideAppleApp {
                 runNativeOMRImport(url: url)
             } else {
                 handlePendingOMRImport(url: url, inputKind: .image)
@@ -151,7 +247,43 @@ final class ShenghaiWorkspace: ObservableObject {
             return
         }
 
-        errorMessage = L10n.tr("This file type is not supported yet. Import MusicXML directly, or use PDF/image for the OMR intake path.")
+        errorMessage = L10n.tr("score.editor.unsupported_import")
+    }
+
+    func startMusicXMLImport() {
+        pendingScoreImportFlow = .musicXML
+        scoreLandingMode = .editor
+        isImportingScore = true
+    }
+
+    func startScanImport() {
+        pendingScoreImportFlow = .scan
+        scoreLandingMode = .scan
+        isImportingScore = true
+    }
+
+    func exportCurrentMusicXML() {
+        guard let score else {
+            errorMessage = L10n.tr("Load or import a MusicXML score first.")
+            return
+        }
+
+        do {
+            let xml = MusicXMLComposer.makeMusicXML(from: score)
+            let title = score.metadata.title?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let safeName = (title?.isEmpty == false ? title! : "Shenghai-Score")
+                .components(separatedBy: CharacterSet.alphanumerics.inverted)
+                .filter { !$0.isEmpty }
+                .joined(separator: "-")
+            let url = FileManager.default.temporaryDirectory
+                .appending(path: "\(safeName.isEmpty ? "Shenghai-Score" : safeName).musicxml")
+            try xml.write(to: url, atomically: true, encoding: .utf8)
+            exportedMusicXMLURL = url
+            statusMessage = L10n.tr("score.editor.exported_current_musicxml")
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func exportMIDI() {
@@ -200,9 +332,17 @@ final class ShenghaiWorkspace: ObservableObject {
                 preferredFileName: normalizedScore.title
             )
             setScore(generatedScore, scoreItemID: scoreItemID)
+            refreshReviewArtifacts(sourceName: normalizedScore.title, inputKind: .musicXML)
+            refreshEditorSession(
+                sourceKind: .directMusicXML,
+                sourceName: normalizedScore.title,
+                musicXMLString: xml
+            )
+            currentSampleBenchmarkResult = nil
             statusMessage = L10n.tr("Created %d notes from Compose.", normalizedScore.notes.count)
             errorMessage = nil
-            compactScoreMode = .workspace
+            compactScoreMode = .editor
+            scoreLandingMode = .editor
             selectedSection = .scoreWorkspace
         } catch {
             errorMessage = error.localizedDescription
@@ -268,17 +408,30 @@ final class ShenghaiWorkspace: ObservableObject {
         }
 
         statusMessage = L10n.tr("Imported %@ for OMR intake. This build still needs an external OMR step before Shenghai can open it as editable MusicXML.", url.lastPathComponent)
-        errorMessage = L10n.tr("PDF/image import is accepted, but in-app OMR is not implemented yet. Convert it to MusicXML first, then import the MusicXML result.")
+        errorMessage = L10n.tr("score.scan.external_provider_required")
         scannedMusicXMLCandidate = nil
         latestNativeOMRSession = nil
         scoreReviewSession = nil
+        musicXMLEditorSession = nil
+        currentSampleBenchmarkResult = nil
         selectedReviewSymbolID = nil
         selectedReviewPageIndex = 0
-        compactScoreMode = .workspace
+        compactScoreMode = .scan
+        scoreLandingMode = .scan
         selectedSection = .scoreWorkspace
     }
 
-    private func runNativeOMRImport(url: URL) {
+    func runNativeOMRImport(url: URL) {
+        do {
+            try runNativeOMRImport(url: url, sourceKind: .scanCandidate)
+        } catch {
+            latestNativeOMRSession = nil
+            scannedMusicXMLCandidate = nil
+            errorMessage = L10n.tr("score.native_omr.failed", error.localizedDescription)
+        }
+    }
+
+    private func runNativeOMRImport(url: URL, sourceKind: MusicXMLEditorSourceKind) throws {
         let didStartAccess = url.startAccessingSecurityScopedResource()
         defer {
             if didStartAccess {
@@ -286,67 +439,79 @@ final class ShenghaiWorkspace: ObservableObject {
             }
         }
 
-        do {
-            statusMessage = L10n.tr("score.native_omr.processing", url.lastPathComponent)
-            errorMessage = nil
+        statusMessage = L10n.tr("score.native_omr.processing", url.lastPathComponent)
+        errorMessage = nil
 
-            let session = try nativeOMRPrototypeService.makeSession(from: url)
-            let musicXMLData = Data(session.generatedMusicXML.utf8)
-            let importedScore = try importer.importDocument(data: musicXMLData)
-            let scoreItemID = try persistence.persistScoreDocument(
-                score: importedScore,
-                data: musicXMLData,
-                sourceType: .musicXML,
-                preferredFileName: session.sourceName
+        let session = try nativeOMRPrototypeService.makeSession(from: url)
+        let musicXMLData = Data(session.generatedMusicXML.utf8)
+        let importedScore = try importer.importDocument(data: musicXMLData)
+        let scoreItemID = try persistence.persistScoreDocument(
+            score: importedScore,
+            data: musicXMLData,
+            sourceType: .musicXML,
+            preferredFileName: session.sourceName
+        )
+        latestNativeOMRSession = session
+        setScore(importedScore, scoreItemID: scoreItemID)
+        scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
+            sourceName: url.lastPathComponent,
+            inputKind: session.inputKind,
+            provider: selectedOMRProvider,
+            score: importedScore
+        )
+        let reviewPages = session.renderedPages.map { page in
+            ScoreReviewPage(
+                pageIndex: page.pageIndex,
+                pixelWidth: page.pixelWidth,
+                pixelHeight: page.pixelHeight,
+                imageData: page.imageData,
+                status: session.scoreNotation.pageResults.first(where: { $0.pageIndex == page.pageIndex })?.status ?? .recognized
             )
-            latestNativeOMRSession = session
-            setScore(importedScore, scoreItemID: scoreItemID)
-            scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
-                sourceName: url.lastPathComponent,
-                inputKind: session.inputKind,
-                provider: selectedOMRProvider,
-                score: importedScore
-            )
-            refreshReviewArtifacts(
-                sourceName: url.lastPathComponent,
-                inputKind: session.inputKind,
-                pages: session.renderedPages.map { page in
-                    ScoreReviewPage(
-                        pageIndex: page.pageIndex,
-                        pixelWidth: page.pixelWidth,
-                        pixelHeight: page.pixelHeight,
-                        imageData: page.imageData,
-                        status: session.scoreNotation.pageResults.first(where: { $0.pageIndex == page.pageIndex })?.status ?? .recognized
-                    )
-                },
-                scoreNotation: session.scoreNotation
-            )
-
-            if session.scoreNotation.failedPageIndices.isEmpty {
-                statusMessage = L10n.tr(
-                    "score.native_omr.completed",
-                    session.scoreNotation.pageResults.count
-                )
-                errorMessage = nil
-            } else {
-                statusMessage = L10n.tr(
-                    "score.native_omr.completed_with_review",
-                    session.scoreNotation.pageResults.count,
-                    session.scoreNotation.failedPageIndices.count
-                )
-                errorMessage = L10n.tr(
-                    "score.native_omr.review_needed",
-                    session.scoreNotation.failedPageIndices.map { String($0 + 1) }.joined(separator: ", ")
-                )
-            }
-
-            compactScoreMode = .workspace
-            selectedSection = .scoreWorkspace
-        } catch {
-            latestNativeOMRSession = nil
-            scannedMusicXMLCandidate = nil
-            errorMessage = L10n.tr("score.native_omr.failed", error.localizedDescription)
         }
+        refreshReviewArtifacts(
+            sourceName: url.lastPathComponent,
+            inputKind: session.inputKind,
+            pages: reviewPages,
+            scoreNotation: session.scoreNotation
+        )
+        refreshEditorSession(
+            sourceKind: sourceKind,
+            sourceName: url.lastPathComponent,
+            musicXMLString: session.generatedMusicXML
+        )
+
+        if let pack = try? SampleScoreLibrary.bundledTwinklePack(),
+           sourceKind == .sampleIntact || sourceKind == .sampleScanned {
+            currentSampleBenchmarkResult = SampleScoreLibrary.verify(
+                score: importedScore,
+                pageCount: reviewPages.count,
+                spec: pack.benchmark
+            )
+        } else {
+            currentSampleBenchmarkResult = nil
+        }
+
+        if session.scoreNotation.failedPageIndices.isEmpty {
+            statusMessage = L10n.tr(
+                "score.native_omr.completed",
+                session.scoreNotation.pageResults.count
+            )
+            errorMessage = nil
+        } else {
+            statusMessage = L10n.tr(
+                "score.native_omr.completed_with_review",
+                session.scoreNotation.pageResults.count,
+                session.scoreNotation.failedPageIndices.count
+            )
+            errorMessage = L10n.tr(
+                "score.native_omr.review_needed",
+                session.scoreNotation.failedPageIndices.map { String($0 + 1) }.joined(separator: ", ")
+            )
+        }
+
+        compactScoreMode = .editor
+        scoreLandingMode = .scan
+        selectedSection = .scoreWorkspace
     }
 
     func bootstrapIfNeeded() {
@@ -399,6 +564,10 @@ final class ShenghaiWorkspace: ObservableObject {
 
     func selectReviewSymbol(_ symbolID: String?) {
         selectedReviewSymbolID = symbolID
+        if var session = musicXMLEditorSession {
+            session.selectedSymbolID = symbolID
+            musicXMLEditorSession = session
+        }
         if let symbol = symbolID.flatMap({ id in
             scoreReviewSession?.symbols.first(where: { $0.id == id })
         }), let pageIndex = symbol.pageIndex {
@@ -578,6 +747,7 @@ final class ShenghaiWorkspace: ObservableObject {
         scannedMusicXMLCandidate = nil
         latestNativeOMRSession = nil
         scoreReviewSession = nil
+        musicXMLEditorSession = nil
         selectedReviewSymbolID = nil
         selectedReviewPageIndex = 0
         currentScoreItemID = scoreItemID
@@ -639,6 +809,12 @@ final class ShenghaiWorkspace: ObservableObject {
            scoreReviewSession?.pages.contains(where: { $0.pageIndex == selectedReviewPageIndex }) == false {
             selectedReviewPageIndex = firstPageIndex
         }
+        if var session = musicXMLEditorSession {
+            session.reviewSession = scoreReviewSession
+            session.scoreDocument = score
+            session.selectedSymbolID = selectedReviewSymbolID
+            musicXMLEditorSession = session
+        }
     }
 
     private func persistReviewedScore(statusKey: String) {
@@ -658,6 +834,11 @@ final class ShenghaiWorkspace: ObservableObject {
             )
             currentScoreItemID = scoreItemID
             refreshReviewArtifacts()
+            refreshEditorSession(
+                sourceKind: musicXMLEditorSession?.sourceKind ?? .directMusicXML,
+                sourceName: musicXMLEditorSession?.sourceName ?? score.metadata.title ?? "MusicXML",
+                musicXMLString: xml
+            )
             statusMessage = L10n.tr(statusKey)
             errorMessage = nil
         } catch {
@@ -728,6 +909,25 @@ final class ShenghaiWorkspace: ObservableObject {
 
     private func appSettingsReload() {
         AppSettingsStore.shared.reloadFromPersistence()
+    }
+
+    private func refreshEditorSession(
+        sourceKind: MusicXMLEditorSourceKind,
+        sourceName: String,
+        musicXMLString: String
+    ) {
+        guard let score else {
+            musicXMLEditorSession = nil
+            return
+        }
+        musicXMLEditorSession = MusicXMLEditorSession(
+            sourceKind: sourceKind,
+            sourceName: sourceName,
+            musicXMLString: musicXMLString,
+            scoreDocument: score,
+            reviewSession: scoreReviewSession,
+            selectedSymbolID: selectedReviewSymbolID
+        )
     }
 }
 

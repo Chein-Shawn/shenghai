@@ -19,6 +19,7 @@ Current Shenghai code is mostly original Swift implementation plus standard Appl
 | Usage analytics ledger | Original local data model | Low |
 | SwiftUI app | Original UI code using Apple frameworks | Low |
 | AVFoundation / SwiftUI / Observation | Apple SDKs | Low if used under Apple Developer terms |
+| OSMD score renderer | Bundled third-party renderer under BSD-3-Clause | Low with attribution and vendored-license tracking |
 
 ## YIN Pitch Tracking
 
@@ -59,6 +60,23 @@ Action before launch:
 - Mention MusicXML compatibility.
 - Avoid implying endorsement by W3C, MuseScore, or other projects.
 - Keep exported files compliant with format expectations.
+
+## OSMD
+
+OpenSheetMusicDisplay is now the first bundled MusicXML rendering surface for Shenghai's editor path. It is used through a local `WKWebView` bundle, not a remote CDN.
+
+Current integration intent:
+
+- render imported or scanned MusicXML into a score view that is closer to formal engraving than the temporary native Swift summary staff
+- keep editing logic, selection state, and score persistence in Shenghai's own Swift code
+- vendor the minified renderer and carry its license text in the repo
+
+Action before launch:
+
+- keep the vendored `OSMD` files versioned and traceable
+- preserve the BSD-3-Clause license text in the shipped source tree
+- document upgrades when replacing the bundled renderer version
+- avoid presenting OSMD output as if Shenghai authored that engraving engine
 
 ## MuseScore / forScore / Goodnotes / Notability UI References
 

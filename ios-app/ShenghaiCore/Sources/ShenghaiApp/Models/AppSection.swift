@@ -66,15 +66,18 @@ enum AppSection: String, CaseIterable, Identifiable {
 }
 
 enum ScoreHubMode: String, CaseIterable, Identifiable {
-    case workspace
+    case editor
+    case scan
     case compose
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .workspace:
-            return L10n.tr("Score")
+        case .editor:
+            return L10n.tr("score.mode.musicxml_editor")
+        case .scan:
+            return L10n.tr("score.mode.scan_to_musicxml")
         case .compose:
             return L10n.tr("Compose")
         }

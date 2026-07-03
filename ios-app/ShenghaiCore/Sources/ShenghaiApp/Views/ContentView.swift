@@ -33,9 +33,6 @@ struct ContentView: View {
         .task {
             await Task.yield()
             workspace.bootstrapIfNeeded()
-            if workspace.score == nil {
-                workspace.loadDemoScore()
-            }
         }
         .alert(L10n.tr("settings.sync.first_run.title"), isPresented: $workspace.shouldPromptForSyncChoice) {
             Button(L10n.tr("settings.sync.enable")) {
@@ -133,18 +130,28 @@ private struct CompactScoreHubView: View {
 
             Group {
                 switch workspace.compactScoreMode {
-                case .workspace:
+                case .editor:
                     ScoreWorkspaceView(workspace: workspace)
+                        .onAppear {
+                            workspace.scoreLandingMode = .editor
+                        }
+                case .scan:
+                    ScoreWorkspaceView(workspace: workspace)
+                        .onAppear {
+                            workspace.scoreLandingMode = .scan
+                        }
                 case .compose:
                     ScoreComposerView(workspace: workspace)
                 }
             }
         }
         .onAppear {
-            workspace.usageTracking.switchTo(workspace.compactScoreMode == .workspace ? .scoreWorkspace : .scoreComposer)
+            workspace.usageTracking.switchTo(
+                workspace.compactScoreMode == .compose ? .scoreComposer : .scoreWorkspace
+            )
         }
         .onChange(of: workspace.compactScoreMode) { _, newMode in
-            workspace.usageTracking.switchTo(newMode == .workspace ? .scoreWorkspace : .scoreComposer)
+            workspace.usageTracking.switchTo(newMode == .compose ? .scoreComposer : .scoreWorkspace)
         }
     }
 }
