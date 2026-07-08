@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VocalDive MusicXML Editor</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    }
+    html, body {
+      margin: 0;
+      background: #ffffff;
+      color: #111827;
+    }
+    body {
+      padding: 12px;
+    }
+    #header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    #title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #475569;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #status {
+      font-size: 12px;
+      color: #64748b;
+    }
+    #osmd-root {
+      min-height: 360px;
+      overflow: auto;
+      border-radius: 10px;
+      background: #ffffff;
+    }
+    svg {
+      max-width: 100%;
+      height: auto;
+    }
+    .selected-note {
+      filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.45));
+    }
+  </style>
+  <script src="opensheetmusicdisplay.min.js"></script>
+</head>
+<body>
+  <div id="header">
+    <div id="title">VocalDive MusicXML Editor</div>
+    <div id="status">Ready</div>
+  </div>
+  <div id="osmd-root"></div>
+  <script>
+    let osmd = null;
+    let selectedSymbolID = "";
+
+    function status(text) {
+      const node = document.getElementById("status");
+      if (node) node.textContent = text;
+    }
+
+    function title(text) {
+      const node = document.getElementById("title");
+      if (node) node.textContent = text;
+    }
+
+    function clearSelection() {
+      document.querySelectorAll(".selected-note").forEach((node) => {
+        node.classList.remove("selected-note");
+      });
+    }
+
+    function highlightBestEffort() {
+      clearSelection();
+      if (!selectedSymbolID) return;
+      const svg = document.querySelector("#osmd-root svg");
+      if (!svg) return;
+      const firstGroup = svg.querySelector("g");
+      if (firstGroup) {
+        firstGroup.classList.add("selected-note");
+      }
+    }
+
+    window.vocaldiveSetSelection = function(symbolID) {
+      selectedSymbolID = symbolID || "";
+      highlightBestEffort();
+    };
+
+    window.vocaldiveRenderScore = async function(musicXML, sourceName) {
+      const container = document.getElementById("osmd-root");
+      title(sourceName || "MusicXML");
+      status("Rendering...");
+      container.innerHTML = "";
+      try {
+        osmd = new opensheetmusicdisplay.OpenSheetMusicDisplay(container, {
+          autoResize: true,
+          drawTitle: true,
+          drawComposer: true,
+          drawLyrics: true,
+          backend: "svg"
+        });
+        await osmd.load(musicXML);
+        osmd.render();
+        highlightBestEffort();
+        status("Rendered");
+      } catch (error) {
+        console.error(error);
+        status("Render failed");
+        container.innerHTML = "<div style='padding:16px;color:#b91c1c;font-size:13px;'>MusicXML render failed.</div>";
+      }
+    };
+  </script>
+</body>
+</html>

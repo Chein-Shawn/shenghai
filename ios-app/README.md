@@ -1,16 +1,16 @@
-# Shenghai Apple App Workspace
+# VocalDive Apple App Workspace
 
-This folder holds the Xcode-first implementation for Shenghai.
+This folder holds the Xcode-first implementation for VocalDive.
 
 ## Current App
 
 Open the app project:
 
 ```bash
-open ios-app/Shenghai.xcodeproj
+open ios-app/VocalDive.xcodeproj
 ```
 
-Use the `Shenghai` scheme. The project is configured as a SwiftUI multiplatform app target for:
+Use the `VocalDive` scheme. The project is configured as a SwiftUI multiplatform app target for:
 
 - iPhone
 - iPad
@@ -28,7 +28,7 @@ The current Alpha UI supports:
 Validated locally:
 
 ```bash
-xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO
+xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO
 ```
 
 If iPhone/iPad simulator destinations are unavailable, install the iOS platform component:
@@ -39,10 +39,10 @@ xcodebuild -downloadPlatform iOS
 
 ## Current Module
 
-`ShenghaiCore` is a Swift package that can be opened directly in Xcode:
+`VocalDiveCore` is a Swift package that can be opened directly in Xcode:
 
 ```bash
-open ios-app/ShenghaiCore/Package.swift
+open ios-app/VocalDiveCore/Package.swift
 ```
 
 It targets:
@@ -52,4 +52,4 @@ It targets:
 
 ## Why Package First
 
-The first risky part of Shenghai is not the UI. It is whether sheet data can become a reliable playback timeline. Keeping that logic in a package lets iPhone, iPad, and macOS apps share the same parser, data model, and playback preparation code.
+The first risky part of VocalDive is not the UI. It is whether sheet data can become a reliable playback timeline. Keeping that logic in a package lets iPhone, iPad, and macOS apps share the same parser, data model, and playback preparation code.

@@ -1,0 +1,9 @@
+// Shared signing defaults for the VocalDive Xcode project.
+// Keep personal team identifiers in LocalDevelopment.xcconfig, not in git.
+
+CODE_SIGN_STYLE = Automatic
+CODE_SIGNING_ALLOWED = YES
+CODE_SIGNING_REQUIRED =
+PRODUCT_BUNDLE_IDENTIFIER = com.shawn.vocaldive
+
+#include? "LocalDevelopment.xcconfig"
