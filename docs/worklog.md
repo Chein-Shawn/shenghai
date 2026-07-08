@@ -7,9 +7,9 @@
 - Fixed the iOS Simulator / Debug build path so local simulator builds no longer block on selecting a development team.
 - Fixed a malformed multi-line string path in `MusicXMLComposer.swift`.
 - Added `ScoreReviewSession.swift` to the Xcode project target so Xcode and SwiftPM now see the same review-session types.
-- Verified `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -configuration Debug -destination 'generic/platform=iOS Simulator' build` succeeds.
+- Verified `xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -configuration Debug -destination 'generic/platform=iOS Simulator' build` succeeds.
 - Traced an iPhone Score-tab workflow issue where `Compose -> Load Score` updated the data model but left the compact Score hub stuck in `Compose`, which made the action look like it did nothing.
-- Moved compact Score hub mode into `ShenghaiWorkspace` so importing MusicXML/PDF and loading a composed score now force the compact iPhone Score hub back to the review/workspace view.
+- Moved compact Score hub mode into `VocalDiveWorkspace` so importing MusicXML/PDF and loading a composed score now force the compact iPhone Score hub back to the review/workspace view.
 
 ### Notes
 
@@ -20,14 +20,14 @@
 
 ### Done
 
-- Created the local `shenghai` repository structure.
+- Created the local `vocaldive` repository structure.
 - Researched score file format direction.
 - Chose MusicXML as the main interchange format.
-- Chose Shenghai ScoreDocument JSON as the internal wrapper.
+- Chose VocalDive ScoreDocument JSON as the internal wrapper.
 - Confirmed Java is installed locally.
 - Confirmed Audiveris, MuseScore, and FluidSynth are not currently installed.
 - Added a MusicXML to ScoreDocument/MIDI prototype.
-- Created the private GitHub repository `Chein-Shawn/shenghai` in the browser.
+- Created the private GitHub repository `Chein-Shawn/vocaldive` in the browser.
 - Created a local Git repository and committed the initial research workspace.
 - Attempted to push to GitHub; push is blocked until GitHub private-repo authentication or connector installation is granted.
 - Attempted to clone Audiveris source for OMR research; clone failed with `fatal: early EOF`, so OMR is still blocked on acquiring Audiveris.
@@ -36,7 +36,7 @@
 - Successfully ran `./gradlew tasks` with OpenJDK 21 and confirmed the Audiveris CLI options include `-batch`, `-transcribe`, `-export`, and `-output`.
 - Attempted Audiveris batch OMR on `chula.png`; build failed because the development branch uses Java source release 25, while OpenJDK 21 is installed.
 - Added `research/omr/run_audiveris_baseline.sh` to preserve the exact OMR command once a compatible Audiveris build/JDK is available.
-- Added `ios-app/ShenghaiCore`, an Xcode-openable Swift package for iOS 17+ and macOS 14+.
+- Added `ios-app/VocalDiveCore`, an Xcode-openable Swift package for iOS 17+ and macOS 14+.
 - Implemented Swift `ScoreDocument`, `MusicXMLImporter`, and `MIDIWriter` as the first shared Apple-platform core.
 - Added Swift tests for simple MusicXML import and MIDI generation.
 - Re-ran the Python prototype and confirmed it still writes `samples/musicxml/twinkle.scoredocument.json` and `samples/audio/twinkle.mid`.
@@ -57,7 +57,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Next
 
-- Grant GitHub connector access to `Chein-Shawn/shenghai` or configure local GitHub credentials, then push the local repo.
+- Grant GitHub connector access to `Chein-Shawn/vocaldive` or configure local GitHub credentials, then push the local repo.
 - Use a stable Audiveris release/master branch or install JDK 25, then run `research/omr/run_audiveris_baseline.sh`.
 - Prepare 1-3 legal sample score PDFs/images.
 - Run OMR baseline and export MusicXML.
@@ -93,13 +93,18 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### App Shell Build Update
 
-- Added `ios-app/Shenghai.xcodeproj` with a `Shenghai` SwiftUI app scheme.
-- Added `Sources/ShenghaiApp` with dashboard, score workspace, practice preview, and research/status views.
+- Added `ios-app/VocalDive.xcodeproj` with a `VocalDive` SwiftUI app scheme.
+- Added `Sources/VocalDiveApp` with dashboard, score workspace, practice preview, and research/status views.
 - Added MusicXML import UI, built-in demo loading, MIDI playback, and MIDI share/export actions.
-- Validated `swift build --product ShenghaiApp`.
-- Validated macOS app build with `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
+- Validated `swift build --product VocalDiveApp`.
+- Validated macOS app build with `xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
 - Installed the missing iOS 26.5 simulator platform with `xcodebuild -downloadPlatform iOS`.
-- Validated iPhone/iPad simulator build with `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform='iOS Simulator' -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
+- Validated iPhone/iPad simulator build with `xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination generic/platform='iOS Simulator' -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO`.
+- Later Xcode 26 GUI simulator installs exposed an important mismatch: the built app `Info.plist` still contained `CFBundleIdentifier = com.shawn.vocaldive`, but simulator install failed with `IXErrorDomain Code 13 Missing bundle ID`.
+- The decisive clue was `xcodebuild -showBuildSettings` reporting `_DEVELOPMENT_TEAM_IS_EMPTY = YES`; the app was compiling, but the install path was still falling back to a broken empty-team ad-hoc signing state.
+- During repo recovery, a clean canonical repo was restored from GitHub into `/Users/shawn/Developer/vocaldive`, while the previous incomplete tree was preserved as a broken archive copy.
+- Added a repo-safe local signing setup using `ios-app/Config/Signing/SharedSigningDefaults.xcconfig` plus an ignored `LocalDevelopment.xcconfig`, so each machine can provide its own Apple Development Team without committing personal signing data.
+- Updated repo guidance to treat unsigned command-line simulator builds and successful Xcode GUI install/runs as different cases; `CODE_SIGNING_ALLOWED=NO` is not enough to guarantee interactive simulator launch on Xcode 26.
 
 ### OMR and Live Pitch Research Update
 
@@ -115,7 +120,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Score / Audio Alignment Update
 
-- Clarified that Shenghai should not ship automatic YouTube-to-MP3 downloading or modification.
+- Clarified that VocalDive should not ship automatic YouTube-to-MP3 downloading or modification.
 - Kept YouTube as a reference-link / official-player integration path.
 - Implemented shared core models for local/licensed audio alignment:
   - `AudioSourceReference`
@@ -133,7 +138,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added a GitHub Pages-ready support site under `docs/`.
 - Added app Support view with manual, changelog, GitHub Issue, and mail draft actions.
 - Added app Usage view with local usage time by feature and day.
-- Added `UsageAnalyticsLedger` in ShenghaiCore and `UsageTrackingStore` in the app.
+- Added `UsageAnalyticsLedger` in VocalDiveCore and `UsageTrackingStore` in the app.
 - Added C4 architecture documentation in `docs/c4-architecture-2026-06-06.md`.
 - Added localization strategy in `docs/localization-strategy-2026-06-06.md`.
 - Added third-party algorithm and launch-license audit in `docs/third-party-algorithm-and-license-audit-2026-06-06.md`.
@@ -146,7 +151,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added provider-specific command preview through `OMRProviderCommandPlan`.
 - Added Score workspace OMR Review picker so users can choose homr or oemer.
 - Updated Research view to treat homr/oemer as external MusicXML-producing OMR providers and Audiveris as a benchmark path.
-- Updated user manual and changelog to explain that homr/oemer currently run outside the app, then MusicXML is imported into Shenghai.
+- Updated user manual and changelog to explain that homr/oemer currently run outside the app, then MusicXML is imported into VocalDive.
 
 ### MusicXML Compose Update
 
@@ -160,7 +165,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Done
 
-- Added the `Experimental` area to Shenghai as a place for research-heavy features that are not part of the main MVP loop.
+- Added the `Experimental` area to VocalDive as a place for research-heavy features that are not part of the main MVP loop.
 - Added `Sing-to-Dismiss Alarm` using a full-song completion check rather than a short humming shortcut.
 - Used `Happy Birthday` as the first built-in full-song alarm template.
 - Added `Text Rhythm Speech Lab` for rhythm-guided speech and paragraph-singing practice.
@@ -173,7 +178,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Encountered / Discovered
 
-- Apple platform background rules do not allow Shenghai to guarantee a true "sing to stop alarm" experience while the app is fully closed, the device is locked, or recording is unavailable. The practical first version is notification-driven re-entry into the app, then singing inside Shenghai.
+- Apple platform background rules do not allow VocalDive to guarantee a true "sing to stop alarm" experience while the app is fully closed, the device is locked, or recording is unavailable. The practical first version is notification-driven re-entry into the app, then singing inside VocalDive.
 - The speech-lab feature should be framed as rhythm-guided speech practice and progress tracking, not as diagnosis, treatment, or a cure claim.
 
 ## Codex 實作工作日誌｜2026-06-08
@@ -206,7 +211,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Encountered / Discovered
 
-- Real PDF/image recognition is still an external OMR step. Shenghai now handles the review, correction, and downstream use of generated MusicXML, but the actual visual recognition still depends on homr, oemer, Audiveris, or another OMR engine.
+- Real PDF/image recognition is still an external OMR step. VocalDive now handles the review, correction, and downstream use of generated MusicXML, but the actual visual recognition still depends on homr, oemer, Audiveris, or another OMR engine.
 - The first phrase-rate thresholds were still too English-biased and under-scored Chinese phrase practice. The evaluator needed recalibration to use a more appropriate phrase-per-minute target range for Chinese and mixed-language sessions.
 
 ## Codex 實作工作日誌｜2026-06-12
@@ -214,7 +219,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 ### Done
 
 - Replaced the unstable `@Observable` macro path with `ObservableObject` / `@Published` for app-facing state owners:
-  - `ShenghaiWorkspace`
+  - `VocalDiveWorkspace`
   - `UsageTrackingStore`
   - `LivePitchCaptureService`
   - `PracticeAudioService`
@@ -239,7 +244,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 ### Done
 
-- Added a first real persistence/sync layer for Shenghai in the app target:
+- Added a first real persistence/sync layer for VocalDive in the app target:
   - `PersistenceModels.swift`
   - `ImportedAssetStore.swift`
   - `PersistenceCoordinator.swift`
@@ -272,19 +277,19 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 ### Encountered / Discovered
 
 - The existing localization files still contain a much wider pre-existing translation backlog than this cleanup touched. This pass updated the strings needed for the renamed dashboard section and Experimental subtitle, but a broader translation sweep remains a separate task.
-- Updated `ShenghaiWorkspace` so it can:
+- Updated `VocalDiveWorkspace` so it can:
   - restore the previous persisted score session
   - persist imported MusicXML and composed scores into app-owned Application Support storage
   - persist annotation strokes as structured scalable data
   - reflect sync status and toggle changes in the app state
 - Updated `UsageTrackingStore` to persist its ledger through the new persistence coordinator instead of a single encoded `UserDefaults` blob.
 - Updated `AppSettingsStore` so display-language changes still apply immediately in UI while being mirrored into the new persisted settings record.
-- Registered the new persistence source files in `ios-app/Shenghai.xcodeproj/project.pbxproj` so both SwiftPM and the Xcode app target compile the same sync architecture.
+- Registered the new persistence source files in `ios-app/VocalDive.xcodeproj/project.pbxproj` so both SwiftPM and the Xcode app target compile the same sync architecture.
 - Revalidated both build paths after the persistence refactor:
-  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
-  - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS build`
+  - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
+  - `xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination generic/platform=macOS build`
 
-- Refactored `ShenghaiCore` so it no longer depends on app-layer `L10n`.
+- Refactored `VocalDiveCore` so it no longer depends on app-layer `L10n`.
 - Removed direct localization calls from:
   - `MusicXMLComposer`
   - `OMRPipeline`
@@ -304,18 +309,18 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - `FeedbackConfiguration.swift`
   - `FeedbackSubmissionService.swift`
   - `FeedbackConfiguration.json`
-- Added a Google Apps Script backend template under `tools/google-apps-script/` so Shenghai feedback can land in a Google Sheet and optionally notify by email.
+- Added a Google Apps Script backend template under `tools/google-apps-script/` so VocalDive feedback can land in a Google Sheet and optionally notify by email.
 - Updated C4, README, user manual, changelog, and a dedicated backend note to reflect the new feedback architecture.
 - Added translated feedback-flow strings for all currently shipped app languages.
 - Fixed a Swift 6 concurrency build issue by making `FeedbackSubmissionService` an `actor`.
-- Updated `ios-app/Shenghai.xcodeproj/project.pbxproj` so the Xcode target includes:
+- Updated `ios-app/VocalDive.xcodeproj/project.pbxproj` so the Xcode target includes:
   - `LocalizedPresentation.swift`
   - `FeedbackConfiguration.swift`
   - `FeedbackSubmissionService.swift`
-- Removed an over-strict `#if canImport(ShenghaiCore)` guard in `LocalizedPresentation.swift` so the same localized compose helpers work in both SwiftPM and the single-target Xcode project.
+- Removed an over-strict `#if canImport(VocalDiveCore)` guard in `LocalizedPresentation.swift` so the same localized compose helpers work in both SwiftPM and the single-target Xcode project.
 - Revalidated both build paths:
-  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
-  - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS ... build`
+  - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
+  - `xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination generic/platform=macOS ... build`
 
 ### Encountered / Discovered
 
@@ -340,7 +345,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 - The original compile error (`Cannot find 'L10n' in scope`) was a boundary problem, not an isolated missing import. Shared-core types were rendering user-facing strings directly, which broke once localization was moved into the app target.
 - The current shipped language resources still contain many pre-existing English fallbacks outside the newly refactored OMR path. The upgraded localization audit now exposes that debt much more clearly.
-- The repo move from the dated Codex path to `/Users/shawn/Documents/Codex/shenghai/` left stale SwiftPM module-cache artifacts in `.build`, so a clean/build cycle was needed before local compilation succeeded again.
+- The repo move from the dated Codex path to `/Users/shawn/Documents/Codex/vocaldive/` left stale SwiftPM module-cache artifacts in `.build`, so a clean/build cycle was needed before local compilation succeeded again.
   - initial `Observation` macro/plugin failure for `@Observable`
   - preview macro failure for `#Preview`
   - `.xcodeproj` drift where newer Swift files existed on disk but were not registered in the project
@@ -355,11 +360,11 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Began restructuring navigation into an iPhone tab shell and a larger-screen sidebar workflow.
 - Merged Support and Usage into a unified Settings surface and added official contact details / website.
 - Moved iPhone Compose access into the Score hub so phone navigation stays compact.
-- Fixed the iOS compile failure in `ShenghaiApp/Views/SidebarView.swift`: `List(_:selection:)` is not available on iOS, so the sidebar now uses macOS selection binding only and keeps a button-driven list for iPad/iPhone builds.
+- Fixed the iOS compile failure in `VocalDiveApp/Views/SidebarView.swift`: `List(_:selection:)` is not available on iOS, so the sidebar now uses macOS selection binding only and keeps a button-driven list for iPad/iPhone builds.
 - Revalidated the post-fix build and confirmed the project compiles successfully again.
-- Replaced an invalid SF Symbol in `ShenghaiApp/Views/ScoreWorkspaceView.swift` (`doc.badge.magnifyingglass`) with a valid symbol (`doc.text.magnifyingglass`) and revalidated the build.
-- Deferred the automatic demo-score load in `ShenghaiApp/Views/ContentView.swift` until after the first render pass so launch-time work does not compete with iPhone/iPad first-frame presentation.
-- Migrated Shenghai away from the in-code `L10n` translation dictionary to bundle-backed static localization resources under `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources`.
+- Replaced an invalid SF Symbol in `VocalDiveApp/Views/ScoreWorkspaceView.swift` (`doc.badge.magnifyingglass`) with a valid symbol (`doc.text.magnifyingglass`) and revalidated the build.
+- Deferred the automatic demo-score load in `VocalDiveApp/Views/ContentView.swift` until after the first render pass so launch-time work does not compete with iPhone/iPad first-frame presentation.
+- Migrated VocalDive away from the in-code `L10n` translation dictionary to bundle-backed static localization resources under `ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources`.
 - Added `Localization.swift` so the in-app display-language switch now chooses a localized resource bundle instead of switching an embedded Swift dictionary.
 - Added `tools/localization/build_resources.py` to generate shipped localization resources and semantic alias keys from the legacy string inventory.
 - Added `tools/localization/check_localization.py` to enforce localization-key coverage and catch raw user-facing string literals that bypass the localization layer.
@@ -399,7 +404,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 ### Encountered / Discovered
 
 - The recurring `zh-Hant / ja` English leak was not just “missing translation effort”; a big part of it was resource-file data quality, including mojibake content that looked populated but could not be trusted.
-- After removing `ResearchStatusView.swift`, the Xcode project still referenced it in `ios-app/Shenghai.xcodeproj/project.pbxproj`; that stale file reference caused a real compile failure until the PBX entries were removed.
+- After removing `ResearchStatusView.swift`, the Xcode project still referenced it in `ios-app/VocalDive.xcodeproj/project.pbxproj`; that stale file reference caused a real compile failure until the PBX entries were removed.
 - Once the stale view reference was fixed, the next Xcode build blocker moved to the pre-existing persistence/sync work:
   - `PersistenceModels.swift`
   - SwiftData macro/plugin expansion failed under the current environment (`SwiftDataMacros ... malformed response`)
@@ -477,15 +482,15 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - `Scan to MusicXML`
 - Stopped treating the old score workspace as one mixed import/review bucket; direct MusicXML work and scan-derived candidate work now converge only after `MusicXML` exists.
 - Added a bundled `OSMD` renderer path inside the app resources:
-  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/OSMD/opensheetmusicdisplay.min.js`
-  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/OSMD/musicxml-editor.html`
-  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/OSMD/LICENSE-OSMD.txt`
+  - `ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OSMD/opensheetmusicdisplay.min.js`
+  - `ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OSMD/musicxml-editor.html`
+  - `ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OSMD/LICENSE-OSMD.txt`
 - Added `MusicXMLEditorSession` so the app can track:
   - whether the editor source is direct MusicXML, scan candidate, intact sample, or scanned sample
   - the current `MusicXML` string
   - the current `ScoreDocument`
   - the page-aware review session used to map source pages to score symbols
-- Reworked `ShenghaiWorkspace` so it now has explicit editor and scan entry points:
+- Reworked `VocalDiveWorkspace` so it now has explicit editor and scan entry points:
   - paste/import `MusicXML`
   - import PDF/image for scan intake
   - open bundled sample ground truth
@@ -494,7 +499,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - landing surface for `MusicXML Editor` vs `Scan to MusicXML`
   - left source sidebar for sample/PDF/image pages
   - center `OSMD` rendered score
-  - lower symbolic navigator panel that still uses Shenghai's own structured score components for precise selection/editing
+  - lower symbolic navigator panel that still uses VocalDive's own structured score components for precise selection/editing
   - right inspector plus visible sample benchmark summary
 - Added bundled sample fixtures under app resources so the editor and scan flow can be exercised without external files:
   - `SampleScores/twinkle-multipage-ground-truth.musicxml`
@@ -508,12 +513,12 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - playable note count
   - pitch sequence
 - Added a new score sample test:
-  - `ios-app/ShenghaiCore/Tests/ShenghaiCoreTests/TwinkleSamplePackTests.swift`
+  - `ios-app/VocalDiveCore/Tests/VocalDiveCoreTests/TwinkleSamplePackTests.swift`
 - Ran verification:
   - `python3 tools/localization/check_localization.py`
-  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
-  - `swift test --package-path ios-app/ShenghaiCore --filter TwinkleSamplePackTests`
-  - `xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build`
+  - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
+  - `swift test --package-path ios-app/VocalDiveCore --filter TwinkleSamplePackTests`
+  - `xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build`
 - Updated all 14 shipped app languages for the newly added Score-editor / sample / scan text surface.
 - Updated `AGENTS.md` so score-editor / scan-flow changes now explicitly require a sample verification run in the same cycle.
 
@@ -525,18 +530,18 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - rerender after score changes
   - editor/session separation from scan intake
   but it does not yet provide true symbol-by-symbol SVG mapping inside the web layer.
-- Because of that current limitation, the precise editable selection path still lives in Shenghai's structured Swift symbol navigator and inspector; the `OSMD` panel is the formal engraved rendering layer, not yet the single source of editing truth.
+- Because of that current limitation, the precise editable selection path still lives in VocalDive's structured Swift symbol navigator and inspector; the `OSMD` panel is the formal engraved rendering layer, not yet the single source of editing truth.
 - The native scan prototype is now productively decoupled from the editor, but the actual recognition quality is still bounded by the current prototype estimator and not by the editor architecture.
 - The new bundled Twinkle intact/scanned pack gives us a repeatable correctness fixture and a separate real-photo stress fixture, which is much better than relying on ad hoc local files.
 
-- Started the first true in-app native OMR prototype path for Shenghai's Apple app.
+- Started the first true in-app native OMR prototype path for VocalDive's Apple app.
 - Added a new shared-core native OMR data model in:
-  - `ios-app/ShenghaiCore/Sources/ShenghaiCore/NativeOMRPrototype.swift`
+  - `ios-app/VocalDiveCore/Sources/VocalDiveCore/NativeOMRPrototype.swift`
 - Fixed a real compile blocker in:
-  - `ios-app/ShenghaiCore/Sources/ShenghaiCore/ScoreDocument.swift`
+  - `ios-app/VocalDiveCore/Sources/VocalDiveCore/ScoreDocument.swift`
   - the `expandedMeasureOrder` property name had been split/corrupted
 - Added a new app-side service in:
-  - `ios-app/ShenghaiCore/Sources/ShenghaiApp/Services/NativeOMRPrototypeService.swift`
+  - `ios-app/VocalDiveCore/Sources/VocalDiveApp/Services/NativeOMRPrototypeService.swift`
   - current scope:
     - native PDF/image intake
     - multi-page rasterization
@@ -547,7 +552,7 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Extended `OMRProvider` with:
   - `nativePrototype`
   - this path is explicitly marked as in-app/native and kept separate from external `homr` / `oemer`
-- Wired `ShenghaiWorkspace.importScoreFile(...)` so:
+- Wired `VocalDiveWorkspace.importScoreFile(...)` so:
   - PDF/image files use the native path when `nativePrototype` is selected
   - external-provider behavior remains unchanged for `homr` / `oemer`
 - Reused the existing review flow instead of inventing a second OMR surface:
@@ -576,13 +581,42 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   are now explicit seams
 - `swift build` still cannot be trusted in the default sandbox because SwiftPM manifest evaluation hits a sandbox permission failure (`sandbox_apply: Operation not permitted`) even after redirecting cache paths; build verification will need escalated local tool execution or Xcode-side validation.
 - After running outside the sandbox:
-  - `swift build --package-path ios-app/ShenghaiCore --product ShenghaiApp`
+  - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
   - completed successfully
 - Xcode project integration required a second step:
-  - `ios-app/Shenghai.xcodeproj/project.pbxproj`
+  - `ios-app/VocalDive.xcodeproj/project.pbxproj`
   - had to be updated manually so the app target included:
     - `NativeOMRPrototypeService.swift`
     - `NativeOMRPrototype.swift`
 - The iOS Simulator target now compiles and links through the new native OMR code path, but the local environment still blocks the final app-bundle codesign step because copied resources carry Finder/provenance metadata:
   - `resource fork, Finder information, or similar detritus not allowed`
 - Stripping xattrs and re-signing the built `.app` works manually, which suggests the remaining issue is local bundle hygiene / Xcode packaging state rather than the new OMR implementation itself.
+
+
+- Fixed a real app-bundle resource topology bug in the restored Xcode project:
+  - the app target had been copying `VocalDiveCore/Sources/VocalDiveApp/Resources` as one folder reference (`../Resources in Resources`)
+  - that caused runtime lookups like `Localizable.strings`, `LocalizationAliases.json`, `FeedbackConfiguration.json`, `OSMD/musicxml-editor.html`, and `SampleScores/...` to miss the expected bundle paths
+- Added a shared app-side resource resolver in:
+  - `ios-app/VocalDiveCore/Sources/VocalDiveApp/Support/AppResourceLocator.swift`
+  - it now normalizes resource loading for both the normal bundle layout and a temporary nested `Resources/` compatibility fallback
+- Rewired the main resource consumers to use the shared locator:
+  - `Localization.swift`
+  - `FeedbackConfiguration.swift`
+  - `SampleScoreLibrary.swift`
+  - `ScoreWorkspaceView.swift`
+- Updated the Xcode app target resource build to ship explicit resources instead of one opaque folder reference:
+  - localized `Localizable.strings` variant group
+  - `LocalizationAliases.json`
+  - `FeedbackConfiguration.json`
+  - bundled `OSMD` web renderer folder
+  - bundled `SampleScores` fixture folder
+- This fix is aimed at the exact user-visible symptom where prompts showed raw keys like `settings.sync.first_run.title` instead of localized copy.
+
+
+### 2026-07-08 - Website refresh and oemer migration framing
+
+- Rewrote the public homepage `docs/index.html` around the active `VocalDive / 聲潛` brand instead of the older Shenghai wording.
+- Added a user-facing `About Us` section with developer background, NTU chorus context, and the public support email `support@vocaldive.com`.
+- Shifted the homepage toward a more product-like first impression with animated hero panels, interactive feature spotlight buttons, and clearer beginner-oriented sections.
+- Added `docs/oemer-mobile-omr-migration-checklist-2026-07-08.md` so the native OMR path can be tracked as a concrete porting plan rather than drifting back into a UI-only heuristic placeholder.
+- The new checklist fixes the current framing: `oemer` remains a research reference, while the deployable target is native preprocessing + portable model runtime + Swift postprocess + MusicXML editor handoff.

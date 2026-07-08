@@ -1,146 +1,370 @@
 <!doctype html>
-<html lang="zh-Hant" data-title-zh="聲海 Shenghai" data-title-en="Shenghai">
+<html lang="zh-Hant" data-title-zh="VocalDive 聲潛" data-title-en="VocalDive">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>聲海 Shenghai</title>
-  <meta name="description" content="聲海是為聲樂與合唱練習打造的智慧練習工具，協助歌者匯入樂譜、練聲部、追蹤音準與回顧練習。" data-zh="聲海是為聲樂與合唱練習打造的智慧練習工具，協助歌者匯入樂譜、練聲部、追蹤音準與回顧練習。" data-en="Shenghai is an intelligent singing and choir practice workspace for importing scores, rehearsing parts, tracking pitch, and reviewing progress.">
+  <title>VocalDive 聲潛</title>
+  <meta name="description" content="VocalDive 聲潛是一個為聲樂與合唱練習打造的智慧練習空間，結合樂譜、MusicXML 編修、掃描轉譜與練習回饋。" data-zh="VocalDive 聲潛是一個為聲樂與合唱練習打造的智慧練習空間，結合樂譜、MusicXML 編修、掃描轉譜與練習回饋。" data-en="VocalDive is an interactive singing and choir practice workspace that brings together score import, MusicXML editing, scan-to-MusicXML, and practice feedback.">
   <style>
     :root {
       color-scheme: light dark;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.6;
-      --muted: color-mix(in srgb, CanvasText 68%, transparent);
-      --line: color-mix(in srgb, CanvasText 14%, transparent);
-      --surface: color-mix(in srgb, CanvasText 5%, transparent);
-      --accent: #2f7dd3;
+      --bg-1: #08111f;
+      --bg-2: #102845;
+      --bg-3: #103a4d;
+      --card: rgba(255, 255, 255, 0.08);
+      --line: rgba(255, 255, 255, 0.14);
+      --text: #f5f7fb;
+      --muted: rgba(245, 247, 251, 0.74);
+      --accent: #5fd0ff;
+      --accent-2: #7ef7c9;
+      --shadow: 0 24px 80px rgba(5, 12, 24, 0.32);
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      background: Canvas;
-      color: CanvasText;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(95, 208, 255, 0.18), transparent 26%),
+        radial-gradient(circle at 85% 15%, rgba(126, 247, 201, 0.18), transparent 24%),
+        linear-gradient(180deg, var(--bg-2), var(--bg-1) 32%, #060c14 100%);
+      overflow-x: hidden;
     }
-    header, main, footer {
-      max-width: 1080px;
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: auto;
+      width: 38vw;
+      height: 38vw;
+      pointer-events: none;
+      filter: blur(70px);
+      opacity: 0.22;
+      z-index: 0;
+      animation: drift 14s ease-in-out infinite alternate;
+    }
+    body::before {
+      top: -8vw;
+      left: -10vw;
+      background: #4db4ff;
+    }
+    body::after {
+      right: -8vw;
+      top: 12vw;
+      background: #50e0bf;
+      animation-duration: 18s;
+    }
+    @keyframes drift {
+      from { transform: translate3d(0, 0, 0) scale(1); }
+      to { transform: translate3d(4vw, 2vw, 0) scale(1.08); }
+    }
+    nav, header, main, footer {
+      position: relative;
+      z-index: 1;
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding-left: 24px;
+      padding-right: 24px;
     }
     nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      padding: 22px 24px;
-      max-width: 1080px;
-      margin: 0 auto;
+      padding-top: 24px;
+      padding-bottom: 24px;
     }
-    nav a {
-      color: inherit;
+    .brand-lockup {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
       text-decoration: none;
-      margin-left: 16px;
+      color: inherit;
+    }
+    .brand {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+    }
+    .brand-sub {
+      font-size: 0.84rem;
       color: var(--muted);
     }
-    nav a:hover { color: CanvasText; }
     .nav-links {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
       align-items: center;
-      justify-content: flex-end;
+      gap: 12px;
     }
-    .nav-links a { margin-left: 0; }
-    .brand {
-      font-weight: 800;
-      letter-spacing: 0;
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      padding: 8px 10px;
+      border-radius: 999px;
+      transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+    }
+    .nav-links a:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      transform: translateY(-1px);
     }
     .language-switch {
       display: inline-flex;
-      border: 1px solid var(--line);
-      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 999px;
       overflow: hidden;
+      backdrop-filter: blur(16px);
+      background: rgba(255,255,255,0.04);
     }
     .language-switch button {
       appearance: none;
       border: 0;
-      border-left: 1px solid var(--line);
+      border-left: 1px solid rgba(255,255,255,0.14);
       background: transparent;
       color: var(--muted);
-      min-height: 34px;
-      padding: 6px 10px;
+      min-height: 36px;
+      padding: 6px 12px;
       font: inherit;
       font-weight: 800;
       cursor: pointer;
+      transition: background 180ms ease, color 180ms ease;
     }
     .language-switch button:first-child { border-left: 0; }
     .language-switch button.active {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent), #318cff);
       color: white;
     }
     .hero {
-      padding: 60px 24px 42px;
+      padding-top: 34px;
+      padding-bottom: 56px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 28px;
+      align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin-bottom: 18px;
     }
     h1 {
-      font-size: clamp(2.4rem, 7vw, 5.2rem);
-      line-height: 1.02;
+      font-size: clamp(2.8rem, 7vw, 5.6rem);
+      line-height: 0.98;
       margin: 0 0 18px;
-      letter-spacing: 0;
-      max-width: 900px;
+      max-width: 11ch;
     }
     .lead {
-      font-size: clamp(1.08rem, 2vw, 1.35rem);
-      color: var(--muted);
-      max-width: 760px;
+      max-width: 700px;
       margin: 0 0 28px;
+      color: var(--muted);
+      font-size: clamp(1.06rem, 2vw, 1.28rem);
     }
     .actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
+      margin-bottom: 22px;
     }
     .button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 44px;
+      min-height: 46px;
       padding: 10px 16px;
-      border-radius: 8px;
-      border: 1px solid var(--line);
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
       color: inherit;
       text-decoration: none;
       font-weight: 700;
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+      backdrop-filter: blur(16px);
     }
-    .primary {
-      background: var(--accent);
-      border-color: var(--accent);
+    .button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.04);
+    }
+    .button.primary {
+      background: linear-gradient(135deg, var(--accent), #318cff);
+      border-color: transparent;
       color: white;
+      box-shadow: 0 14px 30px rgba(49, 140, 255, 0.28);
     }
-    .demo-callout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .meta-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .hero-visual {
+      position: relative;
+      min-height: 560px;
+      border-radius: 24px;
+      padding: 22px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: var(--shadow);
+    }
+    .wave-panel,
+    .spotlight-panel,
+    .rehearsal-panel {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(4, 13, 24, 0.5);
+      backdrop-filter: blur(18px);
+    }
+    .wave-panel {
+      padding: 18px;
+      min-height: 170px;
+    }
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      padding: 20px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
-      margin-top: 24px;
+      margin-bottom: 14px;
+      color: var(--muted);
+      font-size: 0.92rem;
     }
-    .demo-callout h2 {
-      margin: 0 0 8px;
-      font-size: clamp(1.35rem, 2.4vw, 2rem);
+    .note-track {
+      display: grid;
+      gap: 8px;
     }
-    .demo-callout p { margin: 0; color: var(--muted); }
-    @media (max-width: 720px) {
-      .demo-callout { grid-template-columns: 1fr; }
+    .note-row {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 6px;
+      align-items: center;
     }
+    .note-row span {
+      height: 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(95, 208, 255, 0.22), rgba(126, 247, 201, 0.7));
+      opacity: 0.78;
+      transform-origin: center;
+      animation: breathe 3.8s ease-in-out infinite;
+    }
+    .note-row span:nth-child(odd) { animation-duration: 4.6s; }
+    .note-row span:nth-child(3n) { animation-duration: 5.4s; }
+    @keyframes breathe {
+      0%, 100% { transform: scaleX(0.88); opacity: 0.42; }
+      50% { transform: scaleX(1); opacity: 1; }
+    }
+    .spotlight-panel {
+      margin-top: 18px;
+      padding: 18px;
+    }
+    .spotlight-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .spotlight-buttons button {
+      appearance: none;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      padding: 8px 12px;
+      font: inherit;
+      cursor: pointer;
+      transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+    }
+    .spotlight-buttons button.active,
+    .spotlight-buttons button:hover {
+      background: rgba(95, 208, 255, 0.18);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+    .spotlight-copy strong {
+      display: block;
+      font-size: 1.08rem;
+      margin-bottom: 8px;
+    }
+    .spotlight-copy p {
+      margin: 0;
+      color: var(--muted);
+    }
+    .rehearsal-panel {
+      margin-top: 18px;
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .rehearsal-orbit {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.12);
+      margin: 0 auto;
+    }
+    .rehearsal-orbit::before,
+    .rehearsal-orbit::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255,255,255,0.14);
+    }
+    .rehearsal-orbit::after { inset: 32px; }
+    .orbit-dot {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 16px rgba(126, 247, 201, 0.52);
+      top: 50%;
+      left: 50%;
+      margin: -7px;
+      transform-origin: 0 0;
+      animation: orbit 7s linear infinite;
+    }
+    .orbit-dot.secondary {
+      width: 10px;
+      height: 10px;
+      margin: -5px;
+      background: var(--accent);
+      animation-duration: 5.2s;
+      animation-direction: reverse;
+    }
+    @keyframes orbit {
+      from { transform: rotate(0deg) translateX(48px) rotate(0deg); }
+      to { transform: rotate(360deg) translateX(48px) rotate(-360deg); }
+    }
+    main { padding-bottom: 48px; }
     section {
       padding: 34px 0;
-      border-top: 1px solid var(--line);
+      border-top: 1px solid rgba(255,255,255,0.1);
     }
     h2 {
-      font-size: clamp(1.6rem, 3vw, 2.2rem);
-      line-height: 1.15;
+      font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+      line-height: 1.08;
+      margin: 0 0 16px;
+    }
+    .section-lead {
+      max-width: 760px;
+      color: var(--muted);
       margin: 0 0 18px;
     }
     .grid {
@@ -150,9 +374,16 @@
     }
     .card {
       padding: 20px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 14px 30px rgba(2, 8, 18, 0.16);
+      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(95, 208, 255, 0.28);
+      background: rgba(255,255,255,0.06);
     }
     .card h3 {
       margin: 0 0 8px;
@@ -164,47 +395,101 @@
     }
     .flow {
       display: grid;
-      gap: 10px;
-      counter-reset: step;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
     }
     .step {
-      display: grid;
-      grid-template-columns: 36px 1fr;
-      gap: 12px;
-      align-items: start;
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
     }
-    .step::before {
-      counter-increment: step;
-      content: counter(step);
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: grid;
+    .step-number {
+      width: 34px;
+      height: 34px;
+      display: inline-grid;
       place-items: center;
-      background: var(--accent);
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), #318cff);
       color: white;
       font-weight: 800;
+      margin-bottom: 12px;
     }
-    .step strong { display: block; }
+    .step strong {
+      display: block;
+      margin-bottom: 8px;
+    }
     .step span { color: var(--muted); }
+    .about-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.75fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+    .about-card,
+    .contact-card {
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+    }
+    .contact-card a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .contact-card a:hover { text-decoration: underline; }
+    .mini-kicker {
+      color: var(--accent-2);
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+    .contact-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .contact-item {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
     footer {
-      padding: 36px 24px 48px;
+      padding-top: 28px;
+      padding-bottom: 48px;
       color: var(--muted);
-      border-top: 1px solid var(--line);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    @media (max-width: 980px) {
+      .hero, .about-grid { grid-template-columns: 1fr; }
+      .hero-visual { min-height: 0; }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      nav { flex-direction: column; align-items: flex-start; }
+      .nav-links { justify-content: flex-start; }
+      .flow { grid-template-columns: 1fr; }
+      .rehearsal-panel { grid-template-columns: 1fr; }
+      .hero { padding-top: 18px; }
     }
   </style>
 </head>
 <body>
   <nav aria-label="Main navigation">
-    <a class="brand" href="index.html">聲海 Shenghai</a>
+    <a class="brand-lockup" href="index.html">
+      <span class="brand">VocalDive 聲潛</span>
+      <span class="brand-sub" data-zh="為聲樂與合唱練習打造" data-en="Built for singing and choir practice">為聲樂與合唱練習打造</span>
+    </a>
     <div class="nav-links">
+      <a href="#features" data-zh="功能" data-en="Features">功能</a>
+      <a href="#workflow" data-zh="開始使用" data-en="How It Works">開始使用</a>
+      <a href="#about" data-zh="關於我們" data-en="About Us">關於我們</a>
       <a href="demo.html">Demo</a>
       <a href="manual.html" data-zh="使用手冊" data-en="Manual">使用手冊</a>
       <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">更新日誌</a>
-      <a href="https://github.com/Chein-Shawn/shenghai/issues/new" data-zh="回饋" data-en="Feedback">回饋</a>
       <span class="language-switch" aria-label="Language">
         <button type="button" data-lang-button="zh-Hant">繁</button>
         <button type="button" data-lang-button="en">EN</button>
@@ -213,108 +498,220 @@
   </nav>
 
   <header class="hero">
-    <h1 data-zh="為聲樂與合唱練習打造的智慧練習工作台" data-en="An intelligent practice workspace for singing and choir training">為聲樂與合唱練習打造的智慧練習工作台</h1>
-    <p class="lead" data-zh="聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。" data-en="Shenghai is like Strava for singers: it brings scores, part practice, pitch feedback, practice time, and vocal review into one place so singers can train more scientifically.">聲海像是聲樂界的 Strava：把樂譜、聲部練習、音準回饋、練習時間與聲音狀態放在同一個地方，幫助歌者更科學地練習、追蹤進步。</p>
-    <div class="actions">
-      <a class="button primary" href="demo.html" data-zh="試唱 Happy Birthday Demo" data-en="Try the Happy Birthday Demo">試唱 Happy Birthday Demo</a>
-      <a class="button" href="manual.html" data-zh="開始使用" data-en="Get started">開始使用</a>
-      <a class="button" href="changelog.html" data-zh="查看新功能" data-en="See updates">查看新功能</a>
-    </div>
-    <div class="demo-callout">
-      <div>
-        <h2 data-zh="現在可以直接試唱 Happy Birthday" data-en="Try singing Happy Birthday now">現在可以直接試唱 Happy Birthday</h2>
-        <p data-zh="點開 Demo 後，播放示範旋律、開啟麥克風、跟著 highlighted lyric 唱；系統會用紅色/綠色顯示音準是否偏高或偏低。" data-en="Open the demo, play the guide melody, turn on the microphone, and sing the highlighted lyric. The system shows red/green pitch feedback for notes that are too sharp, too flat, or close.">點開 Demo 後，播放示範旋律、開啟麥克風、跟著 highlighted lyric 唱；系統會用紅色/綠色顯示音準是否偏高或偏低。</p>
+    <div>
+      <div class="eyebrow" data-zh="MusicXML 編修、掃描轉譜與合唱練習回饋" data-en="MusicXML editing, score scanning, and choir practice feedback">MusicXML 編修、掃描轉譜與合唱練習回饋</div>
+      <h1 data-zh="讓你更快進入音樂，而不是卡在過譜" data-en="Spend more time singing, less time getting stuck at the score">讓你更快進入音樂，而不是卡在過譜</h1>
+      <p class="lead" data-zh="VocalDive 聲潛把樂譜匯入、MusicXML 編修、掃描轉譜、聲部練習與音準回饋放進同一個工作流，讓合唱團員、聲樂初學者與音樂學習者更自然地建立練習節奏。" data-en="VocalDive brings score import, MusicXML editing, scan-to-MusicXML, part practice, and pitch feedback into one workflow so choir singers and music learners can build a steadier practice rhythm.">VocalDive 聲潛把樂譜匯入、MusicXML 編修、掃描轉譜、聲部練習與音準回饋放進同一個工作流，讓合唱團員、聲樂初學者與音樂學習者更自然地建立練習節奏。</p>
+      <div class="actions">
+        <a class="button primary" href="demo.html#try" data-zh="立刻試唱 Demo" data-en="Try the singing demo">立刻試唱 Demo</a>
+        <a class="button" href="manual.html" data-zh="看新手指南" data-en="Read the beginner guide">看新手指南</a>
+        <a class="button" href="#about" data-zh="認識 VocalDive" data-en="Meet VocalDive">認識 VocalDive</a>
       </div>
-      <a class="button primary" href="demo.html#try" data-zh="開始試唱" data-en="Start singing">開始試唱</a>
+      <div class="hero-meta">
+        <div class="meta-pill" data-zh="支援 MusicXML、PDF、圖片樂譜" data-en="Works with MusicXML, PDF, and score images">支援 MusicXML、PDF、圖片樂譜</div>
+        <div class="meta-pill" data-zh="為 iPhone、iPad、macOS 打造" data-en="Built for iPhone, iPad, and macOS">為 iPhone、iPad、macOS 打造</div>
+        <div class="meta-pill" data-zh="適合合唱、自主練習與入門聲樂" data-en="Made for choir practice, self-study, and beginning voice training">適合合唱、自主練習與入門聲樂</div>
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <div class="wave-panel">
+        <div class="panel-title">
+          <span data-zh="今日練習感" data-en="Today's practice pulse">今日練習感</span>
+          <span data-zh="Warm-up" data-en="Warm-up">Warm-up</span>
+        </div>
+        <div class="note-track">
+          <div class="note-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="note-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="note-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="note-row"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <div class="spotlight-panel">
+        <div class="panel-title">
+          <span data-zh="功能聚光燈" data-en="Feature spotlight">功能聚光燈</span>
+          <span data-zh="Tap" data-en="Tap">Tap</span>
+        </div>
+        <div class="spotlight-buttons">
+          <button type="button" class="active" data-spotlight="scan">Scan to MusicXML</button>
+          <button type="button" data-spotlight="editor">MusicXML Editor</button>
+          <button type="button" data-spotlight="practice" data-zh="練習回饋" data-en="Practice feedback">練習回饋</button>
+        </div>
+        <div class="spotlight-copy">
+          <strong id="spotlight-title">Scan to MusicXML</strong>
+          <p id="spotlight-body" data-default-zh="把 PDF 或圖片樂譜帶進來，轉成可校正的 MusicXML 候選稿，再接到同一個編修與練習工作流。" data-default-en="Bring in a PDF or score photo, turn it into a reviewable MusicXML candidate, and continue inside the same editing and practice workflow.">Bring in a PDF or score photo, turn it into a reviewable MusicXML candidate, and continue inside the same editing and practice workflow.</p>
+        </div>
+      </div>
+
+      <div class="rehearsal-panel">
+        <div>
+          <div class="panel-title">
+            <span data-zh="排練節奏" data-en="Rehearsal rhythm">排練節奏</span>
+            <span data-zh="Live" data-en="Live">Live</span>
+          </div>
+          <p style="margin:0;color:var(--muted);" data-zh="從樂譜到練習工具，再到音準回顧，VocalDive 希望讓每天的聲音訓練更連續、更有趣。" data-en="From scores to practice tools to pitch review, VocalDive is meant to make daily voice training feel more continuous and more fun.">從樂譜到練習工具，再到音準回顧，VocalDive 希望讓每天的聲音訓練更連續、更有趣。</p>
+        </div>
+        <div class="rehearsal-orbit">
+          <span class="orbit-dot"></span>
+          <span class="orbit-dot secondary"></span>
+        </div>
+      </div>
     </div>
   </header>
 
   <main>
-    <section>
-      <h2 data-zh="聲海能幫你做什麼" data-en="What Shenghai Helps You Do">聲海能幫你做什麼</h2>
+    <section id="features">
+      <h2 data-zh="你可以在 VocalDive 做什麼" data-en="What you can do in VocalDive">你可以在 VocalDive 做什麼</h2>
+      <p class="section-lead" data-zh="這不是只有播放樂譜的工具。VocalDive 的設計重點是把匯入、理解、修正、練習、回顧串成同一條路。" data-en="This is more than a score viewer. VocalDive is designed to connect importing, understanding, correcting, practicing, and reviewing in one path.">這不是只有播放樂譜的工具。VocalDive 的設計重點是把匯入、理解、修正、練習、回顧串成同一條路。</p>
       <div class="grid">
         <article class="card">
-          <h3 data-zh="匯入樂譜" data-en="Import Scores">匯入樂譜</h3>
-          <p data-zh="把 PDF/圖片或既有樂譜轉成可校正 MusicXML，保留音符、歌詞、速度文字、力度與反覆記號，讓樂譜變成可播放、可分析、可練習的資料。" data-en="Turn PDF/image scores or existing scores into editable MusicXML, preserving notes, lyrics, tempo text, dynamics, and repeats for playback, analysis, and practice.">把 PDF/圖片或既有樂譜轉成可校正 MusicXML，保留音符、歌詞、速度文字、力度與反覆記號，讓樂譜變成可播放、可分析、可練習的資料。</p>
+          <h3 data-zh="Scan to MusicXML" data-en="Scan to MusicXML">Scan to MusicXML</h3>
+          <p data-zh="把 PDF 或圖片樂譜轉成可校對的 MusicXML，讓掃描結果不只是看過就算，而是可以真的接進後續練習。" data-en="Turn PDF or image scores into reviewable MusicXML so scanned material becomes something you can actually keep using.">把 PDF 或圖片樂譜轉成可校對的 MusicXML，讓掃描結果不只是看過就算，而是可以真的接進後續練習。</p>
         </article>
         <article class="card">
-          <h3 data-zh="自己打譜" data-en="Compose Your Own Melody">自己打譜</h3>
-          <p data-zh="在 App 內建立單聲部旋律，加入音符與休止符，匯出 MusicXML 或直接載入練習流程。" data-en="Create single-line melodies, add notes and rests, export MusicXML, or send the draft straight into practice.">在 App 內建立單聲部旋律，加入音符與休止符，匯出 MusicXML 或直接載入練習流程。</p>
+          <h3 data-zh="MusicXML Editor" data-en="MusicXML Editor">MusicXML Editor</h3>
+          <p data-zh="直接開啟或貼上 MusicXML，檢查音符、休止符、歌詞、拍號與調號，然後繼續往播放與練習走。" data-en="Open or paste MusicXML directly, review notes, rests, lyrics, time signatures, and key signatures, then continue into playback and practice.">直接開啟或貼上 MusicXML，檢查音符、休止符、歌詞、拍號與調號，然後繼續往播放與練習走。</p>
         </article>
         <article class="card">
-          <h3 data-zh="選擇聲部練習" data-en="Practice Your Part">選擇聲部練習</h3>
-          <p data-zh="合唱團員可以專注自己的聲部，也能搭配播放與節拍工具練習進入點。" data-en="Choir singers can focus on their own line while using playback and rhythm tools to rehearse entrances.">合唱團員可以專注自己的聲部，也能搭配播放與節拍工具練習進入點。</p>
+          <h3 data-zh="聲部練習" data-en="Part Practice">聲部練習</h3>
+          <p data-zh="把自己的聲部單獨拉出來練，搭配節拍器、標準音與鋼琴音，減少每次進排前的混亂感。" data-en="Pull out your own line for focused rehearsal, with metronome, tuning fork, and piano tones to make prep less chaotic.">把自己的聲部單獨拉出來練，搭配節拍器、標準音與鋼琴音，減少每次進排前的混亂感。</p>
         </article>
         <article class="card">
-          <h3 data-zh="音準與節奏回饋" data-en="Pitch and Rhythm Feedback">音準與節奏回饋</h3>
-          <p data-zh="透過目標音高時間線與麥克風追蹤，逐步建立唱準、唱穩、回顧錯誤的能力。" data-en="Use target pitch timelines and microphone tracking to understand mistakes and build steadier singing.">透過目標音高時間線與麥克風追蹤，逐步建立唱準、唱穩、回顧錯誤的能力。</p>
+          <h3 data-zh="音準回顧" data-en="Pitch Review">音準回顧</h3>
+          <p data-zh="透過目標音高時間線與麥克風輸入，幫助你知道自己在哪些地方偏高、偏低，或需要再熟悉。" data-en="Use target-pitch timelines and microphone input to understand where your singing runs sharp, flat, or still needs more familiarity.">透過目標音高時間線與麥克風輸入，幫助你知道自己在哪些地方偏高、偏低，或需要再熟悉。</p>
         </article>
         <article class="card">
-          <h3 data-zh="清楚標註譜面" data-en="Annotate Scores Clearly">清楚標註譜面</h3>
-          <p data-zh="使用向量筆跡標註譜面，放大時仍保持清晰，適合記錄呼吸、換氣、咬字與指揮提醒。" data-en="Use vector ink annotations that stay sharp when zoomed, ideal for breath marks, diction, and rehearsal notes.">使用向量筆跡標註譜面，放大時仍保持清晰，適合記錄呼吸、換氣、咬字與指揮提醒。</p>
+          <h3 data-zh="清晰標註" data-en="Clear Annotation">清晰標註</h3>
+          <p data-zh="把換氣、咬字、進入點與指揮提醒留在譜上，而且放大時仍保持清楚。" data-en="Keep breathing marks, diction reminders, entrances, and conductor notes on the score without turning into blurry pixels when zoomed.">把換氣、咬字、進入點與指揮提醒留在譜上，而且放大時仍保持清楚。</p>
         </article>
         <article class="card">
-          <h3 data-zh="練習工具" data-en="Practice Tools">練習工具</h3>
-          <p data-zh="內建節拍器、鋼琴音、標準音，讓你在練聲部前快速建立音高與節奏中心。" data-en="Built-in metronome, piano tones, and tuning fork help you establish pitch and rhythm before practice.">內建節拍器、鋼琴音、標準音，讓你在練聲部前快速建立音高與節奏中心。</p>
-        </article>
-        <article class="card">
-          <h3 data-zh="練習時間統計" data-en="Practice Time Tracking">練習時間統計</h3>
-          <p data-zh="查看每日使用趨勢與各功能使用時間，幫助你知道自己是否穩定練習。" data-en="Track daily usage trends and feature time so you can see whether your practice is consistent.">查看每日使用趨勢與各功能使用時間，幫助你知道自己是否穩定練習。</p>
-        </article>
-        <article class="card">
-          <h3 data-zh="實驗唱歌鬧鐘" data-en="Experimental Singing Alarm">實驗唱歌鬧鐘</h3>
-          <p data-zh="用 Happy Birthday 作為第一個模板，嘗試把起床變成唱完整首歌才在 App 內解除的挑戰。" data-en="Use Happy Birthday as the first template for a wake-up challenge that resolves inside the app after a full-song performance.">用 Happy Birthday 作為第一個模板，嘗試把起床變成唱完整首歌才在 App 內解除的挑戰。</p>
-        </article>
-        <article class="card">
-          <h3 data-zh="文字節奏朗讀" data-en="Text Rhythm Speech">文字節奏朗讀</h3>
-          <p data-zh="匯入合法可使用的英文、中文或中英混合段落，讓聲海依標點切出 phrase 並產生節奏提示，練習後查看清晰度、語速、節奏貼合、phrase match 與完成度。" data-en="Import legally usable English, Chinese, or mixed bilingual paragraphs. Shenghai splits them into phrases from punctuation, generates rhythm cues, and then reviews clarity, rate, rhythm alignment, phrase match, and completion.">匯入合法可使用的英文、中文或中英混合段落，讓聲海依標點切出 phrase 並產生節奏提示，練習後查看清晰度、語速、節奏貼合、phrase match 與完成度。</p>
+          <h3 data-zh="練習記錄" data-en="Practice History">練習記錄</h3>
+          <p data-zh="查看每天的使用時間與訓練節奏，讓練習不只靠感覺，而是真的有累積。" data-en="Review daily usage time and training rhythm so your practice builds from actual consistency instead of guesswork.">查看每天的使用時間與訓練節奏，讓練習不只靠感覺，而是真的有累積。</p>
         </article>
       </div>
     </section>
 
-    <section>
-      <h2 data-zh="新手使用流程" data-en="Beginner Workflow">新手使用流程</h2>
+    <section id="workflow">
+      <h2 data-zh="開始使用很簡單" data-en="A simple way to get started">開始使用很簡單</h2>
       <div class="flow">
         <div class="step">
-          <div><strong data-zh="掃描、匯入或自己打譜" data-en="Scan, import, or compose">掃描、匯入或自己打譜</strong><span data-zh="從 PDF/圖片辨識出的 MusicXML、既有 MusicXML，或 Compose 建立的旋律開始。" data-en="Start from MusicXML recognized from a PDF/image, an existing MusicXML file, or a melody created in Compose.">從 PDF/圖片辨識出的 MusicXML、既有 MusicXML，或 Compose 建立的旋律開始。</span></div>
+          <div class="step-number">1</div>
+          <strong data-zh="帶入你的樂譜" data-en="Bring in your score">帶入你的樂譜</strong>
+          <span data-zh="從 MusicXML、PDF、圖片樂譜，或自己建立旋律開始。" data-en="Start with MusicXML, a PDF, score images, or a melody you create from scratch.">從 MusicXML、PDF、圖片樂譜，或自己建立旋律開始。</span>
         </div>
         <div class="step">
-          <div><strong data-zh="校正 MusicXML 候選稿" data-en="Correct the MusicXML candidate">校正 MusicXML 候選稿</strong><span data-zh="檢查標題、聲部、小節、音符、休止符、歌詞、力度、速度文字、反覆記號與版面，再進入練習。" data-en="Check title, parts, measures, notes, rests, lyrics, dynamics, tempo text, repeats, and layout before practice.">檢查標題、聲部、小節、音符、休止符、歌詞、力度、速度文字、反覆記號與版面，再進入練習。</span></div>
+          <div class="step-number">2</div>
+          <strong data-zh="校對與整理" data-en="Review and clean it up">校對與整理</strong>
+          <span data-zh="把掃描結果修正成可用的 MusicXML，讓後面的播放與練習更可靠。" data-en="Turn scan results into usable MusicXML so playback and practice become more dependable.">把掃描結果修正成可用的 MusicXML，讓後面的播放與練習更可靠。</span>
         </div>
         <div class="step">
-          <div><strong data-zh="選擇要練的聲部" data-en="Choose the line you want to practice">選擇要練的聲部</strong><span data-zh="例如 Soprano、Alto、Tenor、Bass，或你的獨唱旋律線。" data-en="Choose Soprano, Alto, Tenor, Bass, or a solo melody line.">例如 Soprano、Alto、Tenor、Bass，或你的獨唱旋律線。</span></div>
+          <div class="step-number">3</div>
+          <strong data-zh="開始練聲部" data-en="Practice your part">開始練聲部</strong>
+          <span data-zh="搭配播放、節拍器、鋼琴音與標準音，把譜面真正唱進身體裡。" data-en="Use playback, metronome, piano tones, and tuning fork support to sing the score into your body.">搭配播放、節拍器、鋼琴音與標準音，把譜面真正唱進身體裡。</span>
         </div>
         <div class="step">
-          <div><strong data-zh="播放、標註、練習" data-en="Play, annotate, and practice">播放、標註、練習</strong><span data-zh="用播放、節拍器、鋼琴與標準音建立練習基準，再把提醒寫在譜上。" data-en="Use playback, metronome, piano, and tuning fork tools, then write useful reminders directly on the score.">用播放、節拍器、鋼琴與標準音建立練習基準，再把提醒寫在譜上。</span></div>
-        </div>
-        <div class="step">
-          <div><strong data-zh="追蹤表現與回饋" data-en="Track performance and feedback">追蹤表現與回饋</strong><span data-zh="查看音準偏差、練習時間與待修正處，讓下一次練習更有效。" data-en="Review pitch errors, practice time, and correction points so the next session is more focused.">查看音準偏差、練習時間與待修正處，讓下一次練習更有效。</span></div>
+          <div class="step-number">4</div>
+          <strong data-zh="看見你的進步" data-en="See your progress">看見你的進步</strong>
+          <span data-zh="回頭看音準、時間與重點提醒，讓下一次練習更輕鬆進入狀態。" data-en="Review pitch, time, and notes to yourself so the next session starts with less friction.">回頭看音準、時間與重點提醒，讓下一次練習更輕鬆進入狀態。</span>
         </div>
       </div>
     </section>
 
-    <section>
-      <h2 data-zh="目前適合誰" data-en="Who It Is For Now">目前適合誰</h2>
-      <div class="grid">
-        <article class="card">
-          <h3 data-zh="合唱團員" data-en="Choir Singers">合唱團員</h3>
-          <p data-zh="快速過譜、熟悉聲部、記錄排練提醒。" data-en="Learn notes faster, rehearse your part, and keep rehearsal reminders in one place.">快速過譜、熟悉聲部、記錄排練提醒。</p>
-        </article>
-        <article class="card">
-          <h3 data-zh="聲樂初學者" data-en="Beginner Singers">聲樂初學者</h3>
-          <p data-zh="建立音準意識，追蹤每天練習習慣。" data-en="Build pitch awareness and track everyday singing habits.">建立音準意識，追蹤每天練習習慣。</p>
-        </article>
-        <article class="card">
-          <h3 data-zh="音樂學習者" data-en="Music Learners">音樂學習者</h3>
-          <p data-zh="把視唱、音程、譜面標註與聲音回顧放在同一個工作流。" data-en="Bring sight-singing, intervals, score annotation, and vocal review into one workflow.">把視唱、音程、譜面標註與聲音回顧放在同一個工作流。</p>
-        </article>
+    <section id="about">
+      <h2 data-zh="About Us" data-en="About Us">About Us</h2>
+      <div class="about-grid">
+        <div class="about-card">
+          <span class="mini-kicker" data-zh="由合唱練習的真實需求出發" data-en="Built from a real choir practice need">由合唱練習的真實需求出發</span>
+          <p class="section-lead" style="margin-bottom:0;max-width:none;" data-zh="VocalDive 由開發者 Chien, Chien-Hsiang 發起。他是台灣大學合唱團團員，也是一位真心熱愛合唱音樂的人。這個產品的起點很直接：當一首曲子需要反覆過譜、背譜、找音準、記排練提醒時，應該有一個更貼近歌者思路的工具。" data-en="VocalDive is created by developer Chien, Chien-Hsiang, a National Taiwan University chorus member who genuinely loves choral music. The project began from a simple feeling: when a piece asks you to read, memorize, tune, and annotate the same score again and again, singers deserve a tool that thinks more like they do.">VocalDive 由開發者 Chien, Chien-Hsiang 發起。他是台灣大學合唱團團員，也是一位真心熱愛合唱音樂的人。這個產品的起點很直接：當一首曲子需要反覆過譜、背譜、找音準、記排練提醒時，應該有一個更貼近歌者思路的工具。</p>
+        </div>
+        <aside class="contact-card">
+          <span class="mini-kicker" data-zh="一起把它做得更好" data-en="Help shape the next rehearsal">一起把它做得更好</span>
+          <h3 style="margin:0 0 8px;" data-zh="聯絡方式" data-en="Contact">聯絡方式</h3>
+          <p style="margin:0;color:var(--muted);" data-zh="如果你正在合唱、學唱歌，或只是對這個方向有想法，都很歡迎寫信來。" data-en="If you sing in a chorus, are learning to sing, or simply have ideas for where this could go, you are very welcome to reach out.">如果你正在合唱、學唱歌，或只是對這個方向有想法，都很歡迎寫信來。</p>
+          <div class="contact-list">
+            <div class="contact-item">
+              <strong data-zh="官方網站" data-en="Official Website">官方網站</strong><br>
+              <a href="https://www.vocaldive.com">www.vocaldive.com</a>
+            </div>
+            <div class="contact-item">
+              <strong data-zh="支援信箱" data-en="Support Email">支援信箱</strong><br>
+              <a href="mailto:support@vocaldive.com">support@vocaldive.com</a>
+            </div>
+          </div>
+        </aside>
       </div>
     </section>
   </main>
 
-  <footer data-zh="聲海目前仍在 Alpha 內測階段。功能會持續更新，若遇到問題或有想法，歡迎送出回饋。" data-en="Shenghai is currently in Alpha testing. Features will keep improving; if you find a problem or have an idea, please send feedback.">
-    聲海目前仍在 Alpha 內測階段。功能會持續更新，若遇到問題或有想法，歡迎送出回饋。
+  <footer data-zh="VocalDive 聲潛目前仍在持續開發中。歡迎透過 support@vocaldive.com 分享想法、建議與使用心得。" data-en="VocalDive is still actively evolving. Feel free to share ideas, suggestions, and practice stories at support@vocaldive.com.">
+    VocalDive 聲潛目前仍在持續開發中。歡迎透過 support@vocaldive.com 分享想法、建議與使用心得。
   </footer>
+
   <script src="i18n.js"></script>
+  <script>
+    (() => {
+      const spotlightCopy = {
+        scan: {
+          zh: {
+            title: "Scan to MusicXML",
+            body: "把 PDF 或圖片樂譜帶進來，轉成可校正的 MusicXML 候選稿，再接到同一個編修與練習工作流。"
+          },
+          en: {
+            title: "Scan to MusicXML",
+            body: "Bring in a PDF or score photo, turn it into a reviewable MusicXML candidate, and continue inside the same editing and practice workflow."
+          }
+        },
+        editor: {
+          zh: {
+            title: "MusicXML Editor",
+            body: "直接開啟 MusicXML，修正音符、歌詞、拍號與調號，讓掃描結果或既有樂譜真正變成可用資料。"
+          },
+          en: {
+            title: "MusicXML Editor",
+            body: "Open MusicXML directly, refine notes, lyrics, time signatures, and key signatures, and turn raw score data into something truly usable."
+          }
+        },
+        practice: {
+          zh: {
+            title: "練習回饋",
+            body: "把聲部練習、節拍器、鋼琴音與音準回顧收進一個畫面裡，讓你更快知道下一次該練哪裡。"
+          },
+          en: {
+            title: "Practice Feedback",
+            body: "Keep part practice, metronome support, piano tones, and pitch review in one place so you know faster what to work on next."
+          }
+        }
+      };
+
+      const titleNode = document.getElementById('spotlight-title');
+      const bodyNode = document.getElementById('spotlight-body');
+      const buttons = Array.from(document.querySelectorAll('[data-spotlight]'));
+
+      function currentLanguage() {
+        return document.documentElement.lang && document.documentElement.lang.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      }
+
+      function setSpotlight(key) {
+        const language = currentLanguage();
+        const copy = spotlightCopy[key]?.[language];
+        if (!copy) return;
+        titleNode.textContent = copy.title;
+        bodyNode.textContent = copy.body;
+        buttons.forEach(button => button.classList.toggle('active', button.dataset.spotlight === key));
+      }
+
+      buttons.forEach(button => {
+        button.addEventListener('click', () => setSpotlight(button.dataset.spotlight));
+      });
+
+      window.addEventListener('vocaldive:languagechange', () => {
+        const active = document.querySelector('[data-spotlight].active')?.dataset.spotlight || 'scan';
+        setSpotlight(active);
+      });
+
+      setSpotlight('scan');
+    })();
+  </script>
 </body>
 </html>

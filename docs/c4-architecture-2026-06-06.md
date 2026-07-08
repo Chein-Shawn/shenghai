@@ -6,7 +6,7 @@ Date: 2026-06-06
 
 ```text
 Singer / Choir Member
-  -> uses Shenghai App
+  -> uses VocalDive App
   -> imports MusicXML or OMR-derived score
   -> practices with playback, pitch feedback, annotation, and usage tracking
 
@@ -28,14 +28,14 @@ External Systems
 ## Level 2: Containers
 
 ```text
-Shenghai Apple App
+VocalDive Apple App
   - iPhone, iPad, macOS
   - SwiftUI app shell
   - local-first data and practice UI
   - Settings sync control and first-run sync choice
   - Score area split into direct MusicXML editing and scan-to-MusicXML intake
 
-ShenghaiCore
+VocalDiveCore
   - MusicXML parser
   - ScoreDocument model
   - MIDI event generation
@@ -87,7 +87,7 @@ SwiftUI App
     UsageStatsView
 
 App Services
-  ShenghaiWorkspace
+  VocalDiveWorkspace
     - app state
     - selected score and part
     - compact iPhone Score hub mode coordination
@@ -126,8 +126,9 @@ App Services
     - copies score assets into Application Support
     - switches active data universe when sync is enabled or disabled
   Localization layer
-    - `L10n`, `AppLanguage`, `AppSettingsStore`
+    - `L10n`, `AppLanguage`, `AppSettingsStore`, `AppResourceLocator`
     - app-side rendering of semantic text tokens from core
+    - shared bundle resource resolution for localized strings, app JSON config, OSMD assets, and bundled sample scores across both SwiftPM and Xcode app-target builds
   ExperimentalFeaturesView
     - sing-to-dismiss alarm prototype
     - bilingual text rhythm speech prototype
@@ -163,7 +164,7 @@ MusicXML file
 
 ```text
 Pasted or imported MusicXML
-  -> ShenghaiWorkspace import path
+  -> VocalDiveWorkspace import path
   -> MusicXMLImporter
   -> ScoreDocument
   -> MusicXMLEditorSession
@@ -244,7 +245,7 @@ Imported MusicXML / composed score
   -> Application Support score file
   -> PersistenceCoordinator
   -> ScoreLibraryItemRecord + selected score setting
-  -> ShenghaiWorkspace restore path on next launch
+  -> VocalDiveWorkspace restore path on next launch
 
 Display language / sync preference / usage records
   -> UserProfileSettingsRecord + UsageAnalyticsRecord
@@ -288,8 +289,8 @@ Bundled Twinkle intact / scanned fixtures
 The app is correctly moving toward a shared-core architecture:
 
 - Apple UI can differ by device later.
-- Domain logic stays in `ShenghaiCore`.
-- Localization stays in `ShenghaiApp`; core exposes semantic identifiers instead of localized strings.
+- Domain logic stays in `VocalDiveCore`.
+- Localization stays in `VocalDiveApp`; core exposes semantic identifiers instead of localized strings.
 - iOS, iPadOS, and macOS share the same parser, pitch timeline, alignment, and usage analytics.
 - Durable user data now belongs in a structured persistence layer rather than scattered `UserDefaults` blobs.
 - External OMR providers remain the higher-accuracy research baselines.
@@ -297,3 +298,16 @@ The app is correctly moving toward a shared-core architecture:
 - A real bundled recognition model can replace the current prototype estimator later without changing the surrounding review workflow.
 - The `Score` area is now intentionally split: direct MusicXML editing iterates separately from scan-to-MusicXML, while both converge on the same editor surface and score model.
 - The current formal engraving layer is bundled `OSMD` inside a local web view, while the native Swift symbolic panels remain the structured editing and benchmark surface.
+
+
+### 2026-07-08 update - oemer migration framing
+
+The OMR architecture should now be treated as a five-layer porting problem rather than a single monolithic provider swap:
+
+1. native PDF/photo preprocessing
+2. portable model inference runtime
+3. shared Swift symbol reconstruction
+4. score semantics and MusicXML export
+5. editor/review handoff inside the existing `Scan to MusicXML` flow
+
+This keeps the user-facing product surface simple while allowing `oemer` to remain a parity reference instead of a pretend in-app runtime.
