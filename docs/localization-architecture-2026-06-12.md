@@ -1,4 +1,4 @@
-# Shenghai Localization Architecture
+# VocalDive Localization Architecture
 
 ## Goal
 - One shared localization system for iPhone, iPad, and macOS
@@ -32,7 +32,7 @@
    - Single translation entrypoint for visible UI strings
    - Supports plain strings and formatted strings
 
-4. `ShenghaiApp`
+4. `VocalDiveApp`
    - Applies selected language to the running app
    - Applies right-to-left layout for Arabic
    - Forces UI refresh when display language changes
@@ -42,7 +42,7 @@
 
 6. `LocalizedPresentation`
    - Maps shared-core enums and semantic tokens into app-localized display strings
-   - Keeps `ShenghaiCore` free of direct `L10n` calls
+   - Keeps `VocalDiveCore` free of direct `L10n` calls
 
 ## Best Management Pattern
 - Never leave user-facing text directly hardcoded in a view
@@ -83,4 +83,4 @@
 - Single language setting
 - Easy Git diffing
 - Easy reuse across Apple platforms
-- Low friction while Shenghai is still changing quickly
+- Low friction while VocalDive is still changing quickly

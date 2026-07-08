@@ -4,7 +4,7 @@ Date: 2026-06-06
 
 ## Summary
 
-Added three core rehearsal utilities to the Shenghai practice view:
+Added three core rehearsal utilities to the VocalDive practice view:
 
 - Metronome
 - Piano reference keys

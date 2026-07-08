@@ -8,7 +8,7 @@ Implemented the next core MVP step:
 
 `MusicXML -> ScoreDocument -> target pitch timeline`
 
-This lets Shenghai know which note the singer is expected to sing at each time position, so live pitch tracking can move toward score-aligned feedback and red-marking wrong notes.
+This lets VocalDive know which note the singer is expected to sing at each time position, so live pitch tracking can move toward score-aligned feedback and red-marking wrong notes.
 
 ## Parser Improvements
 
@@ -46,7 +46,7 @@ This lets Shenghai know which note the singer is expected to sing at each time p
 
 ## Why This Matters
 
-Before this change, Shenghai could detect sung pitch but could not reliably connect a sung sample to the expected score note. Now the app can ask:
+Before this change, VocalDive could detect sung pitch but could not reliably connect a sung sample to the expected score note. Now the app can ask:
 
 - At `time = 1.5s`, what measure/note is expected?
 - Is the sung pitch sharp, flat, or in tune relative to that note?

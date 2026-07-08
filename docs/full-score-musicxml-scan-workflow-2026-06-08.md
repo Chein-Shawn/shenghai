@@ -8,7 +8,7 @@ PDF / image score
 -> OMR provider
 -> editable MusicXML candidate
 -> user review and correction
--> Shenghai ScoreDocument
+-> VocalDive ScoreDocument
 -> annotations, playback, pitch tracking, practice history
 ```
 
@@ -31,7 +31,7 @@ The important design decision is that OMR output is never treated as final. It b
 - `ScoreWorkspaceView` exposes `Full-Score MusicXML Review` as a visible app workflow.
 
 ## Current Boundary
-Shenghai can import and review MusicXML candidates now.
+VocalDive can import and review MusicXML candidates now.
 
-The actual PDF/image to MusicXML recognition engine is still external for this prototype. homr, oemer, or Audiveris can generate the MusicXML candidate; Shenghai then reviews, corrects, and uses that candidate for practice features.
+The actual PDF/image to MusicXML recognition engine is still external for this prototype. homr, oemer, or Audiveris can generate the MusicXML candidate; VocalDive then reviews, corrects, and uses that candidate for practice features.
 

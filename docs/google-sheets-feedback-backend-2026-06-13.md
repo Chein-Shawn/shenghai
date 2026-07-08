@@ -4,7 +4,7 @@ Date: 2026-06-13
 
 ## Goal
 
-Keep Shenghai feedback native inside the app, but store it in a free, stable backend that is easy to manage.
+Keep VocalDive feedback native inside the app, but store it in a free, stable backend that is easy to manage.
 
 Chosen v1 path:
 
@@ -55,6 +55,6 @@ Settings > Feedback
 The repo now contains the app-side integration and the Apps Script backend file, but the live feedback endpoint only starts working after:
 
 1. you deploy the Apps Script web app
-2. you paste the `/exec` URL into [FeedbackConfiguration.json](/Users/shawn/Documents/Codex/shenghai/ios-app/ShenghaiCore/Sources/ShenghaiApp/Resources/FeedbackConfiguration.json)
+2. you paste the `/exec` URL into [FeedbackConfiguration.json](/Users/shawn/Documents/Codex/vocaldive/ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/FeedbackConfiguration.json)
 
 Until then, the app shows feedback as unavailable instead of pretending it was sent.

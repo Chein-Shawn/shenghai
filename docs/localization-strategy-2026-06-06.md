@@ -4,7 +4,7 @@ Date: 2026-06-06
 
 ## Goal
 
-Shenghai should support at least:
+VocalDive should support at least:
 
 - Traditional Chinese
 - English
@@ -15,7 +15,7 @@ Shenghai should support at least:
 Use Xcode String Catalogs:
 
 ```text
-Shenghai.xcstrings
+VocalDive.xcstrings
   en
   zh-Hant
   ja
@@ -63,7 +63,7 @@ Text("Imported \(fileName)")
 ```text
 OMR = Optical Music Recognition
 MusicXML = MusicXML
-ScoreDocument = Shenghai ScoreDocument
+ScoreDocument = VocalDive ScoreDocument
 Pitch deviation = 音高偏差
 Timing offset = 節奏偏移 / 起音偏移
 ```
@@ -91,7 +91,7 @@ Research notes:
 ## MVP Plan
 
 1. Keep current UI English while prototyping.
-2. Add `Shenghai.xcstrings` when UI stabilizes.
+2. Add `VocalDive.xcstrings` when UI stabilizes.
 3. Extract app navigation, support, usage, score, and practice labels first.
 4. Add Traditional Chinese after feature names settle.
 5. Use the support site for longer translated explanations.

@@ -11,7 +11,7 @@
 第一版不從零開發主要樂譜格式，而是採用市面標準格式與聲海自家 wrapper：
 
 - MusicXML / .mxl：主要樂譜交換格式，用於 OMR 後輸出與跨軟體交換。
-- Shenghai ScoreDocument JSON：聲海內部專案檔，保存 OMR 結果、手動校正、反覆記號展開、小節播放順序、同步點與練習紀錄。
+- VocalDive ScoreDocument JSON：聲海內部專案檔，保存 OMR 結果、手動校正、反覆記號展開、小節播放順序、同步點與練習紀錄。
 - MIDI：播放中介格式，用於把樂譜轉成可聽的事件時間軸。
 - WAV / AAC：展示或輸出音檔格式。
 - SMuFL：未來樂譜符號字型與渲染標準。
@@ -19,14 +19,14 @@
 
 ## OMR 到播放 Pipeline
 
-PDF / 圖片樂譜 → 影像前處理 → Audiveris OMR baseline → MusicXML / MXL → MusicXML Parser → Shenghai ScoreDocument → 反覆記號展開 → 手動校正音高/小節 → MIDI Event Timeline → 音源合成播放 → WAV / AAC 或 app 內播放。
+PDF / 圖片樂譜 → 影像前處理 → Audiveris OMR baseline → MusicXML / MXL → MusicXML Parser → VocalDive ScoreDocument → 反覆記號展開 → 手動校正音高/小節 → MIDI Event Timeline → 音源合成播放 → WAV / AAC 或 app 內播放。
 
 ## 本機實作進度
 
 已在本機建立專案資料夾：
 
 ```text
-/Users/shawn/Documents/Codex/shenghai
+/Users/shawn/Documents/Codex/vocaldive
 ```
 
 已建立結構：
@@ -54,13 +54,13 @@ MusicXML -> ScoreDocument JSON -> MIDI
 
 已透過瀏覽器建立 private GitHub repo：
 
-https://github.com/Chein-Shawn/shenghai
+https://github.com/Chein-Shawn/vocaldive
 
 目前狀態：repo 已建立，但本機 `git push` 因 private repo HTTPS 認證不足失敗；GitHub connector 也尚未被授權存取這個新 private repo。
 
 需要下一步權限：
 
-- 讓 GitHub App / connector 存取 `Chein-Shawn/shenghai`，或
+- 讓 GitHub App / connector 存取 `Chein-Shawn/vocaldive`，或
 - 在本機 Git 設定可推送 private repo 的 GitHub 認證，或
 - 手動在 GitHub repo 頁面完成 push instructions。
 

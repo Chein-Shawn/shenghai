@@ -8,11 +8,11 @@ The feature is designed for practice tracking, not medical claims. It can help u
 ## User flow
 1. User imports or selects a legal text prompt.
 2. User chooses a category and a paragraph that may be English, Chinese, or mixed Chinese/English.
-3. Shenghai splits the text into phrases using punctuation and line breaks.
-4. Shenghai generates rhythm cues phrase by phrase.
+3. VocalDive splits the text into phrases using punctuation and line breaks.
+4. VocalDive generates rhythm cues phrase by phrase.
 5. User practices with the rhythm guide on.
 6. User turns the rhythm guide off and repeats the paragraph.
-7. Shenghai compares the attempts across clarity, rate, rhythm alignment, phrase match, and completion.
+7. VocalDive compares the attempts across clarity, rate, rhythm alignment, phrase match, and completion.
 
 ## Metrics
 - `clarityScore`: proxy based on expected cue text matching the spoken/sung result.
@@ -34,7 +34,7 @@ The feature is designed for practice tracking, not medical claims. It can help u
 Do not import copyrighted articles, books, lyrics, news text, or poems unless the user owns the text or has permission.
 
 Good first sources:
-- Original Shenghai sample text.
+- Original VocalDive sample text.
 - User-written paragraphs.
 - Public-domain text.
 - Explicitly licensed educational text.

@@ -4,7 +4,7 @@ Date: 2026-06-06
 
 ## Summary
 
-Current Shenghai code is mostly original Swift implementation plus standard Apple frameworks. The main legal risk is not the code currently in the repo; it is future integration with external score recognition, YouTube audio, pretrained models, SoundFonts, and commercial score/audio content.
+Current VocalDive code is mostly original Swift implementation plus standard Apple frameworks. The main legal risk is not the code currently in the repo; it is future integration with external score recognition, YouTube audio, pretrained models, SoundFonts, and commercial score/audio content.
 
 ## Current Code / Algorithm Status
 
@@ -23,7 +23,7 @@ Current Shenghai code is mostly original Swift implementation plus standard Appl
 
 ## YIN Pitch Tracking
 
-YIN is an academic algorithm. Implementing the idea from the paper is generally different from copying code. Current Shenghai has its own Swift implementation, not a pasted third-party library.
+YIN is an academic algorithm. Implementing the idea from the paper is generally different from copying code. Current VocalDive has its own Swift implementation, not a pasted third-party library.
 
 Action before launch:
 
@@ -63,12 +63,12 @@ Action before launch:
 
 ## OSMD
 
-OpenSheetMusicDisplay is now the first bundled MusicXML rendering surface for Shenghai's editor path. It is used through a local `WKWebView` bundle, not a remote CDN.
+OpenSheetMusicDisplay is now the first bundled MusicXML rendering surface for VocalDive's editor path. It is used through a local `WKWebView` bundle, not a remote CDN.
 
 Current integration intent:
 
 - render imported or scanned MusicXML into a score view that is closer to formal engraving than the temporary native Swift summary staff
-- keep editing logic, selection state, and score persistence in Shenghai's own Swift code
+- keep editing logic, selection state, and score persistence in VocalDive's own Swift code
 - vendor the minified renderer and carry its license text in the repo
 
 Action before launch:
@@ -76,7 +76,7 @@ Action before launch:
 - keep the vendored `OSMD` files versioned and traceable
 - preserve the BSD-3-Clause license text in the shipped source tree
 - document upgrades when replacing the bundled renderer version
-- avoid presenting OSMD output as if Shenghai authored that engraving engine
+- avoid presenting OSMD output as if VocalDive authored that engraving engine
 
 ## MuseScore / forScore / Goodnotes / Notability UI References
 
@@ -84,7 +84,7 @@ It is fine to study product patterns, but do not copy visual designs, icons, lay
 
 Action before launch:
 
-- Use original Shenghai visual identity.
+- Use original VocalDive visual identity.
 - Use Apple SF Symbols and system UI patterns.
 - Cite products as competitive inspiration in internal docs, not as copied design sources.
 

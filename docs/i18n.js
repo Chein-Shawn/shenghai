@@ -1,5 +1,5 @@
 (() => {
-  const storageKey = "shenghai-language";
+  const storageKey = "vocaldive-language";
   const normalizeLanguage = value => String(value || "").toLowerCase().startsWith("zh") ? "zh-Hant" : "en";
 
   function getPreferredLanguage() {
@@ -39,7 +39,7 @@
       if (descriptionText) description.setAttribute("content", descriptionText);
     }
 
-    window.dispatchEvent(new CustomEvent("shenghai:languagechange", { detail: { language: normalized } }));
+    window.dispatchEvent(new CustomEvent("vocaldive:languagechange", { detail: { language: normalized } }));
   }
 
   function initLanguageSwitcher() {
@@ -49,7 +49,7 @@
     applyLanguage(getPreferredLanguage());
   }
 
-  window.shenghaiI18n = {
+  window.vocaldiveI18n = {
     getLanguage: () => normalizeLanguage(localStorage.getItem(storageKey) || document.documentElement.lang || getPreferredLanguage()),
     setLanguage: applyLanguage
   };

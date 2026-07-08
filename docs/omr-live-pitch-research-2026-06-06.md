@@ -100,7 +100,7 @@ Source: https://www.mdpi.com/2076-3417/12/14/7026
 - `YINPitchTracker.swift`: YIN-style monophonic pitch tracker.
 - `LivePitchCaptureService.swift`: AVAudioEngine microphone tap + YIN pitch tracking.
 - `PracticeView.swift`: live microphone prototype UI.
-- `ShenghaiCoreTests.swift`: synthetic A4 pitch detection and Audiveris command tests.
+- `VocalDiveCoreTests.swift`: synthetic A4 pitch detection and Audiveris command tests.
 
 ## 下一步
 

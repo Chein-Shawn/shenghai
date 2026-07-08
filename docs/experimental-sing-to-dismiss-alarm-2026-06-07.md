@@ -1,14 +1,14 @@
 # Experimental Sing-to-Dismiss Alarm
 
 ## Goal
-Create a motivational alarm challenge where Shenghai asks the user to sing a whole song before the app marks the alarm as resolved.
+Create a motivational alarm challenge where VocalDive asks the user to sing a whole song before the app marks the alarm as resolved.
 
 This belongs in `Experimental` because it mixes habit design, sleep/wake behavior, microphone input, accessibility, and Apple platform limits.
 
 ## Current feasible version
-- Shenghai schedules a system alert or notification for the wake time.
-- The alert guides the user to open Shenghai.
-- Shenghai starts a full-song singing challenge, currently using `Happy Birthday` as the first demo template.
+- VocalDive schedules a system alert or notification for the wake time.
+- The alert guides the user to open VocalDive.
+- VocalDive starts a full-song singing challenge, currently using `Happy Birthday` as the first demo template.
 - The app tracks:
   - target note coverage
   - in-tune ratio
@@ -18,7 +18,7 @@ This belongs in `Experimental` because it mixes habit design, sleep/wake behavio
 - The app-level alarm state is marked resolved only when coverage and pitch thresholds are met.
 
 ## Platform boundary
-On the current package targets, iOS 17 and macOS 14, Shenghai should not promise that it can force an alarm to keep ringing, record the microphone, or prevent dismissal while the app is closed, the screen is off, the device is muted, Focus is active, the device is powered off, or notifications are disabled.
+On the current package targets, iOS 17 and macOS 14, VocalDive should not promise that it can force an alarm to keep ringing, record the microphone, or prevent dismissal while the app is closed, the screen is off, the device is muted, Focus is active, the device is powered off, or notifications are disabled.
 
 Apple's user notification system can deliver alerts when the app is inactive, and newer AlarmKit APIs can create more prominent alarm presentations on newer iOS versions. The actual singing challenge still needs the app to open and use microphone permission.
 

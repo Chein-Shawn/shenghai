@@ -6,7 +6,7 @@ Date: 2026-06-07
 
 Singing and music therapy should **not** be described as curing autism or other medical conditions. Autism is a lifelong neurodevelopmental condition, not a disease to be cured. The evidence is better framed as: music and singing may support communication, social participation, emotional regulation, voice, breathing, quality of life, or rehabilitation outcomes for some people.
 
-For Shenghai, this means the feature should live under **Experimental Features**, with clear language:
+For VocalDive, this means the feature should live under **Experimental Features**, with clear language:
 
 - Not a medical device.
 - Not a diagnosis, cure, or replacement for speech therapy, occupational therapy, psychotherapy, pulmonary rehabilitation, neurology care, or music therapy.
@@ -39,7 +39,7 @@ Notes:
 - The review included 26 studies and 1165 participants.
 - Cochrane reports moderate-certainty evidence for global improvement, quality of life, total autism symptom severity, and no increase in adverse events immediately after intervention.
 - It also states that evidence was unclear for social interaction, verbal communication, and non-verbal communication after therapy.
-- Product use: Shenghai must avoid promising communication improvement. It can provide structured music interaction tasks and track observable practice signals.
+- Product use: VocalDive must avoid promising communication improvement. It can provide structured music interaction tasks and track observable practice signals.
 
 Feature implication:
 
@@ -59,7 +59,7 @@ Notes:
 
 Feature implication:
 
-- Add session notes and outcome tracking so Shenghai can eventually collect ethically reviewed pilot data.
+- Add session notes and outcome tracking so VocalDive can eventually collect ethically reviewed pilot data.
 - Include a “research status: mixed evidence” badge.
 
 ### 3. Auditory-Motor Mapping Training for minimally verbal autistic children
@@ -71,7 +71,7 @@ Notes:
 
 - AMMT is an intonation-based speech treatment, not a casual singing app.
 - It compares intonation-based training with speech repetition therapy.
-- Product use: Shenghai can borrow the computational structure, not the clinical claim: listen, imitate, map target pitch/rhythm to vocal output, repeat, and log attempts.
+- Product use: VocalDive can borrow the computational structure, not the clinical claim: listen, imitate, map target pitch/rhythm to vocal output, repeat, and log attempts.
 
 Feature implication:
 
@@ -88,7 +88,7 @@ Notes:
 
 - 23 minimally verbal autistic children received at least 25 sessions.
 - The design suggests repetition and structured session dosing matter.
-- Product use: a single app session should not imply therapeutic effect; Shenghai can track repeated exposure and consistency.
+- Product use: a single app session should not imply therapeutic effect; VocalDive can track repeated exposure and consistency.
 
 Feature implication:
 
@@ -103,7 +103,7 @@ Link: https://pubmed.ncbi.nlm.nih.gov/32978945/
 Notes:
 
 - The review covers social and participation outcomes such as responses, initiation, turn-taking, joint attention, and group participation.
-- Product use: Shenghai’s useful metrics can be behavioral participation metrics, not only pitch accuracy.
+- Product use: VocalDive’s useful metrics can be behavioral participation metrics, not only pitch accuracy.
 
 Feature implication:
 
@@ -118,7 +118,7 @@ Link: https://pubmed.ncbi.nlm.nih.gov/35918503/
 Notes:
 
 - MIT is a rehabilitation method for post-stroke aphasia involving melody, rhythm, and formulaic language.
-- Product use: this is closer to clinical rehabilitation than ordinary singing practice, so Shenghai should not implement “aphasia treatment” without clinician involvement.
+- Product use: this is closer to clinical rehabilitation than ordinary singing practice, so VocalDive should not implement “aphasia treatment” without clinician involvement.
 
 Feature implication:
 
@@ -133,7 +133,7 @@ Link: https://pubmed.ncbi.nlm.nih.gov/34421802/
 Notes:
 
 - MIT has a defined clinical context: non-fluent post-stroke aphasia.
-- Product use: if Shenghai later targets aphasia, it should require professional review and separate onboarding.
+- Product use: if VocalDive later targets aphasia, it should require professional review and separate onboarding.
 
 Feature implication:
 
@@ -163,7 +163,7 @@ Link: https://pmc.ncbi.nlm.nih.gov/articles/PMC5131649/
 Notes:
 
 - The literature supports singing groups as potentially valuable and generally safe for COPD, especially through breathing control, posture, and social participation.
-- Product use: Shenghai can support breathing-aware warmups but should not replace pulmonary rehabilitation.
+- Product use: VocalDive can support breathing-aware warmups but should not replace pulmonary rehabilitation.
 
 Feature implication:
 

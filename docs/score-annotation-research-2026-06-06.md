@@ -4,7 +4,7 @@ Date: 2026-06-06
 
 ## Goal
 
-Shenghai score annotation should behave more like GoodNotes / Notability than a low-resolution pixel overlay. When a score is zoomed or exported/printed as PDF, handwritten markings should remain clear.
+VocalDive score annotation should behave more like GoodNotes / Notability than a low-resolution pixel overlay. When a score is zoomed or exported/printed as PDF, handwritten markings should remain clear.
 
 ## Key Decision
 
@@ -51,7 +51,7 @@ Better iPad implementation:
 Preferred route:
 
 1. Generate or load the score PDF.
-2. Map normalized Shenghai annotation points to PDF page coordinates.
+2. Map normalized VocalDive annotation points to PDF page coordinates.
 3. Create PDFKit ink annotations with `PDFAnnotationSubtype.ink`.
 4. Add Bezier paths to the annotation.
 5. Save the annotated `PDFDocument`.
@@ -110,7 +110,7 @@ Limitations:
 
 forScore supports layers so users can separate annotations and manage them without destroying the score. It also supports Apple Pencil workflows such as automatic annotation mode, preventing finger drawing, and hover previews on newer iPads.
 
-forScore's guide also warns that copying PDF page content as an image can become pixelated when zooming vector PDF files. This supports Shenghai's decision to avoid a bitmap-first annotation system for archival markings.
+forScore's guide also warns that copying PDF page content as an image can become pixelated when zooming vector PDF files. This supports VocalDive's decision to avoid a bitmap-first annotation system for archival markings.
 
 ## Sources
 

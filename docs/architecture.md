@@ -1,4 +1,4 @@
-# Shenghai Architecture
+# VocalDive Architecture
 
 ## MVP Pipeline
 
@@ -22,7 +22,7 @@ The app should be built primarily in Xcode with SwiftUI and shared Swift code fo
 
 ```mermaid
 flowchart TD
-    A["Shenghai Xcode Workspace"] --> B["Shared Core"]
+    A["VocalDive Xcode Workspace"] --> B["Shared Core"]
     A --> C["iPhone UI"]
     A --> D["iPad UI"]
     A --> E["macOS UI"]
@@ -37,7 +37,7 @@ flowchart TD
 
 ## Core Data Objects
 
-- `ScoreDocument`: Shenghai project wrapper.
+- `ScoreDocument`: VocalDive project wrapper.
 - `Part`: one musical part or voice.
 - `Measure`: measure-level score structure.
 - `Note`: pitch, octave, duration, voice, staff, and timing metadata.
@@ -50,29 +50,29 @@ flowchart TD
 The current Xcode-facing app is:
 
 ```text
-ios-app/Shenghai.xcodeproj
-└── Shenghai scheme
+ios-app/VocalDive.xcodeproj
+└── VocalDive scheme
 ```
 
 It compiles the shared core and SwiftUI app shell into one Alpha app target for iPhone, iPad, and macOS. The same source also remains available as a Swift package product for fast core/app iteration:
 
 ```text
-ios-app/ShenghaiCore/
+ios-app/VocalDiveCore/
 ├── Package.swift
-├── Sources/ShenghaiApp/
+├── Sources/VocalDiveApp/
 │   ├── App/
 │   ├── Models/
 │   ├── Services/
 │   ├── Stores/
 │   ├── Support/
 │   └── Views/
-├── Sources/ShenghaiCore/
+├── Sources/VocalDiveCore/
 │   ├── ScoreDocument.swift
 │   ├── MusicXMLImporter.swift
 │   ├── MIDIWriter.swift
 │   └── PitchAnalysis.swift
-└── Tests/ShenghaiCoreTests/
-    └── ShenghaiCoreTests.swift
+└── Tests/VocalDiveCoreTests/
+    └── VocalDiveCoreTests.swift
 ```
 
 The Alpha app layer currently owns:

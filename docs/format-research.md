@@ -7,7 +7,7 @@ Use existing market standards. Do not build a primary score notation format from
 Primary stack:
 
 - `MusicXML / .mxl`: main interchange format after OMR.
-- `Shenghai ScoreDocument`: internal JSON wrapper for app-specific state.
+- `VocalDive ScoreDocument`: internal JSON wrapper for app-specific state.
 - `MIDI`: playback intermediate.
 - `WAV / AAC`: exported or demo audio.
 - `SMuFL`: notation glyph standard for future rendering.
@@ -27,9 +27,9 @@ Self-developing the main notation format would create avoidable risks:
 - More work to support repeats, endings, articulations, dynamics, lyrics, voices, and layout.
 - Less credible for competition judges than building on a known standard.
 
-Shenghai should only define a wrapper format for product-specific data.
+VocalDive should only define a wrapper format for product-specific data.
 
-## Shenghai ScoreDocument
+## VocalDive ScoreDocument
 
 ScoreDocument should store:
 

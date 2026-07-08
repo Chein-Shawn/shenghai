@@ -1,10 +1,10 @@
 # Research Findings 2026-06-06
 
-This file keeps the research backing for Shenghai's singing-practice MVP. A Google-Docs-ready version is stored in `docs/google-doc-research-tab-2026-06-06.md`.
+This file keeps the research backing for VocalDive's singing-practice MVP. A Google-Docs-ready version is stored in `docs/google-doc-research-tab-2026-06-06.md`.
 
 ## Product Thesis
 
-Shenghai should not behave like a generic tuner. It should be a score-aware practice system:
+VocalDive should not behave like a generic tuner. It should be a score-aware practice system:
 
 ```text
 Score target -> user singing -> pitch contour -> smoothed deviation -> phrase-level practice record

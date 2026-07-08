@@ -98,7 +98,7 @@ Near-term upgrade:
 
 Requested: import score and YouTube video, locally download MP3, mark rhythm and pitch differences in blue, then let the user autotune timing and pitch.
 
-Safer Shenghai version:
+Safer VocalDive version:
 
 - Import score.
 - Attach YouTube as reference link.
