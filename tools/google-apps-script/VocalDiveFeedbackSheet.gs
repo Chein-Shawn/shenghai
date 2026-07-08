@@ -8,8 +8,8 @@ const SHENGHAI_FEEDBACK = {
 function doGet() {
   return jsonResponse_({
     ok: true,
-    service: "shenghai-feedback",
-    message: "Shenghai feedback endpoint is running."
+    service: "vocaldive-feedback",
+    message: "VocalDive feedback endpoint is running."
   });
 }
 
@@ -57,7 +57,7 @@ function doPost(e) {
     if (SHENGHAI_FEEDBACK.sendNotification) {
       MailApp.sendEmail(
         SHENGHAI_FEEDBACK.notificationEmail,
-        "[Shenghai Feedback] " + payload.category + " | " + payload.summary,
+        "[VocalDive Feedback] " + payload.category + " | " + payload.summary,
         buildNotificationBody_(payload, rowNumber)
       );
     }
@@ -147,7 +147,7 @@ function safeCell_(value) {
 
 function buildNotificationBody_(payload, rowNumber) {
   return [
-    "New Shenghai feedback",
+    "New VocalDive feedback",
     "",
     "Row: " + rowNumber,
     "Category: " + payload.category,

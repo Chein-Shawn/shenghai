@@ -3,8 +3,8 @@ import pathlib
 
 from strings_io import read_strings, write_strings
 
-REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/shenghai")
-RESOURCE_ROOT = REPO_ROOT / "ios-app" / "ShenghaiCore" / "Sources" / "ShenghaiApp" / "Resources"
+REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/vocaldive")
+RESOURCE_ROOT = REPO_ROOT / "ios-app" / "VocalDiveCore" / "Sources" / "VocalDiveApp" / "Resources"
 FALLBACK_COVERAGE_LANGUAGES = {"zh-Hans", "yue", "ar", "ru", "ko"}
 FALLBACK_KEYS = {
     "omr.checklist.compare_source",
@@ -181,7 +181,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "text.highlighter": "螢光筆",
         "text.mic_idle": "麥克風待命中",
         "text.no_part_selected": "尚未選擇聲部",
-        "text.untitled_shenghai_score": "未命名聲海樂譜",
+        "text.untitled_vocaldive_score": "未命名聲海樂譜",
         "text.tempo": "速度",
         "score.musicxml_import": "MusicXML 匯入",
         "text.beat": "拍",
@@ -231,7 +231,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "practice.play_selected_part": "播放所選聲部",
         "text.solo": "獨奏",
         "text.frequency": "頻率",
-        "app.shenghai_studio": "聲海工作室",
+        "app.vocaldive_studio": "聲海工作室",
         "text.modes": "模式",
         "text.intonation_trace": "音準軌跡",
         "text.memory_cues": "記憶提示",
@@ -249,7 +249,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "nav.score_mode": "樂譜模式",
         "practice.play_placeholder": "播放 %@。",
         "score.import_musicxml_pdf_or_score_images_musicxml_opens_directly_pdf_image_currently_enters_the_omr_intake_path_before_review": "匯入 MusicXML、PDF 或樂譜圖片。MusicXML 會直接開啟；PDF / 圖片目前會先進入 OMR 匯入流程等待校對。",
-        "score.imported_placeholder_for_omr_intake_this_build_still_needs_an_external_omr_step_before_shenghai_can_open_it_as_editable_musicxml": "已匯入 %@ 進入 OMR 流程。此版本仍需外部 OMR 步驟後，聲海才能以可編輯 MusicXML 開啟。",
+        "score.imported_placeholder_for_omr_intake_this_build_still_needs_an_external_omr_step_before_vocaldive_can_open_it_as_editable_musicxml": "已匯入 %@ 進入 OMR 流程。此版本仍需外部 OMR 步驟後，聲海才能以可編輯 MusicXML 開啟。",
         "score.imported_score": "已匯入樂譜",
         "score.musicxml_parsed": "MusicXML 解析完成",
         "text.build_queue": "建置佇列",
@@ -431,7 +431,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "text.highlighter": "蛍光ペン",
         "text.mic_idle": "マイク待機中",
         "text.no_part_selected": "パート未選択",
-        "text.untitled_shenghai_score": "無題の Shenghai 譜面",
+        "text.untitled_vocaldive_score": "無題の VocalDive 譜面",
         "text.tempo": "テンポ",
         "score.musicxml_import": "MusicXML 読み込み",
         "text.beat": "拍",
@@ -481,7 +481,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "practice.play_selected_part": "選択したパートを再生",
         "text.solo": "ソロ",
         "text.frequency": "周波数",
-        "app.shenghai_studio": "Shenghai Studio",
+        "app.vocaldive_studio": "VocalDive Studio",
         "text.modes": "モード",
         "text.intonation_trace": "音程トレース",
         "text.memory_cues": "記憶キュー",
@@ -500,7 +500,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "support.feedback.backend_not_configured": "フィードバック送信先がまだ設定されていません。",
         "omr.checklist.compare_source": "原譜と一つずつ見比べて確認します。",
         "omr.review.metadata.note": "タイトル、作曲者、作詞者、編曲者、著作権表記を確認します。",
-        "app.shenghai_studio": "Shenghai スタジオ",
+        "app.vocaldive_studio": "VocalDive スタジオ",
         "nav.experimental_sing_to_dismiss_alarm": "実験機能：歌って停止するアラーム",
         "nav.experimental_text_rhythm_speech_lab": "実験機能：テキストリズム発話ラボ",
         "nav.practice_display": "練習表示",
@@ -523,7 +523,7 @@ LANGUAGE_OVERRIDES: dict[str, dict[str, str]] = {
         "score.exported_musicxml_placeholder": "MusicXML を書き出しました：%@。",
         "score.import_musicxml_pdf_or_score_images_musicxml_opens_directly_pdf_image_currently_enters_the_omr_intake_path_before_review": "MusicXML、PDF、または譜面画像を読み込みます。MusicXML は直接開き、PDF / 画像は確認前の OMR 取り込み経路に入ります。",
         "score.import_scores_practice_annotate_and_export": "譜面を読み込み、練習し、注記し、書き出します。",
-        "score.imported_placeholder_for_omr_intake_this_build_still_needs_an_external_omr_step_before_shenghai_can_open_it_as_editable_musicxml": "%@ を OMR 取り込み用に読み込みました。このビルドでは、Shenghai が編集可能な MusicXML として開く前に外部 OMR ステップが必要です。",
+        "score.imported_placeholder_for_omr_intake_this_build_still_needs_an_external_omr_step_before_vocaldive_can_open_it_as_editable_musicxml": "%@ を OMR 取り込み用に読み込みました。このビルドでは、VocalDive が編集可能な MusicXML として開く前に外部 OMR ステップが必要です。",
         "score.imported_score": "読み込み済み譜面",
         "score.musicxml_composer": "MusicXML 作成",
         "score.musicxml_parsed": "MusicXML 解析済み",

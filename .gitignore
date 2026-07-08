@@ -18,7 +18,12 @@ DerivedData/
 xcuserdata/
 .build/
 ios-app/ShenghaiCore/.swiftpm/
+ios-app/VocalDiveCore/.swiftpm/
 ios-app/Shenghai.xcodeproj/project.xcworkspace/
+ios-app/VocalDive.xcodeproj/project.xcworkspace/
+ios-app/Shenghai.xcodeproj/xcuserdata/
+ios-app/VocalDive.xcodeproj/xcuserdata/
+ios-app/Config/Signing/LocalDevelopment.xcconfig
 
 # Generated research outputs that may become large
 samples/audio/*.wav

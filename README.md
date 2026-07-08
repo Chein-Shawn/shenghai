@@ -1,6 +1,6 @@
-# Shenghai
+# VocalDive
 
-Shenghai is an Apple-platform music practice project focused on turning sheet music into a playable, editable practice timeline.
+VocalDive is an Apple-platform music practice project focused on turning sheet music into a playable, editable practice timeline.
 
 ## Current Phase
 
@@ -9,15 +9,15 @@ Phase 1 focuses on OMR research and proof-of-concept playback:
 1. PDF/image score input
 2. OMR baseline using Audiveris
 3. MusicXML as the primary interchange format
-4. Shenghai ScoreDocument as the internal project wrapper
+4. VocalDive ScoreDocument as the internal project wrapper
 5. MIDI/audio playback prototype
 
 ## Format Decision
 
-Shenghai should not invent a primary notation language from scratch. The first version uses:
+VocalDive should not invent a primary notation language from scratch. The first version uses:
 
 - MusicXML / MXL as the main score interchange format
-- Shenghai ScoreDocument JSON as the app-specific wrapper
+- VocalDive ScoreDocument JSON as the app-specific wrapper
 - MIDI as the playback intermediate
 - WAV/AAC for exported or demo audio
 - SMuFL for notation glyph standards when score rendering is implemented
@@ -25,7 +25,7 @@ Shenghai should not invent a primary notation language from scratch. The first v
 ## Repository Layout
 
 ```text
-shenghai/
+vocaldive/
 ├── README.md
 ├── docs/
 │   ├── architecture.md
@@ -45,10 +45,10 @@ shenghai/
 Open the full app project in Xcode:
 
 ```bash
-open ios-app/Shenghai.xcodeproj
+open ios-app/VocalDive.xcodeproj
 ```
 
-The `Shenghai` scheme is the first Alpha app shell for iPhone, iPad, and macOS. It currently includes:
+
 
 - Overview dashboard for MVP status.
 - Score workspace with demo MusicXML loading.
@@ -63,12 +63,12 @@ The `Shenghai` scheme is the first Alpha app shell for iPhone, iPad, and macOS. 
 The shared Apple-platform core can also be opened directly in Xcode:
 
 ```bash
-open ios-app/ShenghaiCore/Package.swift
+open ios-app/VocalDiveCore/Package.swift
 ```
 
-`ShenghaiCore` includes:
+`VocalDiveCore` includes:
 
-- `ScoreDocument` models for the internal Shenghai wrapper.
+- `ScoreDocument` models for the internal VocalDive wrapper.
 - `MusicXMLImporter` for MusicXML to ScoreDocument parsing.
 - `MIDIWriter` for MIDI event timeline and `.mid` data generation.
 - `PitchAnalysis` primitives for confidence-aware pitch feedback.
@@ -81,7 +81,7 @@ The package targets iOS 17+ and macOS 14+, so the same core code is shared by th
 Build the current macOS app target:
 
 ```bash
-xcodebuild -project ios-app/Shenghai.xcodeproj -scheme Shenghai -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO
+xcodebuild -project ios-app/VocalDive.xcodeproj -scheme VocalDive -destination generic/platform=macOS -derivedDataPath .build/XcodeDerivedData build CODE_SIGNING_ALLOWED=NO
 ```
 
 If iPhone/iPad destinations do not appear in Xcode, install the matching iOS platform in Xcode Settings > Components, or run:
@@ -106,7 +106,7 @@ MusicXML -> ScoreDocument JSON -> MIDI
 
 ## Current OMR Status
 
-Audiveris remains the preferred OMR baseline, but the local source build currently needs either a stable Audiveris release or JDK 25. Until that is installed, Shenghai supports this fallback MVP path:
+Audiveris remains the preferred OMR baseline, but the local source build currently needs either a stable Audiveris release or JDK 25. Until that is installed, VocalDive supports this fallback MVP path:
 
 ```text
 Manual MusicXML import from MuseScore / Audiveris / other OMR tool -> ScoreDocument -> MIDI playback
@@ -125,13 +125,13 @@ docs/changelog.html
 They are intended for GitHub Pages, with no custom domain required:
 
 ```text
-https://chein-shawn.github.io/shenghai/
+https://chein-shawn.github.io/vocaldive/
 ```
 
 Current app links point to:
 
-- `https://chein-shawn.github.io/shenghai/manual.html`
-- `https://chein-shawn.github.io/shenghai/changelog.html`
+- `https://chein-shawn.github.io/vocaldive/manual.html`
+- `https://chein-shawn.github.io/vocaldive/changelog.html`
 - in-app feedback submission to a Google Apps Script / Google Sheet backend once configured
 
 ## Planning And Review Docs

@@ -48,11 +48,11 @@ Current required languages:
 
 ## Core Boundary Rule
 
-`ShenghaiCore` must stay localization-free.
+`VocalDiveCore` must stay localization-free.
 
-- Do not call `L10n` from `ShenghaiCore`.
+- Do not call `L10n` from `VocalDiveCore`.
 - Do not put app-layer display rendering inside shared domain models.
-- If shared models need user-facing copy, expose semantic keys, enums, or structured tokens from core, then localize them in `ShenghaiApp`.
+- If shared models need user-facing copy, expose semantic keys, enums, or structured tokens from core, then localize them in `VocalDiveApp`.
 
 Localized text update includes:
 
@@ -74,6 +74,14 @@ Every time the program is modified, treat backup as part of the same work cycle.
 - Push the backup to GitHub when network/auth permissions allow it.
 - If push is blocked, explicitly report the backup status and what remains local.
 
+## Local Signing Rule
+
+Keep personal Apple development-team data out of tracked project files.
+
+- Store machine-specific signing data in `ios-app/Config/Signing/LocalDevelopment.xcconfig`.
+- Commit only shared signing defaults and the example template.
+- Do not hardcode a personal `DEVELOPMENT_TEAM` into `project.pbxproj` unless the user explicitly asks for that shortcut.
+
 ## Implementation Guidance
 
 - Keep user-facing copy localizable through the app localization system.
@@ -90,6 +98,13 @@ Before closing a task or PR, confirm:
 - `Backup status checked and reported`
 - `Sample verification run for score-editor / scan changes`
 - `Screenshot or UI copy QA completed where needed`
+
+## Public Brand Note
+
+The public product brand is now `VocalDive` in English and `聲潛` in Traditional Chinese.
+
+- User-facing app, website, and active product docs should use the new brand.
+- Existing technical identifiers such as `VocalDiveCore`, `VocalDiveApp`, Xcode target names, bundle identifiers, and legacy storage keys may remain temporarily when needed for compatibility.
 
 ## Documentation Alignment
 

@@ -5,9 +5,9 @@ import re
 
 from strings_io import read_strings, write_strings
 
-REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/shenghai")
-SOURCE_ROOT = REPO_ROOT / "ios-app" / "ShenghaiCore" / "Sources"
-RESOURCE_ROOT = SOURCE_ROOT / "ShenghaiApp" / "Resources"
+REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/vocaldive")
+SOURCE_ROOT = REPO_ROOT / "ios-app" / "VocalDiveCore" / "Sources"
+RESOURCE_ROOT = SOURCE_ROOT / "VocalDiveApp" / "Resources"
 
 LANGUAGE_ORDER = [
     ("english", "en"),
@@ -34,7 +34,7 @@ ALIAS_PREFIXES = (
     ("Practice", "nav"),
     ("Experimental", "nav"),
     ("Settings", "nav"),
-    ("Shenghai", "app"),
+    ("VocalDive", "app"),
     ("Official Website", "support"),
     ("Display Language", "settings"),
     ("User Manual", "support"),

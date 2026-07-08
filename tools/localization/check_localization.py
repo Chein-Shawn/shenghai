@@ -6,9 +6,9 @@ import sys
 
 from strings_io import read_strings
 
-REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/shenghai")
-SOURCE_ROOT = REPO_ROOT / "ios-app" / "ShenghaiCore" / "Sources"
-RESOURCE_ROOT = SOURCE_ROOT / "ShenghaiApp" / "Resources"
+REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/vocaldive")
+SOURCE_ROOT = REPO_ROOT / "ios-app" / "VocalDiveCore" / "Sources"
+RESOURCE_ROOT = SOURCE_ROOT / "VocalDiveApp" / "Resources"
 ALIASES_PATH = RESOURCE_ROOT / "LocalizationAliases.json"
 REQUIRED_LANGUAGES = [
     "en",
@@ -32,7 +32,7 @@ PRIMARY_QA_LANGUAGES = [
 ]
 
 SAME_AS_ENGLISH_VALUE_ALLOWLIST = {
-    "Shenghai",
+    "VocalDive",
     "MusicXML",
     "MIDI",
     "OMR",
@@ -98,7 +98,7 @@ def read_strings_table(language: str) -> dict[str, str]:
 def raw_string_violations() -> list[str]:
     violations = []
     pattern = re.compile(r'(Text|Label|Button|Picker|navigationTitle)\("([^"]+)"')
-    for path in SOURCE_ROOT.joinpath("ShenghaiApp").rglob("*.swift"):
+    for path in SOURCE_ROOT.joinpath("VocalDiveApp").rglob("*.swift"):
         text = path.read_text()
         for _, literal in pattern.findall(text):
             if literal in RAW_LITERAL_ALLOWLIST:

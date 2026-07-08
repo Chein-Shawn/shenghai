@@ -229,7 +229,7 @@ def make_page(page_index: int, fonts: dict[str, ImageFont.FreeTypeFont]) -> Imag
 
     if page_index == 0:
         title = "Twinkle Twinkle Little Star"
-        subtitle = "Public-domain Shenghai sample fixture"
+        subtitle = "Public-domain VocalDive sample fixture"
         title_box = draw.textbbox((0, 0), title, font=fonts["title"])
         title_x = (PAGE_WIDTH - (title_box[2] - title_box[0])) / 2
         draw.text((title_x, 180), title, font=fonts["title"], fill="black")
@@ -318,7 +318,7 @@ def make_musicxml() -> str:
         '<!DOCTYPE score-partwise PUBLIC "-//Recordare//DTD MusicXML 4.0 Partwise//EN" "http://www.musicxml.org/dtds/partwise.dtd">',
         '<score-partwise version="4.0">',
         "  <work><work-title>Twinkle Twinkle Little Star Sample</work-title></work>",
-        '  <identification><creator type="composer">Traditional</creator><creator type="lyricist">Public domain fixture</creator><rights>Public domain melody rendered as Shenghai sample fixture.</rights></identification>',
+        '  <identification><creator type="composer">Traditional</creator><creator type="lyricist">Public domain fixture</creator><rights>Public domain melody rendered as VocalDive sample fixture.</rights></identification>',
         "  <part-list>",
         '    <score-part id="P1"><part-name>Voice</part-name></score-part>',
         "  </part-list>",
@@ -334,7 +334,7 @@ def make_readme() -> str:
     return "\n".join([
         "# Twinkle Sample Pack",
         "",
-        "This is a public-domain Shenghai demo fixture for OMR intake and phone-photo simulation.",
+        "This is a public-domain VocalDive demo fixture for OMR intake and phone-photo simulation.",
         "",
         "Files:",
         "- `twinkle_intact/twinkle-multipage.pdf`: primary print-and-photograph source",

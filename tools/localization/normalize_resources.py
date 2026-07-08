@@ -4,8 +4,8 @@ import pathlib
 
 from strings_io import read_strings, write_strings
 
-REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/shenghai")
-RESOURCE_ROOT = REPO_ROOT / "ios-app" / "ShenghaiCore" / "Sources" / "ShenghaiApp" / "Resources"
+REPO_ROOT = pathlib.Path("/Users/shawn/Documents/Codex/vocaldive")
+RESOURCE_ROOT = REPO_ROOT / "ios-app" / "VocalDiveCore" / "Sources" / "VocalDiveApp" / "Resources"
 ALIASES_PATH = RESOURCE_ROOT / "LocalizationAliases.json"
 LANGUAGES = [
     "en",
