@@ -458,3 +458,13 @@
 "score.editor.webview_unavailable" = "Встроенный renderer MusicXML недоступен на этой платформе.";
 "score.editor.export_current_musicxml" = "Экспортировать текущий MusicXML";
 "score.editor.symbol_navigator" = "Навигатор символов";
+"score.scan.model_description" = "VocalDive сканирует партитуру на устройстве с помощью встроенных моделей oemer Core ML. Если модели еще не установлены, сканирование явно остановится, а не создаст поддельный MusicXML.";
+"score.scan.progress.preparing" = "Подготовка";
+"score.scan.progress.rasterizingPages" = "Растеризация страниц";
+"score.scan.progress.runningModel" = "Запуск модели oemer";
+"score.scan.progress.reconstructingScore" = "Восстановление партитуры";
+"score.scan.progress.generatingMusicXML" = "Создание MusicXML";
+"score.scan.progress.openingEditor" = "Открытие редактора";
+"score.scan.progress.finished" = "Готово";
+"score.scan.progress.simple" = "%d%% - %@ для %@";
+"score.scan.progress.with_pages" = "%d%% - %@ (%d/%d стр.) для %@";

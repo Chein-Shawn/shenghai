@@ -458,3 +458,13 @@
 "score.editor.webview_unavailable" = "이 플랫폼에서는 내장 MusicXML renderer를 사용할 수 없습니다.";
 "score.editor.export_current_musicxml" = "현재 MusicXML 내보내기";
 "score.editor.symbol_navigator" = "기호 네비게이터";
+"score.scan.model_description" = "VocalDive는 내장된 oemer Core ML 모델로 기기에서 악보를 스캔합니다. 모델이 아직 설치되지 않았으면 가짜 MusicXML을 만들지 않고 명확히 중단합니다.";
+"score.scan.progress.preparing" = "준비 중";
+"score.scan.progress.rasterizingPages" = "페이지 래스터화 중";
+"score.scan.progress.runningModel" = "oemer 모델 실행 중";
+"score.scan.progress.reconstructingScore" = "악보 재구성 중";
+"score.scan.progress.generatingMusicXML" = "MusicXML 생성 중";
+"score.scan.progress.openingEditor" = "편집기 여는 중";
+"score.scan.progress.finished" = "완료";
+"score.scan.progress.simple" = "%d%% - %@: %@";
+"score.scan.progress.with_pages" = "%d%% - %@ (%d/%d페이지): %@";

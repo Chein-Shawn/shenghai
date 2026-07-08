@@ -409,7 +409,10 @@ struct VocalDiveCoreTests {
         )
         let pipeline = OMRPipelinePlan.mvpBaseline(inputKind: .image, provider: .oemer)
 
-        #expect(OMRProvider.allCases == [.homr, .oemer])
+        #expect(OMRProvider.allCases == [.homr, .oemer, .nativePrototype])
+        #expect(OMRProvider.homr.runsInsideAppleApp == false)
+        #expect(OMRProvider.oemer.runsInsideAppleApp == false)
+        #expect(OMRProvider.nativePrototype.runsInsideAppleApp == true)
         #expect(homrPlan.commandName == "homr")
         #expect(homrPlan.arguments == ["/tmp/choir score.png", "--output", "/tmp/choir.musicxml"])
         #expect(homrPlan.shellPreview.contains("'"))

@@ -48,7 +48,11 @@ struct ScoreWorkspaceView: View {
             Divider()
 
             if workspace.statusMessage.isEmpty == false || workspace.errorMessage != nil {
-                ScoreStatusStack(statusMessage: workspace.statusMessage, errorMessage: workspace.errorMessage)
+                ScoreStatusStack(
+                    statusMessage: workspace.statusMessage,
+                    errorMessage: workspace.errorMessage,
+                    scanProgress: workspace.scanProgress
+                )
                     .padding(.horizontal, 12)
                     .padding(.top, 12)
             }
@@ -224,22 +228,6 @@ private struct ScoreToolbar: View {
                 workspace.startScanImport()
             }
 
-            Menu {
-                Button(L10n.tr("score.sample.open_ground_truth")) {
-                    workspace.loadSampleGroundTruth()
-                }
-                Button(L10n.tr("score.sample.run_intact_omr")) {
-                    workspace.runSampleIntactOMR()
-                }
-                Button(L10n.tr("score.sample.run_scanned_omr")) {
-                    workspace.runSampleScannedOMR()
-                }
-            } label: {
-                Label(L10n.tr("score.try_sample_score"), systemImage: "sparkles")
-                    .frame(height: 34)
-            }
-            .buttonStyle(.bordered)
-
             ToolIconButton(title: L10n.tr("score.editor.export_current_musicxml"), systemImage: "square.and.arrow.up.on.square") {
                 workspace.exportCurrentMusicXML()
             }
@@ -287,16 +275,46 @@ private struct ScoreToolbar: View {
 private struct ScoreStatusStack: View {
     var statusMessage: String
     var errorMessage: String?
+    var scanProgress: NativeOMRScanProgress?
 
     var body: some View {
         VStack(spacing: 8) {
-            if statusMessage.isEmpty == false {
+            if let scanProgress {
+                ScanProgressBanner(progress: scanProgress, text: statusMessage)
+            } else if statusMessage.isEmpty == false {
                 StatusBanner(text: statusMessage, tint: .blue, systemImage: "info.circle.fill")
             }
             if let errorMessage {
                 StatusBanner(text: errorMessage, tint: .orange, systemImage: "exclamationmark.triangle.fill")
             }
         }
+    }
+}
+
+private struct ScanProgressBanner: View {
+    var progress: NativeOMRScanProgress
+    var text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: "waveform.badge.magnifyingglass")
+                    .foregroundStyle(Color.blue)
+                Text(text)
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Text("\(Int((progress.fraction * 100).rounded()))%")
+                    .font(.subheadline.monospacedDigit().weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            ProgressView(value: progress.fraction)
+        }
+        .padding(10)
+        .background(Color.blue.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.blue.opacity(0.25), lineWidth: 1)
+        )
     }
 }
 
@@ -379,17 +397,12 @@ private struct ScoreLandingView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
 
-                            Picker(L10n.tr("Provider"), selection: $workspace.selectedOMRProvider) {
-                                ForEach(OMRProvider.allCases, id: \.self) { provider in
-                                    Text(provider.displayName).tag(provider)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-
-                            OMRProviderSummary(
-                                provider: workspace.selectedOMRProvider,
-                                latestNativeSession: workspace.selectedOMRProvider.runsInsideAppleApp ? workspace.latestNativeOMRSession : nil
-                            )
+                            Text(L10n.tr("score.scan.model_description"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(10)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
 
                             HStack {
                                 Button {
@@ -459,18 +472,6 @@ private struct ScoreSourcePreviewPanel: View {
         VStack(spacing: 14) {
             StudioPanel(title: L10n.tr("score.review.original_pages"), systemImage: "doc.richtext") {
                 VStack(alignment: .leading, spacing: 12) {
-                    Picker(L10n.tr("Provider"), selection: $workspace.selectedOMRProvider) {
-                        ForEach(OMRProvider.allCases, id: \.self) { provider in
-                            Text(provider.displayName).tag(provider)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-
-                    OMRProviderSummary(
-                        provider: workspace.selectedOMRProvider,
-                        latestNativeSession: workspace.selectedOMRProvider.runsInsideAppleApp ? workspace.latestNativeOMRSession : nil
-                    )
-
                     Toggle(L10n.tr("score.review.show_source_overlay"), isOn: $showSourceOverlay)
                 }
             }
@@ -1019,53 +1020,6 @@ private struct ReviewDirectionInspector: View {
             }
             .buttonStyle(.borderedProminent)
         }
-    }
-}
-
-private struct OMRProviderSummary: View {
-    var provider: OMRProvider
-    var latestNativeSession: NativeOMRPrototypeSessionResult?
-
-    private var commandPlan: OMRProviderCommandPlan {
-        OMRProviderCommandPlan(
-            provider: provider,
-            inputPath: "~/Scores/input-score.png",
-            outputPath: "~/Scores/output.musicxml"
-        )
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(provider.localizedSummary)
-                .font(.subheadline.weight(.semibold))
-            Text(provider.localizedBestFor)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            Label(provider.localizedLicenseNote, systemImage: "shield.lefthalf.filled")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
-            if provider.runsInsideAppleApp {
-                if let latestNativeSession {
-                    HStack {
-                        ValuePill(title: L10n.tr("text.pages"), value: "\(latestNativeSession.scoreNotation.pageResults.count)", systemImage: "doc.richtext")
-                        ValuePill(title: L10n.tr("Measures"), value: "\(latestNativeSession.scoreNotation.mergedMeasures.count)", systemImage: "number")
-                        ValuePill(title: L10n.tr("Status"), value: latestNativeSession.scoreNotation.failedPageIndices.isEmpty ? L10n.tr("score.review.ready") : L10n.tr("score.review.needs_attention"), systemImage: latestNativeSession.scoreNotation.failedPageIndices.isEmpty ? "checkmark.circle" : "exclamationmark.circle")
-                    }
-                }
-            } else {
-                Text(commandPlan.shellPreview)
-                    .font(.caption.monospaced())
-                    .textSelection(.enabled)
-                    .lineLimit(3)
-                    .padding(8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 8))
-            }
-        }
-        .padding(10)
-        .background(.quaternary.opacity(0.2), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

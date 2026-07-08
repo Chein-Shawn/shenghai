@@ -455,3 +455,13 @@
 "score.editor.webview_unavailable" = "這個平台目前無法使用內建 MusicXML renderer。";
 "score.editor.export_current_musicxml" = "匯出目前的 MusicXML";
 "score.editor.symbol_navigator" = "符號導覽";
+"score.scan.model_description" = "VocalDive 會在裝置端使用內建的 oemer Core ML 模型掃描樂譜。如果模型尚未安裝，掃描會清楚停止，不會產生假的 MusicXML 結果。";
+"score.scan.progress.preparing" = "準備中";
+"score.scan.progress.rasterizingPages" = "正在轉換頁面";
+"score.scan.progress.runningModel" = "正在執行 oemer 模型";
+"score.scan.progress.reconstructingScore" = "正在重建樂譜";
+"score.scan.progress.generatingMusicXML" = "正在產生 MusicXML";
+"score.scan.progress.openingEditor" = "正在開啟編輯器";
+"score.scan.progress.finished" = "完成";
+"score.scan.progress.simple" = "%d%% - %@：%@";
+"score.scan.progress.with_pages" = "%d%% - %@（第 %d/%d 頁）：%@";

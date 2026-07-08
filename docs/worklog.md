@@ -620,3 +620,19 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Shifted the homepage toward a more product-like first impression with animated hero panels, interactive feature spotlight buttons, and clearer beginner-oriented sections.
 - Added `docs/oemer-mobile-omr-migration-checklist-2026-07-08.md` so the native OMR path can be tracked as a concrete porting plan rather than drifting back into a UI-only heuristic placeholder.
 - The new checklist fixes the current framing: `oemer` remains a research reference, while the deployable target is native preprocessing + portable model runtime + Swift postprocess + MusicXML editor handoff.
+
+### 2026-07-09 - oemer model audit and honest scan path
+
+- Downloaded the official oemer ONNX checkpoints into a temporary workspace for audit, not into git history:
+  - `1st_model.onnx` - 70,767,752 bytes - SHA-256 `37512e858731096439746f60b377c049f07055b4a23ec6eb9a178ce92cfba174`
+  - `2nd_model.onnx` - 38,448,467 bytes - SHA-256 `ed2e1a86ea75712ee6cdc740e96f7a36753543cf9bb980227c071c9256d9d82e`
+- Verified both ONNX files load with `onnxruntime` and documented their input/output tensor contracts in `docs/oemer-model-audit-and-coreml-conversion-2026-07-09.md`.
+- Tested direct Core ML conversion paths:
+  - `coremltools 9.0` no longer includes an ONNX converter
+  - `onnx-coreml 1.3` fails against modern `coremltools` because `coremltools.converters.nnssa` was removed
+- Updated the app scan path so it no longer pretends heuristic recognition is the true oemer model:
+  - `NativeOMRPrototypeService` now checks for bundled Core ML models before model-stage scanning
+  - missing models produce an explicit error instead of fake MusicXML output
+  - scan progress now reports percent/stage state through the workspace
+- Removed user-facing provider picker surfaces from the Score UI so general users no longer see `homr`, `oemer`, or `VocalDive Native` as selectable providers.
+- Removed the crowded toolbar sample menu that used the sparkles icon; sample actions remain in the landing flow instead of overlapping the main toolbar.

@@ -457,3 +457,13 @@
 "score.editor.webview_unavailable" = "此平台暂时无法使用内建 MusicXML renderer。";
 "score.editor.export_current_musicxml" = "导出当前 MusicXML";
 "score.editor.symbol_navigator" = "符号导航";
+"score.scan.model_description" = "VocalDive 会在设备端使用内置的 oemer Core ML 模型扫描乐谱。如果模型尚未安装，扫描会清楚停止，不会生成假的 MusicXML 结果。";
+"score.scan.progress.preparing" = "准备中";
+"score.scan.progress.rasterizingPages" = "正在转换页面";
+"score.scan.progress.runningModel" = "正在运行 oemer 模型";
+"score.scan.progress.reconstructingScore" = "正在重建乐谱";
+"score.scan.progress.generatingMusicXML" = "正在生成 MusicXML";
+"score.scan.progress.openingEditor" = "正在打开编辑器";
+"score.scan.progress.finished" = "完成";
+"score.scan.progress.simple" = "%d%% - %@：%@";
+"score.scan.progress.with_pages" = "%d%% - %@（第 %d/%d 页）：%@";

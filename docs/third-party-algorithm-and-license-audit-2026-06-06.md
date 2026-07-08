@@ -41,6 +41,24 @@ Action before launch:
 - Keep Audiveris as a development/server preprocessing option unless the license and platform fit are clear.
 - Let the app import MusicXML as the main safe path.
 
+## oemer / On-Device OMR Models
+
+oemer is the current reference implementation for VocalDive's intended on-device OMR direction. The upstream repository is published with an MIT license, and the official checkpoint release provides ONNX assets for the first-stage and second-stage segmentation models.
+
+Current audit result:
+
+- code license: MIT in the upstream repository
+- checked assets: `1st_model.onnx` and `2nd_model.onnx` from the upstream `checkpoints` release
+- app status: no converted Core ML model is committed yet
+- current risk: model-weight redistribution and App Store bundling should receive a final review before TestFlight/App Store distribution
+
+Action before launch:
+
+- Keep the upstream license text and asset provenance in release documentation.
+- Do not commit or ship converted model files until the redistribution decision is explicit.
+- If bundling the checkpoints is approved, record the exact SHA-256 of every shipped model artifact.
+- If redistribution is not approved, replace oemer with a model whose code, weights, and training-data terms are all compatible with commercial distribution.
+
 ## YouTube
 
 Do not implement automatic YouTube MP3 downloading, stream separation, or modification. Use YouTube links only as reference metadata or official-player usage where permitted.

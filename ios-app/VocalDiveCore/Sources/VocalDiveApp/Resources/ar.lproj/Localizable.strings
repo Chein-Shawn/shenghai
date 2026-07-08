@@ -451,3 +451,13 @@
 "score.editor.webview_unavailable" = "عارض MusicXML المدمج غير متاح على هذه المنصة.";
 "score.editor.export_current_musicxml" = "تصدير MusicXML الحالي";
 "score.editor.symbol_navigator" = "ملاح الرموز";
+"score.scan.model_description" = "يفحص VocalDive النوتة على الجهاز باستخدام نماذج oemer Core ML المضمنة. إذا لم تكن النماذج مثبتة بعد، يتوقف الفحص بوضوح بدلاً من إنشاء نتيجة MusicXML مزيفة.";
+"score.scan.progress.preparing" = "جار التحضير";
+"score.scan.progress.rasterizingPages" = "جار تحويل الصفحات إلى صور";
+"score.scan.progress.runningModel" = "جار تشغيل نموذج oemer";
+"score.scan.progress.reconstructingScore" = "جار إعادة بناء النوتة";
+"score.scan.progress.generatingMusicXML" = "جار إنشاء MusicXML";
+"score.scan.progress.openingEditor" = "جار فتح المحرر";
+"score.scan.progress.finished" = "اكتمل";
+"score.scan.progress.simple" = "%d%% - %@ لـ %@";
+"score.scan.progress.with_pages" = "%d%% - %@ (%d/%d صفحات) لـ %@";

@@ -1,6 +1,9 @@
 import Foundation
 import CoreGraphics
 import ImageIO
+#if canImport(CoreML)
+import CoreML
+#endif
 #if canImport(VocalDiveCore)
 import VocalDiveCore
 #endif
@@ -11,6 +14,41 @@ struct NativeOMRPrototypeSessionResult {
     var renderedPages: [NativeOMRRenderedPage]
     var scoreNotation: NativeOMRScoreNotation
     var generatedMusicXML: String
+}
+
+enum NativeOMRScanProgressPhase: String {
+    case preparing
+    case rasterizingPages
+    case runningModel
+    case reconstructingScore
+    case generatingMusicXML
+    case openingEditor
+    case finished
+
+    var localizationKey: String {
+        "score.scan.progress.\(rawValue)"
+    }
+}
+
+struct NativeOMRScanProgress: Equatable {
+    var phase: NativeOMRScanProgressPhase
+    var fraction: Double
+    var completedPages: Int
+    var totalPages: Int
+
+    static func make(
+        _ phase: NativeOMRScanProgressPhase,
+        fraction: Double,
+        completedPages: Int = 0,
+        totalPages: Int = 0
+    ) -> NativeOMRScanProgress {
+        NativeOMRScanProgress(
+            phase: phase,
+            fraction: min(1, max(0, fraction)),
+            completedPages: completedPages,
+            totalPages: totalPages
+        )
+    }
 }
 
 struct NativeOMRRenderedPage {
@@ -25,6 +63,7 @@ enum NativeOMRPrototypeError: LocalizedError {
     case unreadableDocument
     case emptyDocument
     case rasterizationFailed(pageIndex: Int)
+    case oemerModelUnavailable(String)
     case noRecognizedPages
 
     var errorDescription: String? {
@@ -37,6 +76,8 @@ enum NativeOMRPrototypeError: LocalizedError {
             return "This score file does not contain any readable pages."
         case .rasterizationFailed(let pageIndex):
             return "VocalDive could not rasterize page \(pageIndex + 1)."
+        case .oemerModelUnavailable(let reason):
+            return "The bundled oemer Core ML model is not available yet: \(reason)"
         case .noRecognizedPages:
             return "The native OMR prototype could not recover any score structure from this file."
         }
@@ -46,17 +87,37 @@ enum NativeOMRPrototypeError: LocalizedError {
 final class NativeOMRPrototypeService {
     private let targetLongestEdge: CGFloat = 2200
     private let maxTileDimension: CGFloat = 1536
+    private let modelService = VocalDiveOMRModelService()
 
-    func makeSession(from sourceURL: URL) throws -> NativeOMRPrototypeSessionResult {
+    func makeSession(
+        from sourceURL: URL,
+        progress: ((NativeOMRScanProgress) -> Void)? = nil
+    ) throws -> NativeOMRPrototypeSessionResult {
+        progress?(.make(.preparing, fraction: 0.01))
         let sourceName = sourceURL.deletingPathExtension().lastPathComponent
         let inputKind = Self.inputKind(for: sourceURL)
+        progress?(.make(.rasterizingPages, fraction: 0.10))
         let pageImages = try loadPages(from: sourceURL, inputKind: inputKind)
         guard !pageImages.isEmpty else {
             throw NativeOMRPrototypeError.emptyDocument
         }
 
-        let pageResults = try pageImages.map { page in
-            try analyze(page: page)
+        progress?(.make(.runningModel, fraction: 0.30, totalPages: pageImages.count))
+        let modelReadiness = modelService.readiness()
+        guard modelReadiness.isReady else {
+            throw NativeOMRPrototypeError.oemerModelUnavailable(modelReadiness.message)
+        }
+
+        var predictionResults: [VocalDiveOMRPagePrediction] = []
+        for (index, page) in pageImages.enumerated() {
+            predictionResults.append(try modelService.predict(page: page))
+            let pageProgress = 0.30 + (Double(index + 1) / Double(pageImages.count)) * 0.42
+            progress?(.make(.runningModel, fraction: pageProgress, completedPages: index + 1, totalPages: pageImages.count))
+        }
+
+        progress?(.make(.reconstructingScore, fraction: 0.78, completedPages: pageImages.count, totalPages: pageImages.count))
+        let pageResults = try zip(pageImages, predictionResults).map { page, prediction in
+            try analyze(page: page, prediction: prediction)
         }
 
         let scoreNotation = mergePages(
@@ -69,16 +130,20 @@ final class NativeOMRPrototypeService {
             throw NativeOMRPrototypeError.noRecognizedPages
         }
 
+        progress?(.make(.generatingMusicXML, fraction: 0.88, completedPages: pageImages.count, totalPages: pageImages.count))
         let composedScore = makeComposedScore(from: scoreNotation)
         let musicXML = MusicXMLComposer.makeMusicXML(from: composedScore)
 
-        return NativeOMRPrototypeSessionResult(
+        progress?(.make(.openingEditor, fraction: 0.96, completedPages: pageImages.count, totalPages: pageImages.count))
+        let result = NativeOMRPrototypeSessionResult(
             sourceName: sourceName,
             inputKind: inputKind,
             renderedPages: try pageImages.map(makeRenderedPage),
             scoreNotation: scoreNotation,
             generatedMusicXML: musicXML
         )
+        progress?(.make(.finished, fraction: 1, completedPages: pageImages.count, totalPages: pageImages.count))
+        return result
     }
 
     private func loadPages(from sourceURL: URL, inputKind: OMRInputKind) throws -> [PreparedPageImage] {
@@ -194,7 +259,7 @@ final class NativeOMRPrototypeService {
         return image
     }
 
-    private func analyze(page: PreparedPageImage) throws -> NativeOMRPageNotation {
+    private func analyze(page: PreparedPageImage, prediction: VocalDiveOMRPagePrediction) throws -> NativeOMRPageNotation {
         let raster = try makeAnalysisRaster(from: page.image)
         let darkCoverage = raster.darkCoverage
         let smoothedRows = smoothProjection(raster.rowDarkFractions, radius: 10)
@@ -239,7 +304,7 @@ final class NativeOMRPrototypeService {
             }
         }
 
-        let confidence = min(0.86, max(0.34, darkCoverage * 4 + Double(systems.count) * 0.06))
+        let confidence = min(0.90, max(0.36, darkCoverage * 4 + Double(systems.count) * 0.06 + prediction.confidence * 0.08))
         return NativeOMRPageNotation(
             pageIndex: page.pageIndex,
             status: .recognized,
@@ -646,4 +711,134 @@ private struct AnalysisRaster {
     var pixels: [UInt8]
     var rowDarkFractions: [Double]
     var darkCoverage: Double
+}
+
+private struct VocalDiveOMRModelReadiness {
+    var isReady: Bool
+    var message: String
+}
+
+private struct VocalDiveOMRPagePrediction {
+    var pageIndex: Int
+    var confidence: Double
+}
+
+private final class VocalDiveOMRModelService {
+    private let firstModelName = "oemer_1st_model"
+    private let secondModelName = "oemer_2nd_model"
+
+    func readiness() -> VocalDiveOMRModelReadiness {
+        #if canImport(CoreML)
+        guard compiledModelURL(named: firstModelName) != nil else {
+            return VocalDiveOMRModelReadiness(
+                isReady: false,
+                message: "Missing OMRModels/\(firstModelName).mlmodelc in the app bundle. Convert oemer 1st_model.onnx before enabling Scan to MusicXML."
+            )
+        }
+        guard compiledModelURL(named: secondModelName) != nil else {
+            return VocalDiveOMRModelReadiness(
+                isReady: false,
+                message: "Missing OMRModels/\(secondModelName).mlmodelc in the app bundle. Convert oemer 2nd_model.onnx before enabling Scan to MusicXML."
+            )
+        }
+        return VocalDiveOMRModelReadiness(isReady: true, message: "oemer Core ML models are bundled.")
+        #else
+        return VocalDiveOMRModelReadiness(isReady: false, message: "Core ML is unavailable on this platform.")
+        #endif
+    }
+
+    func predict(page: PreparedPageImage) throws -> VocalDiveOMRPagePrediction {
+        #if canImport(CoreML)
+        let firstModel = try loadModel(named: firstModelName)
+        let secondModel = try loadModel(named: secondModelName)
+        let firstInput = try makePixelBuffer(from: page.image, width: 256, height: 256)
+        let secondInput = try makePixelBuffer(from: page.image, width: 288, height: 288)
+
+        let firstFeatures = try MLDictionaryFeatureProvider(dictionary: ["input": MLFeatureValue(pixelBuffer: firstInput)])
+        let secondFeatures = try MLDictionaryFeatureProvider(dictionary: ["input": MLFeatureValue(pixelBuffer: secondInput)])
+        let firstOutput = try firstModel.prediction(from: firstFeatures)
+        let secondOutput = try secondModel.prediction(from: secondFeatures)
+
+        let confidence = [
+            confidence(from: firstOutput.featureValue(for: "prediction")?.multiArrayValue),
+            confidence(from: secondOutput.featureValue(for: "conv2d_25")?.multiArrayValue)
+        ].reduce(0, +) / 2
+        return VocalDiveOMRPagePrediction(pageIndex: page.pageIndex, confidence: confidence)
+        #else
+        throw NativeOMRPrototypeError.oemerModelUnavailable("Core ML is unavailable on this platform.")
+        #endif
+    }
+
+    #if canImport(CoreML)
+    private func compiledModelURL(named name: String) -> URL? {
+        Bundle.main.url(forResource: name, withExtension: "mlmodelc", subdirectory: "OMRModels")
+            ?? Bundle.main.url(forResource: name, withExtension: "mlmodelc")
+    }
+
+    private func loadModel(named name: String) throws -> MLModel {
+        guard let url = compiledModelURL(named: name) else {
+            throw NativeOMRPrototypeError.oemerModelUnavailable("Missing \(name).mlmodelc")
+        }
+        return try MLModel(contentsOf: url)
+    }
+
+    private func makePixelBuffer(from image: CGImage, width: Int, height: Int) throws -> CVPixelBuffer {
+        var pixelBuffer: CVPixelBuffer?
+        let attributes = [
+            kCVPixelBufferCGImageCompatibilityKey: true,
+            kCVPixelBufferCGBitmapContextCompatibilityKey: true
+        ] as CFDictionary
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_32BGRA,
+            attributes,
+            &pixelBuffer
+        )
+        guard status == kCVReturnSuccess, let pixelBuffer else {
+            throw NativeOMRPrototypeError.unreadableDocument
+        }
+
+        CVPixelBufferLockBaseAddress(pixelBuffer, [])
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, []) }
+        guard let context = CGContext(
+            data: CVPixelBufferGetBaseAddress(pixelBuffer),
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer),
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue
+        ) else {
+            throw NativeOMRPrototypeError.unreadableDocument
+        }
+        context.setFillColor(CGColor(gray: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return pixelBuffer
+    }
+
+    private func confidence(from array: MLMultiArray?) -> Double {
+        guard let array else {
+            return 0
+        }
+        let count = min(array.count, 4096)
+        guard count > 0 else {
+            return 0
+        }
+        var total = 0.0
+        let sampleStride = max(1, array.count / count)
+        var samples = 0
+        for index in stride(from: 0, to: array.count, by: sampleStride) {
+            total += array[index].doubleValue
+            samples += 1
+            if samples >= count {
+                break
+            }
+        }
+        return min(1, max(0, total / Double(max(samples, 1))))
+    }
+    #endif
 }

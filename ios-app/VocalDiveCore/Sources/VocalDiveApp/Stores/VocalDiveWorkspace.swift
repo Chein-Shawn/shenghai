@@ -32,7 +32,7 @@ final class VocalDiveWorkspace: ObservableObject {
     @Published var exportedMusicXMLURL: URL?
     @Published var isImportingScore = false
     @Published var isPlaying = false
-    @Published var selectedOMRProvider: OMRProvider = .nativePrototype
+    @Published var scanProgress: NativeOMRScanProgress?
     @Published var scannedMusicXMLCandidate: OMRMusicXMLCandidate?
     @Published var latestNativeOMRSession: NativeOMRPrototypeSessionResult?
     @Published var scoreReviewSession: ScoreReviewSession?
@@ -229,21 +229,13 @@ final class VocalDiveWorkspace: ObservableObject {
         }
 
         if lowercasedExtension == "pdf" {
-            if pendingScoreImportFlow == .scan && selectedOMRProvider.runsInsideAppleApp {
-                runNativeOMRImport(url: url)
-            } else {
-                handlePendingOMRImport(url: url, inputKind: .pdf)
-            }
+            runNativeOMRImport(url: url)
             return
         }
 
         if let type = UTType(filenameExtension: lowercasedExtension),
            type.conforms(to: .image) {
-            if pendingScoreImportFlow == .scan && selectedOMRProvider.runsInsideAppleApp {
-                runNativeOMRImport(url: url)
-            } else {
-                handlePendingOMRImport(url: url, inputKind: .image)
-            }
+            runNativeOMRImport(url: url)
             return
         }
 
@@ -313,7 +305,7 @@ final class VocalDiveWorkspace: ObservableObject {
         scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
             sourceName: sourceName,
             inputKind: inputKind,
-            provider: selectedOMRProvider,
+            provider: .nativePrototype,
             score: score
         )
         statusMessage = L10n.tr("Created editable MusicXML review candidate.")
@@ -399,32 +391,11 @@ final class VocalDiveWorkspace: ObservableObject {
         }
     }
 
-    private func handlePendingOMRImport(url: URL, inputKind: OMRInputKind) {
-        let didStartAccess = url.startAccessingSecurityScopedResource()
-        defer {
-            if didStartAccess {
-                url.stopAccessingSecurityScopedResource()
-            }
-        }
-
-        statusMessage = L10n.tr("Imported %@ for OMR intake. This build still needs an external OMR step before VocalDive can open it as editable MusicXML.", url.lastPathComponent)
-        errorMessage = L10n.tr("score.scan.external_provider_required")
-        scannedMusicXMLCandidate = nil
-        latestNativeOMRSession = nil
-        scoreReviewSession = nil
-        musicXMLEditorSession = nil
-        currentSampleBenchmarkResult = nil
-        selectedReviewSymbolID = nil
-        selectedReviewPageIndex = 0
-        compactScoreMode = .scan
-        scoreLandingMode = .scan
-        selectedSection = .scoreWorkspace
-    }
-
     func runNativeOMRImport(url: URL) {
         do {
             try runNativeOMRImport(url: url, sourceKind: .scanCandidate)
         } catch {
+            scanProgress = nil
             latestNativeOMRSession = nil
             scannedMusicXMLCandidate = nil
             errorMessage = L10n.tr("score.native_omr.failed", error.localizedDescription)
@@ -441,8 +412,12 @@ final class VocalDiveWorkspace: ObservableObject {
 
         statusMessage = L10n.tr("score.native_omr.processing", url.lastPathComponent)
         errorMessage = nil
+        scanProgress = .make(.preparing, fraction: 0.01)
 
-        let session = try nativeOMRPrototypeService.makeSession(from: url)
+        let session = try nativeOMRPrototypeService.makeSession(from: url) { [weak self] progress in
+            self?.scanProgress = progress
+            self?.statusMessage = self?.localizedScanProgress(progress, sourceName: url.lastPathComponent) ?? ""
+        }
         let musicXMLData = Data(session.generatedMusicXML.utf8)
         let importedScore = try importer.importDocument(data: musicXMLData)
         let scoreItemID = try persistence.persistScoreDocument(
@@ -456,7 +431,7 @@ final class VocalDiveWorkspace: ObservableObject {
         scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
             sourceName: url.lastPathComponent,
             inputKind: session.inputKind,
-            provider: selectedOMRProvider,
+            provider: .nativePrototype,
             score: importedScore
         )
         let reviewPages = session.renderedPages.map { page in
@@ -512,6 +487,22 @@ final class VocalDiveWorkspace: ObservableObject {
         compactScoreMode = .editor
         scoreLandingMode = .scan
         selectedSection = .scoreWorkspace
+    }
+
+    private func localizedScanProgress(_ progress: NativeOMRScanProgress, sourceName: String) -> String {
+        let percent = Int((progress.fraction * 100).rounded())
+        let phase = L10n.tr(progress.phase.localizationKey)
+        if progress.totalPages > 0 {
+            return L10n.tr(
+                "score.scan.progress.with_pages",
+                percent,
+                phase,
+                progress.completedPages,
+                progress.totalPages,
+                sourceName
+            )
+        }
+        return L10n.tr("score.scan.progress.simple", percent, phase, sourceName)
     }
 
     func bootstrapIfNeeded() {
@@ -797,7 +788,7 @@ final class VocalDiveWorkspace: ObservableObject {
         scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
             sourceName: resolvedSourceName,
             inputKind: resolvedInputKind,
-            provider: selectedOMRProvider,
+            provider: .nativePrototype,
             score: score
         )
 

@@ -458,3 +458,13 @@
 "score.editor.webview_unavailable" = "Der integrierte MusicXML-Renderer ist auf dieser Plattform nicht verfuegbar.";
 "score.editor.export_current_musicxml" = "Aktuelles MusicXML exportieren";
 "score.editor.symbol_navigator" = "Symbol-Navigator";
+"score.scan.model_description" = "VocalDive scannt die Partitur auf dem Gerät mit gebündelten oemer Core ML-Modellen. Wenn die Modelle noch nicht installiert sind, stoppt der Scan klar, statt ein falsches MusicXML-Ergebnis zu erzeugen.";
+"score.scan.progress.preparing" = "Vorbereiten";
+"score.scan.progress.rasterizingPages" = "Seiten werden gerastert";
+"score.scan.progress.runningModel" = "oemer-Modell läuft";
+"score.scan.progress.reconstructingScore" = "Partitur wird rekonstruiert";
+"score.scan.progress.generatingMusicXML" = "MusicXML wird erzeugt";
+"score.scan.progress.openingEditor" = "Editor wird geöffnet";
+"score.scan.progress.finished" = "Fertig";
+"score.scan.progress.simple" = "%d%% - %@ für %@";
+"score.scan.progress.with_pages" = "%d%% - %@ (%d/%d Seiten) für %@";

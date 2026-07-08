@@ -254,34 +254,36 @@ Display language / sync preference / usage records
   -> same-Apple-ID device sync when cloud path is available
 ```
 
-### Native OMR Prototype
+### Scan To MusicXML Model Path
 
 ```text
 PDF/image import
   -> NativeOMRPrototypeService
   -> native page rasterization
-  -> page-level notation estimates + geometry metadata
-  -> multi-page merge
-  -> MusicXMLComposer prototype output
-  -> MusicXMLImporter
-  -> ScoreDocument
-  -> ScoreReviewSession
-  -> shared MusicXML editor / review flow
+  -> VocalDiveOMRModelService
+  -> bundled oemer Core ML model readiness check
+  -> model inference when `oemer_1st_model.mlmodelc` and `oemer_2nd_model.mlmodelc` exist
+  -> Swift score reconstruction / postprocess
+  -> MusicXMLComposer candidate output
+  -> MusicXMLImporter -> ScoreDocument
+  -> ScoreReviewSession -> shared MusicXML editor / review flow
 ```
+
+If the bundled Core ML models are missing, the pipeline stops at the model-readiness stage and reports a clear scan error. It should not fall back to fake heuristic MusicXML output in user-facing builds.
 
 ### Sample Verification
 
 ```text
 Bundled Twinkle intact / scanned fixtures
   -> SampleScoreLibrary
-  -> direct ground-truth editor load or prototype OMR run
-  -> benchmark checks
+  -> direct ground-truth editor load or scan-flow smoke test
+  -> internal benchmark checks
     - parser/import success
     - page count
     - measure count
     - playable note count
     - pitch sequence
-  -> visible benchmark summary in Score workspace
+  -> developer verification notes, not a general user-facing benchmark panel
 ```
 
 ## Current Architecture Judgment
@@ -293,9 +295,9 @@ The app is correctly moving toward a shared-core architecture:
 - Localization stays in `VocalDiveApp`; core exposes semantic identifiers instead of localized strings.
 - iOS, iPadOS, and macOS share the same parser, pitch timeline, alignment, and usage analytics.
 - Durable user data now belongs in a structured persistence layer rather than scattered `UserDefaults` blobs.
-- External OMR providers remain the higher-accuracy research baselines.
-- The shipped app now has a narrow native OMR prototype path for simulator/debug validation of PDF rasterization, page stitching, and MusicXML re-entry.
-- A real bundled recognition model can replace the current prototype estimator later without changing the surrounding review workflow.
+- External OMR providers remain research references, not user-facing choices.
+- The shipped app now exposes one user-facing scan path: `Scan to MusicXML`.
+- The scan path has an explicit model gate for bundled oemer Core ML models. Until those models are converted and bundled, scan stops honestly instead of producing fake MusicXML.
 - The `Score` area is now intentionally split: direct MusicXML editing iterates separately from scan-to-MusicXML, while both converge on the same editor surface and score model.
 - The current formal engraving layer is bundled `OSMD` inside a local web view, while the native Swift symbolic panels remain the structured editing and benchmark surface.
 

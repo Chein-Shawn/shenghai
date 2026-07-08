@@ -458,3 +458,13 @@
 "score.editor.webview_unavailable" = "The built-in MusicXML renderer is unavailable on this platform.";
 "score.editor.export_current_musicxml" = "Export Current MusicXML";
 "score.editor.symbol_navigator" = "Symbol Navigator";
+"score.scan.model_description" = "VocalDive scans this score on device with bundled oemer Core ML models. If the models are not installed yet, the scan stops clearly instead of producing a fake MusicXML result.";
+"score.scan.progress.preparing" = "Preparing";
+"score.scan.progress.rasterizingPages" = "Rasterizing pages";
+"score.scan.progress.runningModel" = "Running oemer model";
+"score.scan.progress.reconstructingScore" = "Reconstructing score";
+"score.scan.progress.generatingMusicXML" = "Generating MusicXML";
+"score.scan.progress.openingEditor" = "Opening editor";
+"score.scan.progress.finished" = "Finished";
+"score.scan.progress.simple" = "%d%% - %@ for %@";
+"score.scan.progress.with_pages" = "%d%% - %@ (%d/%d pages) for %@";

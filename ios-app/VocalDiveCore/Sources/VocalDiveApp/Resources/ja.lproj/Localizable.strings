@@ -458,3 +458,13 @@
 "score.editor.webview_unavailable" = "このプラットフォームでは内蔵 MusicXML renderer は利用できません。";
 "score.editor.export_current_musicxml" = "現在の MusicXML を書き出す";
 "score.editor.symbol_navigator" = "記号ナビゲータ";
+"score.scan.model_description" = "VocalDive は内蔵の oemer Core ML モデルを使って端末上で楽譜をスキャンします。モデルがまだ入っていない場合は、偽の MusicXML を作らず明確に停止します。";
+"score.scan.progress.preparing" = "準備中";
+"score.scan.progress.rasterizingPages" = "ページを画像化中";
+"score.scan.progress.runningModel" = "oemer モデルを実行中";
+"score.scan.progress.reconstructingScore" = "楽譜を再構成中";
+"score.scan.progress.generatingMusicXML" = "MusicXML を生成中";
+"score.scan.progress.openingEditor" = "エディタを開いています";
+"score.scan.progress.finished" = "完了";
+"score.scan.progress.simple" = "%d%% - %@：%@";
+"score.scan.progress.with_pages" = "%d%% - %@（%d/%d ページ）：%@";
