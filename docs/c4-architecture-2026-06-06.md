@@ -299,6 +299,8 @@ The app is correctly moving toward a shared-core architecture:
 - The shipped app now exposes one user-facing scan path: `Scan to MusicXML`.
 - The scan path has an explicit model gate for bundled oemer Core ML models. Until those models are converted and bundled, scan stops honestly instead of producing fake MusicXML.
 - The `Score` area is now intentionally split: direct MusicXML editing iterates separately from scan-to-MusicXML, while both converge on the same editor surface and score model.
+- The native OMR model service now has a prediction-map handoff boundary: Core ML `MLMultiArray` outputs are normalized into Swift prediction maps before any score reconstruction runs.
+- The first implemented map consumer is staff/system detection. Notehead, rest, clef, accidental, key/time, and rhythm reconstruction remain the next Swift postprocess porting layer.
 - The current formal engraving layer is bundled `OSMD` inside a local web view, while the native Swift symbolic panels remain the structured editing and benchmark surface.
 
 
@@ -313,3 +315,12 @@ The OMR architecture should now be treated as a five-layer porting problem rathe
 5. editor/review handoff inside the existing `Scan to MusicXML` flow
 
 This keeps the user-facing product surface simple while allowing `oemer` to remain a parity reference instead of a pretend in-app runtime.
+
+### 2026-07-09 update - oemer conversion and prediction-map boundary
+
+The deployable OMR path is now documented as two parallel tracks:
+
+1. Conversion track: official oemer ONNX checkpoints stay in `/Users/shawn/Documents/Codex/vocaldive-ml/oemer/checkpoints`, are converted through reproducible scripts, and only compiled Core ML artifacts are intended for `Resources/OMRModels/`.
+2. Runtime track: `VocalDiveOMRModelService` loads `oemer_1st_model.mlmodelc` and `oemer_2nd_model.mlmodelc`, runs Core ML, converts `MLMultiArray` outputs into prediction maps, then passes those maps into Swift reconstruction.
+
+The current runtime has the resource gate and prediction-map parser in place. The remaining architecture gap is the full Swift equivalent of oemer's postprocessing: symbol grouping, duration inference, measure semantics, and richer MusicXML export.

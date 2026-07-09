@@ -636,3 +636,22 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - scan progress now reports percent/stage state through the workspace
 - Removed user-facing provider picker surfaces from the Score UI so general users no longer see `homr`, `oemer`, or `VocalDive Native` as selectable providers.
 - Removed the crowded toolbar sample menu that used the sparkles icon; sample actions remain in the landing flow instead of overlapping the main toolbar.
+
+### 2026-07-09 - oemer conversion tooling and prediction-map handoff
+
+- Added reproducible OMR tooling:
+  - `tools/omr/download_oemer_checkpoints.py`
+  - `tools/omr/convert_oemer_coreml.py`
+  - `tools/omr/oemer_conversion_requirements.txt`
+- Created the local ML workspace at `/Users/shawn/Documents/Codex/vocaldive-ml/oemer/` and kept official ONNX checkpoints outside git history.
+- Verified official checkpoint SHA-256 values and wrote `/Users/shawn/Documents/Codex/vocaldive-ml/oemer/logs/checkpoint-manifest.json`.
+- Built a pinned conversion venv and found the real conversion chain:
+  - direct `coremltools` ONNX conversion is unavailable in `coremltools 9.0`
+  - `onnx2tf` can start graph conversion after adding `tf_keras`, `onnx-graphsurgeon`, `sng4onnx`, `psutil`, and `ai-edge-litert`
+  - current blocker is shape/layout mismatch in Add nodes, so conversion needs static input shape plus NHWC-preserving flags and/or parameter replacement JSON
+- Updated `convert_oemer_coreml.py` so it finds `onnx2tf` inside the active venv and tries baseline, static `-kt input`, and static `-kat input` strategies.
+- Updated `NativeOMRPrototypeService` so converted models will feed real `MLMultiArray` prediction maps into Swift instead of one averaged confidence score.
+- Added `Resources/OMRModels/README.md` to document the expected compiled model destination without committing large model artifacts through normal git.
+- Verified app-side changes with:
+  - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
+- Did not finish `.mlpackage` generation because the local disk had only hundreds of MiB free after installing the conversion toolchain; the next conversion run needs several GiB of free space or an external SSD workspace.

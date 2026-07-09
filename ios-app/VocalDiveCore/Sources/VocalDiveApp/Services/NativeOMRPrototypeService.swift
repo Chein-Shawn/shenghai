@@ -262,7 +262,11 @@ final class NativeOMRPrototypeService {
     private func analyze(page: PreparedPageImage, prediction: VocalDiveOMRPagePrediction) throws -> NativeOMRPageNotation {
         let raster = try makeAnalysisRaster(from: page.image)
         let darkCoverage = raster.darkCoverage
-        let smoothedRows = smoothProjection(raster.rowDarkFractions, radius: 10)
+        let modelStaffRows = prediction.stafflineRowFractions(targetCount: raster.height)
+        let smoothedRows = smoothProjection(
+            mergedStaffProjection(rasterRows: raster.rowDarkFractions, modelRows: modelStaffRows),
+            radius: 10
+        )
         let systems = detectSystems(
             smoothedRows: smoothedRows,
             pageIndex: page.pageIndex,
@@ -304,7 +308,7 @@ final class NativeOMRPrototypeService {
             }
         }
 
-        let confidence = min(0.90, max(0.36, darkCoverage * 4 + Double(systems.count) * 0.06 + prediction.confidence * 0.08))
+        let confidence = min(0.94, max(0.36, darkCoverage * 4 + Double(systems.count) * 0.06 + prediction.confidence * 0.16))
         return NativeOMRPageNotation(
             pageIndex: page.pageIndex,
             status: .recognized,
@@ -672,6 +676,19 @@ final class NativeOMRPrototypeService {
         }
     }
 
+    private func mergedStaffProjection(rasterRows: [Double], modelRows: [Double]) -> [Double] {
+        guard rasterRows.count == modelRows.count, let modelPeak = modelRows.max(), modelPeak > 0.001 else {
+            return rasterRows
+        }
+
+        let rasterPeak = max(rasterRows.max() ?? 0.001, 0.001)
+        return zip(rasterRows, modelRows).map { raster, model in
+            let normalizedRaster = raster / rasterPeak
+            let normalizedModel = model / modelPeak
+            return normalizedRaster * 0.35 + normalizedModel * 0.65
+        }
+    }
+
     private func mergePeaks(_ peaks: [Int], minimumGap: Int) -> [Int] {
         guard let first = peaks.first else {
             return []
@@ -720,7 +737,68 @@ private struct VocalDiveOMRModelReadiness {
 
 private struct VocalDiveOMRPagePrediction {
     var pageIndex: Int
+    var stafflineMap: VocalDiveOMRPredictionMap?
+    var symbolMap: VocalDiveOMRPredictionMap?
     var confidence: Double
+
+    func stafflineRowFractions(targetCount: Int) -> [Double] {
+        guard let stafflineMap else {
+            return []
+        }
+        return stafflineMap.rowProjection(channel: 1, targetCount: targetCount)
+    }
+}
+
+private struct VocalDiveOMRPredictionMap {
+    var width: Int
+    var height: Int
+    var channels: Int
+    var values: [Float]
+
+    func channelMean(_ channel: Int) -> Double {
+        guard channels > channel, width > 0, height > 0 else {
+            return 0
+        }
+        var total = 0.0
+        var count = 0
+        for row in 0..<height {
+            for column in 0..<width {
+                total += Double(value(row: row, column: column, channel: channel))
+                count += 1
+            }
+        }
+        return total / Double(max(count, 1))
+    }
+
+    func rowProjection(channel: Int, targetCount: Int) -> [Double] {
+        guard channels > channel, width > 0, height > 0, targetCount > 0 else {
+            return []
+        }
+
+        let raw = (0..<height).map { row in
+            var total = 0.0
+            for column in 0..<width {
+                total += Double(value(row: row, column: column, channel: channel))
+            }
+            return total / Double(width)
+        }
+
+        guard raw.count != targetCount else {
+            return raw
+        }
+
+        return (0..<targetCount).map { index in
+            let source = Double(index) * Double(max(raw.count - 1, 0)) / Double(max(targetCount - 1, 1))
+            let lower = max(0, min(raw.count - 1, Int(source.rounded(.down))))
+            let upper = max(0, min(raw.count - 1, lower + 1))
+            let weight = source - Double(lower)
+            return raw[lower] * (1 - weight) + raw[upper] * weight
+        }
+    }
+
+    private func value(row: Int, column: Int, channel: Int) -> Float {
+        values[(row * width + column) * channels + channel]
+    }
 }
 
 private final class VocalDiveOMRModelService {
@@ -759,11 +837,18 @@ private final class VocalDiveOMRModelService {
         let firstOutput = try firstModel.prediction(from: firstFeatures)
         let secondOutput = try secondModel.prediction(from: secondFeatures)
 
+        let firstMap = predictionMap(from: firstOutput.featureValue(for: "prediction")?.multiArrayValue)
+        let secondMap = predictionMap(from: secondOutput.featureValue(for: "conv2d_25")?.multiArrayValue)
         let confidence = [
-            confidence(from: firstOutput.featureValue(for: "prediction")?.multiArrayValue),
-            confidence(from: secondOutput.featureValue(for: "conv2d_25")?.multiArrayValue)
+            confidence(from: firstMap),
+            confidence(from: secondMap)
         ].reduce(0, +) / 2
-        return VocalDiveOMRPagePrediction(pageIndex: page.pageIndex, confidence: confidence)
+        return VocalDiveOMRPagePrediction(
+            pageIndex: page.pageIndex,
+            stafflineMap: firstMap,
+            symbolMap: secondMap,
+            confidence: confidence
+        )
         #else
         throw NativeOMRPrototypeError.oemerModelUnavailable("Core ML is unavailable on this platform.")
         #endif
@@ -820,25 +905,64 @@ private final class VocalDiveOMRModelService {
         return pixelBuffer
     }
 
-    private func confidence(from array: MLMultiArray?) -> Double {
+    private func predictionMap(from array: MLMultiArray?) -> VocalDiveOMRPredictionMap? {
         guard let array else {
-            return 0
+            return nil
         }
-        let count = min(array.count, 4096)
-        guard count > 0 else {
-            return 0
+
+        let shape = array.shape.map(\.intValue)
+        let strides = array.strides.map(\.intValue)
+        let width: Int
+        let height: Int
+        let channels: Int
+        let rank = shape.count
+        if rank == 4 {
+            height = shape[1]
+            width = shape[2]
+            channels = shape[3]
+        } else if rank == 3 {
+            height = shape[0]
+            width = shape[1]
+            channels = shape[2]
+        } else {
+            return nil
         }
-        var total = 0.0
-        let sampleStride = max(1, array.count / count)
-        var samples = 0
-        for index in stride(from: 0, to: array.count, by: sampleStride) {
-            total += array[index].doubleValue
-            samples += 1
-            if samples >= count {
-                break
+        guard width > 0, height > 0, channels > 0 else {
+            return nil
+        }
+
+        var values = Array(repeating: Float(0), count: width * height * channels)
+        for row in 0..<height {
+            for column in 0..<width {
+                for channel in 0..<channels {
+                    let offset: Int
+                    if rank == 4 {
+                        offset = row * strides[1] + column * strides[2] + channel * strides[3]
+                    } else {
+                        offset = row * strides[0] + column * strides[1] + channel * strides[2]
+                    }
+                    values[(row * width + column) * channels + channel] = array[offset].floatValue
+                }
             }
         }
-        return min(1, max(0, total / Double(max(samples, 1))))
+
+        return VocalDiveOMRPredictionMap(
+            width: width,
+            height: height,
+            channels: channels,
+            values: values
+        )
+    }
+
+    private func confidence(from map: VocalDiveOMRPredictionMap?) -> Double {
+        guard let map else {
+            return 0
+        }
+        if map.channels > 1 {
+            let activeMeans = (1..<map.channels).map(map.channelMean)
+            return min(1, max(0, activeMeans.max() ?? 0))
+        }
+        return min(1, max(0, map.channelMean(0)))
     }
     #endif
 }

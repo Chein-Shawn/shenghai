@@ -1,0 +1,12 @@
+coremltools==9.0
+onnx==1.16.2
+onnxruntime==1.27.0
+onnx2tf==1.28.8
+tensorflow==2.15.1
+tf_keras==2.15.1
+numpy==1.26.4
+protobuf==4.25.9
+onnx-graphsurgeon==0.6.1
+sng4onnx==2.0.1
+psutil==7.2.2
+ai-edge-litert==2.1.6

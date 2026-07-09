@@ -50,12 +50,14 @@ Current audit result:
 - code license: MIT in the upstream repository
 - checked assets: `1st_model.onnx` and `2nd_model.onnx` from the upstream `checkpoints` release
 - app status: no converted Core ML model is committed yet
+- conversion status: official ONNX checkpoints are downloaded and checksum-verified in a local ML workspace, but `.mlpackage` / `.mlmodelc` artifacts are not produced or bundled yet
 - current risk: model-weight redistribution and App Store bundling should receive a final review before TestFlight/App Store distribution
 
 Action before launch:
 
 - Keep the upstream license text and asset provenance in release documentation.
 - Do not commit or ship converted model files until the redistribution decision is explicit.
+- Keep ONNX checkpoints, TensorFlow SavedModel intermediates, conversion virtualenvs, and generated `.mlpackage` folders out of normal git history.
 - If bundling the checkpoints is approved, record the exact SHA-256 of every shipped model artifact.
 - If redistribution is not approved, replace oemer with a model whose code, weights, and training-data terms are all compatible with commercial distribution.
 
