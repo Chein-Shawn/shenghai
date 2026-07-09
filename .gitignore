@@ -32,3 +32,6 @@ samples/audio/*.aac
 # Local OMR runtime assets
 oemer-main/oemer/checkpoints/*.onnx
 oemer-main/oemer/checkpoints/*.h5
+ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OMRModels/*.mlpackage
+ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OMRModels/*.mlmodelc
+ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OMRModels/*.onnx

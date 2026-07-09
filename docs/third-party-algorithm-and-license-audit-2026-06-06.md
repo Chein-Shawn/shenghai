@@ -50,7 +50,7 @@ Current audit result:
 - code license: MIT in the upstream repository
 - checked assets: `1st_model.onnx` and `2nd_model.onnx` from the upstream `checkpoints` release
 - app status: no converted Core ML model is committed yet
-- conversion status: official ONNX checkpoints are downloaded and checksum-verified in a local ML workspace, but `.mlpackage` / `.mlmodelc` artifacts are not produced or bundled yet
+- conversion status: official ONNX checkpoints are downloaded and checksum-verified in a local ML workspace, but latest `onnx2tf` attempts still fail on shape/layout replacement; `.mlpackage` / `.mlmodelc` artifacts are not produced or bundled yet
 - current risk: model-weight redistribution and App Store bundling should receive a final review before TestFlight/App Store distribution
 
 Action before launch:

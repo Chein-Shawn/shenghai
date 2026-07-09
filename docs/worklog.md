@@ -655,3 +655,20 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Verified app-side changes with:
   - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
 - Did not finish `.mlpackage` generation because the local disk had only hundreds of MiB free after installing the conversion toolchain; the next conversion run needs several GiB of free space or an external SSD workspace.
+
+### 2026-07-09 - oemer conversion retry and Core ML runtime compatibility
+
+- Retried the official oemer ONNX -> onnx2tf -> Core ML path after freeing enough local disk space.
+- Updated `tools/omr/convert_oemer_coreml.py` to:
+  - generate local calibration `.npy` inputs
+  - generate the fixed onnx2tf default test sample in the ML output directory
+  - run onnx2tf from the output directory so it no longer tries to download calibration data during normal conversion
+  - try baseline, static shape only, `-kt input`, `-kat input`, and generated `*_auto.json` retry strategies
+  - record artifact sizes and attempt `xcrun coremlcompiler compile` if a `.mlpackage` is ever produced
+- Latest conversion log: `/Users/shawn/Documents/Codex/vocaldive-ml/oemer/logs/conversion-20260709T054220Z.json`.
+- Result: no `.mlpackage` / `.mlmodelc` was produced. The remaining blocker is real ONNX graph layout repair:
+  - `1st_model.onnx` still fails around `model/add_2/add` and first-convolution NHWC/NCHW mismatch
+  - `2nd_model.onnx` still fails around `model/add/add` and `model/separable_conv2d/separable_conv2d/depthwise`
+- Updated `NativeOMRPrototypeService.swift` so the app runtime can accept either Core ML image inputs or MultiArray inputs, and can normalize NHWC/HWC plus NCHW/CHW outputs into `VocalDiveOMRPredictionMap`.
+- Verified app-side compilation with `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`.
+- Added ignore rules so local `.mlpackage`, `.mlmodelc`, and `.onnx` files under app `OMRModels/` are not accidentally committed through normal git.

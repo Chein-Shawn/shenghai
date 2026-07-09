@@ -829,11 +829,13 @@ private final class VocalDiveOMRModelService {
         #if canImport(CoreML)
         let firstModel = try loadModel(named: firstModelName)
         let secondModel = try loadModel(named: secondModelName)
-        let firstInput = try makePixelBuffer(from: page.image, width: 256, height: 256)
-        let secondInput = try makePixelBuffer(from: page.image, width: 288, height: 288)
 
-        let firstFeatures = try MLDictionaryFeatureProvider(dictionary: ["input": MLFeatureValue(pixelBuffer: firstInput)])
-        let secondFeatures = try MLDictionaryFeatureProvider(dictionary: ["input": MLFeatureValue(pixelBuffer: secondInput)])
+        let firstFeatures = try MLDictionaryFeatureProvider(dictionary: [
+            "input": makeInputFeatureValue(for: firstModel, image: page.image, fallbackWidth: 256, fallbackHeight: 256)
+        ])
+        let secondFeatures = try MLDictionaryFeatureProvider(dictionary: [
+            "input": makeInputFeatureValue(for: secondModel, image: page.image, fallbackWidth: 288, fallbackHeight: 288)
+        ])
         let firstOutput = try firstModel.prediction(from: firstFeatures)
         let secondOutput = try secondModel.prediction(from: secondFeatures)
 
@@ -865,6 +867,33 @@ private final class VocalDiveOMRModelService {
             throw NativeOMRPrototypeError.oemerModelUnavailable("Missing \(name).mlmodelc")
         }
         return try MLModel(contentsOf: url)
+    }
+
+    private func makeInputFeatureValue(
+        for model: MLModel,
+        image: CGImage,
+        fallbackWidth: Int,
+        fallbackHeight: Int
+    ) throws -> MLFeatureValue {
+        let inputDescription = model.modelDescription.inputDescriptionsByName["input"]
+        if let imageConstraint = inputDescription?.imageConstraint {
+            let width = imageConstraint.pixelsWide > 0 ? imageConstraint.pixelsWide : fallbackWidth
+            let height = imageConstraint.pixelsHigh > 0 ? imageConstraint.pixelsHigh : fallbackHeight
+            return try MLFeatureValue(pixelBuffer: makePixelBuffer(from: image, width: width, height: height))
+        }
+
+        if let multiArrayConstraint = inputDescription?.multiArrayConstraint {
+            return MLFeatureValue(
+                multiArray: try makeImageMultiArray(
+                    from: image,
+                    constraint: multiArrayConstraint,
+                    fallbackWidth: fallbackWidth,
+                    fallbackHeight: fallbackHeight
+                )
+            )
+        }
+
+        return try MLFeatureValue(pixelBuffer: makePixelBuffer(from: image, width: fallbackWidth, height: fallbackHeight))
     }
 
     private func makePixelBuffer(from image: CGImage, width: Int, height: Int) throws -> CVPixelBuffer {
@@ -905,6 +934,99 @@ private final class VocalDiveOMRModelService {
         return pixelBuffer
     }
 
+    private func makeImageMultiArray(
+        from image: CGImage,
+        constraint: MLMultiArrayConstraint,
+        fallbackWidth: Int,
+        fallbackHeight: Int
+    ) throws -> MLMultiArray {
+        let shape = staticShape(from: constraint.shape)
+        let layout = inputLayout(from: shape)
+        let width = layout.width ?? fallbackWidth
+        let height = layout.height ?? fallbackHeight
+        let channels = layout.channels ?? 3
+        let pixels = try makeRGBBytes(from: image, width: width, height: height)
+        let dataType = constraint.dataType == .double ? MLMultiArrayDataType.double : .float32
+        let arrayShape = shape.isEmpty ? [1, height, width, channels] : shape
+        let multiArray = try MLMultiArray(shape: arrayShape.map(NSNumber.init(value:)), dataType: dataType)
+
+        for row in 0..<height {
+            for column in 0..<width {
+                for channel in 0..<min(channels, 3) {
+                    let pixelOffset = (row * width + column) * 4 + channel
+                    let value = NSNumber(value: Float(pixels[pixelOffset]))
+                    let arrayOffset: [Int]
+                    switch layout.order {
+                    case .nchw:
+                        arrayOffset = [0, channel, row, column]
+                    case .chw:
+                        arrayOffset = [channel, row, column]
+                    case .hwc:
+                        arrayOffset = [row, column, channel]
+                    case .nhwc:
+                        arrayOffset = [0, row, column, channel]
+                    }
+                    multiArray[arrayOffset.map(NSNumber.init(value:))] = value
+                }
+            }
+        }
+
+        return multiArray
+    }
+
+    private enum MultiArrayImageOrder {
+        case nhwc
+        case nchw
+        case hwc
+        case chw
+    }
+
+    private func staticShape(from shape: [NSNumber]) -> [Int] {
+        shape.map(\.intValue).filter { $0 > 0 }
+    }
+
+    private func inputLayout(from shape: [Int]) -> (order: MultiArrayImageOrder, width: Int?, height: Int?, channels: Int?) {
+        guard !shape.isEmpty else {
+            return (.nhwc, nil, nil, nil)
+        }
+
+        if shape.count == 4 {
+            if shape[1] == 1 || shape[1] == 3 || shape[1] == 4 {
+                return (.nchw, shape[3], shape[2], shape[1])
+            }
+            return (.nhwc, shape[2], shape[1], shape[3])
+        }
+
+        if shape.count == 3 {
+            if shape[0] == 1 || shape[0] == 3 || shape[0] == 4 {
+                return (.chw, shape[2], shape[1], shape[0])
+            }
+            return (.hwc, shape[1], shape[0], shape[2])
+        }
+
+        return (.nhwc, nil, nil, nil)
+    }
+
+    private func makeRGBBytes(from image: CGImage, width: Int, height: Int) throws -> [UInt8] {
+        var bytes = Array(repeating: UInt8(255), count: width * height * 4)
+        guard let context = CGContext(
+            data: &bytes,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: width * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue
+        ) else {
+            throw NativeOMRPrototypeError.unreadableDocument
+        }
+        context.setFillColor(CGColor(gray: 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        return bytes
+    }
+
     private func predictionMap(from array: MLMultiArray?) -> VocalDiveOMRPredictionMap? {
         guard let array else {
             return nil
@@ -915,15 +1037,32 @@ private final class VocalDiveOMRModelService {
         let width: Int
         let height: Int
         let channels: Int
+        let layout: MultiArrayImageOrder
         let rank = shape.count
         if rank == 4 {
-            height = shape[1]
-            width = shape[2]
-            channels = shape[3]
+            if shape[1] <= 16, shape[2] > 16, shape[3] > 16 {
+                layout = .nchw
+                channels = shape[1]
+                height = shape[2]
+                width = shape[3]
+            } else {
+                layout = .nhwc
+                height = shape[1]
+                width = shape[2]
+                channels = shape[3]
+            }
         } else if rank == 3 {
-            height = shape[0]
-            width = shape[1]
-            channels = shape[2]
+            if shape[0] <= 16, shape[1] > 16, shape[2] > 16 {
+                layout = .chw
+                channels = shape[0]
+                height = shape[1]
+                width = shape[2]
+            } else {
+                layout = .hwc
+                height = shape[0]
+                width = shape[1]
+                channels = shape[2]
+            }
         } else {
             return nil
         }
@@ -936,10 +1075,15 @@ private final class VocalDiveOMRModelService {
             for column in 0..<width {
                 for channel in 0..<channels {
                     let offset: Int
-                    if rank == 4 {
+                    switch layout {
+                    case .nhwc:
                         offset = row * strides[1] + column * strides[2] + channel * strides[3]
-                    } else {
+                    case .nchw:
+                        offset = channel * strides[1] + row * strides[2] + column * strides[3]
+                    case .hwc:
                         offset = row * strides[0] + column * strides[1] + channel * strides[2]
+                    case .chw:
+                        offset = channel * strides[0] + row * strides[1] + column * strides[2]
                     }
                     values[(row * width + column) * channels + channel] = array[offset].floatValue
                 }
