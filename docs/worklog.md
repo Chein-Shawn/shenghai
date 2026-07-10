@@ -715,3 +715,10 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Cloned `OpenScore/StringQuartets` to the external SSD. It contains 244 MuseScore `.mscx` source files and is a useful symbolic multi-staff source, but the repository does not contain the quartet score PDFs; its six PDFs are analysis plots.
 - Confirmed MuseScore 4.6.5 is installed and added `tools/omr/convert_openscore_stringquartets.py`. A three-score smoke conversion produced MusicXML and clean PDF renders under `normalized/openscore-string-quartets/clean-renders/` and wrote an external conversion receipt.
 - Important training distinction: a MuseScore-rendered PDF is controlled synthetic output, not a real scan. For real-image OMR training/evaluation, use the paired IMSLP scan dataset or actual scan/photo files paired to the corresponding MusicXML. The OpenScore GitHub source remains useful for symbolic truth and renderer checks.
+
+## 2026-07-10 - OpenScore Hugging Face evaluation pack
+
+- The Hugging Face token login succeeded for `ShawnChien`, and the gated OpenScore dataset was downloaded to the external SSD. The Parquet schema contains 252 page rows with `image_imslp`, `image_mscore`, `musicxml`, and `filename`.
+- Added `tools/omr/ingest_openscore_hf.py` to extract paired data without putting it in git. It writes separate real-scan and clean-render PNG directories, MusicXML files, a JSONL manifest, and a statistics report.
+- Extracted and verified the first 20 rows. All 20 real scans and 20 clean renders are valid PNG files; all 20 MusicXML files parse successfully. The pack is for multi-staff OMR evaluation, not SATB training.
+- The next human-dependent boundary is collecting real SATB pages and correcting 50-100 systems. No training claim is made from the quartet evaluation pack alone.
