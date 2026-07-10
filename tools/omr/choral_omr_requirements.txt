@@ -1,0 +1,8 @@
+# Install into an external-SSD virtual environment, not the app runtime.
+torch>=2.4
+pillow>=10.0
+numpy>=1.26
+opencv-python-headless>=4.9
+datasets>=3.0
+pyarrow>=17.0
+huggingface-hub>=0.25

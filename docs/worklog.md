@@ -696,3 +696,22 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - The repair tool bypasses 21 Add-adjacent transpose pairs and writes shape hints for ConvTranspose intermediates into an SSD-local repaired ONNX variant.
 - Conversion progressed beyond the original `model/add/add` layout blocker but now stops at `ConvTranspose__2063` because onnx2tf still sees a missing input shape internally.
 - No Core ML `.mlpackage` or `.mlmodelc` has been produced yet; large ONNX repair artifacts remain on `/Volumes/Crucial X6/vocaldive-ml/oemer/` and are intentionally not committed.
+
+## 2026-07-10 - real-image choral OMR training scaffold
+
+- Corrected the planned training distribution: renderer output is not the primary endpoint-training image source. The core training contract is a real scan/PDF/photo paired with corrected MusicXML.
+- Added external-SSD workspace discovery, a traceable SQLite/JSONL dataset registry, staff-level paired-example registration, and a deterministic Linearized MusicXML tokenizer.
+- Added a small MPS-friendly staff-image-to-LMX PyTorch baseline. It is a research scaffold only; it does not yet claim an in-app model or a completed SATB recognizer.
+- Registered the planned roles of DoReMi, OLiMPiC, OpenScore String Quartets, OpenScore Lieder, SEILS, DeepScoresV2, MUSCIMA++, and CVC-MUSCIMA so visual pretraining, real-image paired recognition, and robustness research cannot be accidentally conflated.
+- Corrected the oemer decision-gate ConvTranspose profile default to use the valid NCHW ONNX graph rather than the invalid all-Add-bypass experiment.
+- Found that the external SSD accepts normal files but rejects SQLite journal writes. The canonical on-SSD catalog is therefore JSONL/JSON; any SQLite search index is explicitly optional and rebuildable on local storage.
+- Ran the two bounded conservative onnx2tf conversion profiles against the valid `2nd_model_nchw_input.onnx`. Both stopped at the first residual `model/add/add` with the same `[1,144,144,64]` versus `[?,?,64,?]` layout mismatch. This exhausts the oemer conversion budget; no Core ML artifact was produced and further graph-repair guessing is intentionally stopped.
+- Initialized `/Volumes/Crucial X6/vocaldive-ml/choral-omr/`, registered a Twinkle smoke fixture, and trained `twinkle-smoke.pt` on MPS. This verifies real image path -> manifest -> LMX tokens -> staff crop -> checkpoint, but is not an accuracy result.
+- Added a one-dataset-at-a-time downloader so public OMR datasets can be acquired into the external SSD with local provenance receipts rather than entering git history.
+- Installed the small data-download environment locally because Python virtual environments fail on the external SSD's AppleDouble metadata. OLiMPiC downloaded successfully to the SSD and its Parquet schema was verified to contain real image bytes, LMX, MusicXML, score ID, page/system metadata, source, and split fields.
+
+## 2026-07-10 - OpenScore String Quartets source verification
+
+- Cloned `OpenScore/StringQuartets` to the external SSD. It contains 244 MuseScore `.mscx` source files and is a useful symbolic multi-staff source, but the repository does not contain the quartet score PDFs; its six PDFs are analysis plots.
+- Confirmed MuseScore 4.6.5 is installed and added `tools/omr/convert_openscore_stringquartets.py`. A three-score smoke conversion produced MusicXML and clean PDF renders under `normalized/openscore-string-quartets/clean-renders/` and wrote an external conversion receipt.
+- Important training distinction: a MuseScore-rendered PDF is controlled synthetic output, not a real scan. For real-image OMR training/evaluation, use the paired IMSLP scan dataset or actual scan/photo files paired to the corresponding MusicXML. The OpenScore GitHub source remains useful for symbolic truth and renderer checks.

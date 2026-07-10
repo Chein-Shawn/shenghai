@@ -324,3 +324,11 @@ The deployable OMR path is now documented as two parallel tracks:
 2. Runtime track: `VocalDiveOMRModelService` loads `oemer_1st_model.mlmodelc` and `oemer_2nd_model.mlmodelc`, runs Core ML, converts `MLMultiArray` outputs into prediction maps, then passes those maps into Swift reconstruction.
 
 The current runtime has the resource gate and prediction-map parser in place. As of the latest conversion pass, `VocalDiveOMRModelService` can prepare either Core ML image input or `MLMultiArray` input and normalize NHWC/HWC or NCHW/CHW outputs into one Swift prediction-map boundary. The remaining architecture gaps are: successful Core ML artifact generation, hand-repaired oemer graph conversion or another Apple-friendly export path, and the full Swift equivalent of oemer's postprocessing: symbol grouping, duration inference, measure semantics, and richer MusicXML export.
+
+### 2026-07-10 update - real-image choral OMR research pipeline
+
+The app flow remains `Scan to MusicXML -> editor/review`. A separate external-SSD research container now prepares a future Apple-friendly model without placing datasets or checkpoints in the app bundle:
+
+`paired real score image + corrected MusicXML -> page/staff metadata -> staff crop + LMX target -> research checkpoint -> Apple export candidate -> VocalDive model service`.
+
+The research model operates staff-wise with page/system/measure metadata used by a score assembler. This supports a variable number of staves: SATB, reduced two-staff choir notation, SATB plus piano, and other multi-part layouts. Raw datasets, JSONL manifests, checkpoints, and evaluation reports remain outside git; the repository stores reproducible tools and this architecture contract. The current external SSD does not support SQLite journaling, so any future SQLite index must be an optional, rebuildable local cache.

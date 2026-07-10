@@ -125,3 +125,14 @@ Still blocked:
 ## 2026-07-10 graph repair update
 
 `2nd_model_nchw_input.onnx` is now the active conversion target. A reproducible repair tool, `tools/omr/repair_oemer_onnx.py`, creates a TensorFlow-oriented graph variant by bypassing 21 residual Add transpose pairs. This moved conversion past the original `model/add/add` blocker. The current blocker is `ConvTranspose__2063`: onnx2tf still loses the ConvTranspose input shape even after concrete shape hints are written into the repaired ONNX. No app-bundled Core ML model is available yet.
+
+## 2026-07-10 decision gate result
+
+Two bounded conversion attempts used the valid `2nd_model_nchw_input.onnx` as source and kept the graph intact. Each applied one conservative onnx2tf replacement profile to the 21 residual Add inputs:
+
+| Profile | Result |
+| --- | --- |
+| `decision_gate_conservative_add_profile_0132.json` | Failed at `model/add/add`: `[1,144,144,64]` versus `[?,?,64,?]` |
+| `decision_gate_conservative_add_profile_0231.json` | Failed at the same node and same incompatible shapes |
+
+The successful ONNX Runtime benchmark remains evidence that the oemer weights are valid. The two conversion attempts are evidence that this onnx2tf/Core ML route is not deployable without deeper model re-export work. The conversion budget is now exhausted: no `.mlpackage` or `.mlmodelc` will be claimed or placed in the app from this route. oemer remains a research reference while the Apple deployment route moves to the staff-wise, real-image LMX model scaffold.
