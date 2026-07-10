@@ -38,6 +38,8 @@ Each `staff_examples.jsonl` row has a source image, matching MusicXML file, page
 
 `tools/omr/ingest_openscore_hf.py` materializes the first 20 Hugging Face paired pages under `normalized/openscore-stringquartets-hf/evaluation-20/`. Each manifest row links one real IMSLP scan, one clean MuseScore render, and one MusicXML ground truth. This is the first OMR evaluation pack, not a SATB training pack.
 
+The current SATB dataset search is recorded in `docs/satb-omr-dataset-research-2026-07-10.md`. No large public real-scan-plus-MusicXML SATB corpus was found, so the first target-domain fixture remains the Jordan score while additional SATB pairs are collected.
+
 ## Local Resource Budget
 
 All large data remains under `/Volumes/Crucial X6/vocaldive-ml/choral-omr/`. The first download budget is 60 GB. DeepScoresV2 dense is used rather than the 80.9 GB complete package. Training defaults are MPS, batch size one, 768 x 192 staff crops, and resumable checkpoints.

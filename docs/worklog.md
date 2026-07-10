@@ -722,3 +722,10 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added `tools/omr/ingest_openscore_hf.py` to extract paired data without putting it in git. It writes separate real-scan and clean-render PNG directories, MusicXML files, a JSONL manifest, and a statistics report.
 - Extracted and verified the first 20 rows. All 20 real scans and 20 clean renders are valid PNG files; all 20 MusicXML files parse successfully. The pack is for multi-staff OMR evaluation, not SATB training.
 - The next human-dependent boundary is collecting real SATB pages and correcting 50-100 systems. No training claim is made from the quartet evaluation pack alone.
+
+## 2026-07-10 - SATB fixture preparation and dataset search
+
+- Verified `I stood on the river of Jordan` as a real SATB a cappella source: three scanned pages, three clean pages, 49 measures, lyrics, multiple voices, and handwritten annotations in the scan.
+- Added `tools/omr/prepare_satb_fixture.py`. It rasterizes both PDFs, extracts the MXL ground truth, creates 12 manually verified system crops, slices 12 MusicXML fragments, and writes a page/system/measure manifest on the external SSD.
+- Verified 12 scanned crops, 12 clean crops, and 12 MusicXML fragments. All fragments parse successfully. The first crop includes both visible staves and lyrics; crop boundaries remain explicit reviewable metadata.
+- Searched for larger SATB image/MusicXML sources. No single mature public SATB corpus was found. Added `docs/satb-omr-dataset-research-2026-07-10.md` to distinguish useful auxiliary datasets from actual SATB target data.

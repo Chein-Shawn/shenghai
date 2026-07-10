@@ -29,6 +29,9 @@ ios-app/Config/Signing/LocalDevelopment.xcconfig
 samples/audio/*.wav
 samples/audio/*.aac
 
+# User-provided/private score fixtures; keep local until rights are confirmed
+/samples/scores/I stood on the river of Jordan/
+
 # Local OMR runtime assets
 oemer-main/oemer/checkpoints/*.onnx
 oemer-main/oemer/checkpoints/*.h5

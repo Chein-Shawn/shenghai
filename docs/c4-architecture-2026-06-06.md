@@ -332,3 +332,10 @@ The app flow remains `Scan to MusicXML -> editor/review`. A separate external-SS
 `paired real score image + corrected MusicXML -> page/staff metadata -> staff crop + LMX target -> research checkpoint -> Apple export candidate -> VocalDive model service`.
 
 The research model operates staff-wise with page/system/measure metadata used by a score assembler. This supports a variable number of staves: SATB, reduced two-staff choir notation, SATB plus piano, and other multi-part layouts. Raw datasets, JSONL manifests, checkpoints, and evaluation reports remain outside git; the repository stores reproducible tools and this architecture contract. The current external SSD does not support SQLite journaling, so any future SQLite index must be an optional, rebuildable local cache.
+
+The first target-domain fixture is a three-page SATB a cappella score with both
+clean and annotated scanned inputs. Its visible two-staff systems are kept
+separate from the MusicXML part/voice structure, because printed staff layout
+and MusicXML parts are not guaranteed to be one-to-one. Page/system/measure
+metadata therefore remains an explicit boundary between image preparation,
+model inference, and MusicXML assembly.
