@@ -9,7 +9,7 @@ Expected local build artifacts:
 
 The original ONNX checkpoints, conversion virtual environment, TensorFlow SavedModel
 intermediates, and generated `.mlpackage` folders are intentionally kept outside git
-under `/Users/shawn/Documents/Codex/vocaldive-ml/oemer/`.
+under the discovered local oemer workspace, usually `~/Documents/Codex/vocaldive-ml/oemer/` or `/Volumes/*/vocaldive-ml/oemer/`.
 
 Do not commit large generated model artifacts through normal git history unless Git
 LFS or a release-asset workflow has been explicitly set up.

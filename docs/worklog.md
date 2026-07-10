@@ -656,6 +656,14 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
   - `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`
 - Did not finish `.mlpackage` generation because the local disk had only hundreds of MiB free after installing the conversion toolchain; the next conversion run needs several GiB of free space or an external SSD workspace.
 
+### 2026-07-09 - oemer workspace portability and NCHW rewrite branch
+
+- Added `tools/omr/oemer_workspace.py` so OMR scripts can discover the local workspace from either the old `~/Documents/Codex/vocaldive-ml/oemer` path or an external `/Volumes/*/vocaldive-ml/oemer` SSD location.
+- Updated `download_oemer_checkpoints.py` and `audit_oemer_onnx.py` to use the discovered workspace by default instead of one hardcoded path.
+- Updated `convert_oemer_coreml.py` so it can bootstrap `onnx`, `onnxruntime`, `coremltools`, and `onnx2tf` from the external conversion venv through `PYTHONPATH`, instead of relying on a moved venv shebang path.
+- Added a new conversion branch that rewrites the initial `NHWC -> NCHW` transpose out of each ONNX graph, then retries `onnx2tf` on the rewritten model as a more Apple-friendly input layout candidate.
+- Verified by ONNX inspection that both official models really begin with `Cast -> Transpose -> Conv`, which confirms the input-layout mismatch is a real graph issue rather than just a guessed converter flag problem.
+
 ### 2026-07-09 - oemer conversion retry and Core ML runtime compatibility
 
 - Retried the official oemer ONNX -> onnx2tf -> Core ML path after freeing enough local disk space.
@@ -672,3 +680,19 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Updated `NativeOMRPrototypeService.swift` so the app runtime can accept either Core ML image inputs or MultiArray inputs, and can normalize NHWC/HWC plus NCHW/CHW outputs into `VocalDiveOMRPredictionMap`.
 - Verified app-side compilation with `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`.
 - Added ignore rules so local `.mlpackage`, `.mlmodelc`, and `.onnx` files under app `OMRModels/` are not accidentally committed through normal git.
+
+## 2026-07-10 - oemer conversion visibility and VocalDive website refresh
+
+- Fixed the oemer conversion summarizer to match the real conversion log schema where `models` is a dictionary and `onnx2tf_coreml.attempts` is nested per model.
+- Generated `docs/oemer-conversion-summary-latest.md` so the next Core ML conversion step can focus on `2nd_model.onnx` failure nodes, NCHW rewrite output, and possible replacement-profile inputs.
+- Rewrote the public manual and changelog pages for VocalDive / 聲潛, replacing remaining product-facing Shenghai wording and making the pages beginner-first.
+- Updated changelog content beyond 2026-06-14 with user-facing updates around Score workflows, Twinkle sample testing, practice tools, support, sync direction, and the VocalDive domain.
+
+## 2026-07-10 - oemer graph repair and website deployment prep
+
+- Confirmed the live `www.vocaldive.com` homepage was still serving old Shenghai copy while local `docs/index.html`, `docs/manual.html`, and `docs/changelog.html` contain VocalDive / 聲潛 wording.
+- Verified `docs/CNAME` remains `www.vocaldive.com`; the remaining deployment step is committing and pushing the updated `docs/` files to GitHub Pages source.
+- Added `tools/omr/repair_oemer_onnx.py` to make the `2nd_model` graph-repair experiment reproducible.
+- The repair tool bypasses 21 Add-adjacent transpose pairs and writes shape hints for ConvTranspose intermediates into an SSD-local repaired ONNX variant.
+- Conversion progressed beyond the original `model/add/add` layout blocker but now stops at `ConvTranspose__2063` because onnx2tf still sees a missing input shape internally.
+- No Core ML `.mlpackage` or `.mlmodelc` has been produced yet; large ONNX repair artifacts remain on `/Volumes/Crucial X6/vocaldive-ml/oemer/` and are intentionally not committed.

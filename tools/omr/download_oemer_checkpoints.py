@@ -6,14 +6,15 @@ This script intentionally stores large model files outside the git repo by defau
 
 from __future__ import annotations
 
-import argparse
 import hashlib
 import json
-import sys
 import subprocess
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
+
+from oemer_workspace import workspace_paths
 
 ASSETS = {
     "1st_model.onnx": {
@@ -47,28 +48,36 @@ def download(url: str, destination: Path) -> None:
                     break
                 output.write(chunk)
     except urllib.error.URLError:
-        # Some macOS Python installs do not have a usable certificate bundle.
-        # Fall back to system curl, then still verify the SHA-256 below.
         completed = subprocess.run(["curl", "-L", "-o", str(destination), url], text=True)
         if completed.returncode != 0:
             raise
 
 
 def main() -> int:
+    defaults = workspace_paths()
+    import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--output-dir",
-        default="/Users/shawn/Documents/Codex/vocaldive-ml/oemer/checkpoints",
+        default=str(defaults["checkpoints"]),
         help="Directory for downloaded ONNX checkpoints.",
     )
-    parser.add_argument("--manifest", help="Optional JSON manifest output path.")
+    parser.add_argument("--manifest", default=str(defaults["logs"] / "checkpoint-manifest.json"), help="Optional JSON manifest output path.")
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir).expanduser().resolve()
     report = {}
     for filename, metadata in ASSETS.items():
         path = output_dir / filename
-        if not path.exists():
+        should_download = not path.exists()
+        if path.exists():
+            digest = sha256(path)
+            size = path.stat().st_size
+            should_download = digest != metadata["sha256"] or size != metadata["bytes"]
+            if should_download:
+                print(f"re-downloading mismatched {filename}...")
+        if should_download:
             print(f"downloading {filename}...")
             download(metadata["url"], path)
         digest = sha256(path)

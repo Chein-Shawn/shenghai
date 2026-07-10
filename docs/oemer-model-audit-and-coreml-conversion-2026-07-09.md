@@ -54,7 +54,7 @@ Result:
 
 Second conversion branch attempted:
 
-- Workspace: `/Users/shawn/Documents/Codex/vocaldive-ml/oemer/`
+- Workspace: auto-discovered through `tools/omr/oemer_workspace.py`, supporting either `~/Documents/Codex/vocaldive-ml/oemer/` or `/Volumes/*/vocaldive-ml/oemer/`
 - Scripted downloader: `tools/omr/download_oemer_checkpoints.py`
 - Scripted converter: `tools/omr/convert_oemer_coreml.py`
 - Pinned conversion requirements: `tools/omr/oemer_conversion_requirements.txt`
@@ -76,7 +76,7 @@ Observed `onnx2tf` blockers and fixes:
 2. Missing conversion dependencies were installed in the isolated venv: `tf_keras`, `onnx-graphsurgeon`, `sng4onnx`, `psutil`, and `ai-edge-litert`.
 3. `onnx2tf` expects a fixed test sample named `calibration_image_sample_data_20x128x128x3_float32.npy` in the current working directory. The script now generates this file in the ML output directory and runs `onnx2tf` from there, so the converter no longer depends on downloading that sample during conversion.
 4. The converter now reaches real ONNX graph conversion with baseline, static shape, `-kt input`, `-kat input`, and generated `*_auto.json` retries. No strategy has produced a SavedModel or `.mlpackage` yet.
-5. Current graph blockers are layout/shape mismatches, not missing files:
+5. Current graph blockers are layout/shape mismatches, not missing files. The latest tooling now also tests an `NCHW` input rewrite that removes the initial input transpose before retrying `onnx2tf`:
    - `1st_model.onnx`: `model/add_2/add`, with shapes like `[?,?,128,128]` vs `[?,64,64,128]`
    - `1st_model.onnx`: first convolution can receive `[1,3,256,256]` while the TF convolution expects NHWC depth `3`
    - `2nd_model.onnx`: `model/add/add`, with shapes like `[?,144,144,64]` vs `[?,?,64,?]`
@@ -90,6 +90,8 @@ The converter script now tries multiple strategies:
 - static input shape with `-kt input`
 - static input shape with `-kat input`
 - automatic retry with generated `*_auto.json` when available
+- an `NCHW` input rewrite branch that removes the first `Transpose` and retries conversion on the rewritten ONNX
+- `PYTHONPATH`-bootstrapped `onnx2tf` execution so moved external-SSD workspaces do not break on stale venv shebangs
 
 The latest run had enough disk space to attempt conversion, but still did not produce `.mlpackage` or `.mlmodelc` artifacts.
 
@@ -119,3 +121,7 @@ Still blocked:
 - Full oemer postprocessing has not been ported to Swift yet.
 - The current Swift postprocess consumes staffline maps, but notehead/rest/clef/key/time reconstruction still needs the remaining oemer geometry and symbol logic.
 - The next blocker is conversion graph repair, not disk space or app-side model loading.
+
+## 2026-07-10 graph repair update
+
+`2nd_model_nchw_input.onnx` is now the active conversion target. A reproducible repair tool, `tools/omr/repair_oemer_onnx.py`, creates a TensorFlow-oriented graph variant by bypassing 21 residual Add transpose pairs. This moved conversion past the original `model/add/add` blocker. The current blocker is `ConvTranspose__2063`: onnx2tf still loses the ConvTranspose input shape even after concrete shape hints are written into the repaired ONNX. No app-bundled Core ML model is available yet.
