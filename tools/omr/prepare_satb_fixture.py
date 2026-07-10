@@ -162,6 +162,10 @@ def main() -> int:
             fragment_path = fragments / f"{stem}.musicxml"
             write_fragment(root, layout["measure_start"], layout["measure_end"], fragment_path)
             lmx_tokens = linearize_musicxml(fragment_path.read_text(encoding="utf-8"))
+            from PIL import Image
+
+            with Image.open(scanned_crop) as scanned_image:
+                crop_width, crop_height = scanned_image.size
             record = {
                 "id": stem,
                 "dataset_id": "vocaldive_jordan_satb",
@@ -176,11 +180,14 @@ def main() -> int:
                 "clean_page_path": str(clean_pages[page - 1]),
                 "scanned_crop_path": str(scanned_crop),
                 "clean_crop_path": str(clean_crop),
+                "image_path": str(scanned_crop),
+                "bounds": [0, 0, crop_width, crop_height],
                 "musicxml_path": str(fragment_path),
                 "source_musicxml_path": str(source_musicxml),
                 "part_ids": part_ids,
                 "part_voice_metadata": metadata,
                 "has_lyrics": any(bool(item["has_lyrics"]) for item in metadata.values()),
+                "tokens": lmx_tokens,
                 "lmx_token_count": len(lmx_tokens),
                 "bounds_scanned_pixels": scanned_bounds,
                 "bounds_clean_pixels": clean_bounds,

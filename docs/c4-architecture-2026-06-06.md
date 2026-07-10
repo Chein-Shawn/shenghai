@@ -339,3 +339,24 @@ separate from the MusicXML part/voice structure, because printed staff layout
 and MusicXML parts are not guaranteed to be one-to-one. Page/system/measure
 metadata therefore remains an explicit boundary between image preparation,
 model inference, and MusicXML assembly.
+
+### 2026-07-11 update - CPDL research ingestion and baseline gate
+
+CPDL ingestion is an external research-data stage, not an app resource stage:
+
+```text
+CPDL category/API discovery
+  -> voice-count filter (S/A/T/B <= 2, total <= 8)
+  -> PDF/MusicXML/MXL download and validation
+  -> compact provenance manifest
+  -> paired / pdf-only / musicxml-only / review-needed tiers
+  -> system crops and LMX targets
+  -> baseline checkpoint
+  -> Core ML export candidate
+```
+
+The crawler preserves edition URLs and license text and marks all downloaded
+CPDL material as research-only until it is reviewed. A first 12-system Jordan
+SATB MPS baseline has completed, but it is only a pipeline verification
+checkpoint. The app still has no bundled production OMR model until a larger
+paired dataset, held-out evaluation, and Apple export have passed.

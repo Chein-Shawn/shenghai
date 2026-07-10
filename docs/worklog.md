@@ -729,3 +729,12 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added `tools/omr/prepare_satb_fixture.py`. It rasterizes both PDFs, extracts the MXL ground truth, creates 12 manually verified system crops, slices 12 MusicXML fragments, and writes a page/system/measure manifest on the external SSD.
 - Verified 12 scanned crops, 12 clean crops, and 12 MusicXML fragments. All fragments parse successfully. The first crop includes both visible staves and lyrics; crop boundaries remain explicit reviewable metadata.
 - Searched for larger SATB image/MusicXML sources. No single mature public SATB corpus was found. Added `docs/satb-omr-dataset-research-2026-07-10.md` to distinguish useful auxiliary datasets from actual SATB target data.
+
+## 2026-07-11 - CPDL crawler and first choral baseline
+
+- Added `tools/omr/crawl_cpdl.py`, a resumable CPDL MediaWiki crawler that filters voice combinations to at most two S/A/T/B divisions and keeps solo, choral-solo, and chorus records separate.
+- Downloaded the first CPDL discovery batch to the external SSD. The compact manifest currently contains 684 unique score pages: 57 paired PDF+parseable MusicXML/MXL records, 62 PDF-only records, 2 MusicXML-only records, and 563 review-needed records. The remaining review-needed records represent missing, blocked, third-party, or failed downloads and are not silently treated as training data.
+- Added checksum/provenance/license fields and explicit normalized research tiers under the external SSD. All CPDL material remains `research_only`; no CPDL score files or model data enter the app bundle or git.
+- Fixed retry behavior so repeated downloads compact the manifest by score title instead of appending duplicate rows. Added crawler unit tests for SATB/SSATB/SSATBB/SSAATTBB acceptance, SSSAATTB and polychoral over-limit rejection, media extraction, and license classification.
+- Prepared the Jordan SATB fixture into 12 system crops and repaired its generated training manifest to include LMX token sequences. A one-epoch MPS baseline completed with 191 vocabulary tokens and checkpoint `jordan-satb-lmx-baseline.pt` on the external SSD.
+- This checkpoint is a pipeline smoke test, not a general OMR model. More real paired systems, validation splits, and Core ML export are still required before app integration.
