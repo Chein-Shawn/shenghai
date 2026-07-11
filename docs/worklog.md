@@ -758,3 +758,4 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Reused the repository's bundled `opensheetmusicdisplay.min.js`; no CDN or network renderer is required. `.mxl` files continue to be unpacked by the local server before rendering.
 - Kept the existing alignment manifest as the source of truth. The visual-preview change does not reset or rewrite any reviewed status, measure range, or review note, including the previously verified rows.
 - Static endpoint checks passed for the reviewer page, local OSMD asset, extracted Petrum MusicXML, and visual score route. A browser screenshot was not run because the local automation browser executable is not installed; manual visual confirmation should be done after restarting the reviewer.
+- Removed the redundant per-system `Open visual score` action. The visual preview is now an always-visible synchronized panel and reloads automatically when moving to the next or previous system.
