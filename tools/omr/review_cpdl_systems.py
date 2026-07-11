@@ -8,6 +8,7 @@ import json
 import mimetypes
 import threading
 import urllib.parse
+import zipfile
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -27,6 +28,18 @@ def write_rows(path: Path, rows: list[dict[str, object]]) -> None:
     temporary = path.with_suffix(path.suffix + ".part")
     temporary.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
     temporary.replace(path)
+
+
+def musicxml_bytes(path: Path) -> bytes:
+    """Return plain MusicXML bytes for XML and compressed MXL sources."""
+    if path.suffix.lower() != ".mxl":
+        return path.read_bytes()
+    with zipfile.ZipFile(path) as archive:
+        import xml.etree.ElementTree as ET
+
+        root = ET.fromstring(archive.read("META-INF/container.xml"))
+        rootfile = next(node for node in root.iter() if node.tag.rsplit("}", 1)[-1] == "rootfile")
+        return archive.read(rootfile.attrib["full-path"])
 
 
 def html() -> str:
@@ -126,7 +139,7 @@ def make_handler(server: ReviewServer):
             if path.startswith("/musicxml/"):
                 ident = urllib.parse.unquote(path.removeprefix("/musicxml/")); row = next((r for r in server.rows if r.get("id") == ident), None)
                 if row:
-                    source = Path(str(row["musicxml_path"])); data = source.read_bytes(); self.send_response(200); self.send_header("Content-Type", "application/xml"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
+                    source = Path(str(row["musicxml_path"])); data = musicxml_bytes(source); self.send_response(200); self.send_header("Content-Type", "application/xml; charset=utf-8"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
             self.send_error(404)
 
         def do_POST(self):
