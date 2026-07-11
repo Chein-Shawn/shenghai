@@ -38,6 +38,8 @@ Each `staff_examples.jsonl` row has a source image, matching MusicXML file, page
 
 `tools/omr/ingest_openscore_hf.py` materializes the first 20 Hugging Face paired pages under `normalized/openscore-stringquartets-hf/evaluation-20/`. Each manifest row links one real IMSLP scan, one clean MuseScore render, and one MusicXML ground truth. This is the first OMR evaluation pack, not a SATB training pack.
 
+`tools/omr/prepare_cpdl_dataset.py` creates the external-SSD `prepared/cpdl-v1/` release: it validates the 249 paired records, writes a score-level 70/15/15 split, and rasterizes 874 PDF pages at 300 DPI. `tools/omr/build_cpdl_system_candidates.py` proposes 3,093 page/system boxes using staffline morphology. These are review candidates only; it intentionally leaves MusicXML measure ranges empty because PDF pagination is not encoded in MusicXML. After manual verification, `tools/omr/finalize_cpdl_systems.py` creates fragments and LMX tokens only for rows explicitly marked `alignment_status=verified`.
+
 The current SATB dataset search is recorded in `docs/satb-omr-dataset-research-2026-07-10.md`. No large public real-scan-plus-MusicXML SATB corpus was found, so the first target-domain fixture remains the Jordan score while additional SATB pairs are collected.
 
 ## Local Resource Budget

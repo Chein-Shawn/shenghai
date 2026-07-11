@@ -340,6 +340,16 @@ and MusicXML parts are not guaranteed to be one-to-one. Page/system/measure
 metadata therefore remains an explicit boundary between image preparation,
 model inference, and MusicXML assembly.
 
+### 2026-07-11 update - CPDL-v1 preparation boundary
+
+The CPDL paired records are now versioned outside the app repository as
+`prepared/cpdl-v1`. The release contains a score-level 70/15/15 split and
+300-DPI page images. A staffline-based detector proposes system boxes, but
+every proposed box is marked `manual_review_required` until its PDF page and
+MusicXML measure range are confirmed. Only explicitly verified rows can create
+MusicXML fragments and LMX training targets. This prevents a convenient but
+incorrect automatic page-to-measure assumption from becoming model truth.
+
 ### 2026-07-11 update - CPDL research ingestion and baseline gate
 
 CPDL ingestion is an external research-data stage, not an app resource stage:
