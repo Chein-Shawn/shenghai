@@ -305,7 +305,10 @@ def download(args: argparse.Namespace, root: Path) -> int:
         record = json.loads(line)
         title = str(record.get("title", ""))
         previous = latest.get(title)
-        if previous and previous.get("pairing_status") in {"paired", "pdf_only", "musicxml_only"}:
+        skip_states = {"paired", "pdf_only", "musicxml_only"}
+        if not args.retry_missing:
+            skip_states.add("missing")
+        if previous and previous.get("pairing_status") in skip_states:
             continue
         if args.paired_only and not (record.get("pdf_files") and record.get("musicxml_files")):
             continue
@@ -448,6 +451,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--offset", type=int, default=0)
     parser.add_argument("--paired-only", action="store_true", help="download only candidates with both PDF and MusicXML links")
+    parser.add_argument("--retry-missing", action="store_true", help="retry records previously marked missing")
     args = parser.parse_args()
     root = Path("/Volumes/Crucial X6/vocaldive-ml/choral-omr/raw/cpdl")
     root.mkdir(parents=True, exist_ok=True)
