@@ -18,7 +18,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 DEFAULT_VERSION = Path("/Volumes/Crucial X6/vocaldive-ml/choral-omr/prepared/cpdl-v1")
-SYMBOL_KINDS = ("notehead", "rest", "barline", "clef", "key_signature", "time_signature", "accidental", "stem", "beam", "dot", "lyric", "other")
+SYMBOL_KINDS = (
+    "notehead", "rest", "barline", "clef", "key_signature", "time_signature", "accidental",
+    "stem", "beam", "dot", "articulation", "slur", "tie", "fermata",
+    "part_name", "lyric", "dynamic", "crescendo", "decrescendo", "direction", "tempo",
+    "rehearsal_mark", "repeat_start", "repeat_end", "ending", "other",
+)
 DONE = {"annotated", "skipped"}
 
 
@@ -44,6 +49,21 @@ def normalized(value: object) -> float:
         return min(1.0, max(0.0, float(value)))
     except (TypeError, ValueError):
         return 0.0
+
+
+def display_kind(kind: str) -> str:
+    labels = {
+        "part_name": "Part name",
+        "dynamic": "Dynamics (p/f/mp/mf)",
+        "crescendo": "Crescendo",
+        "decrescendo": "Decrescendo",
+        "repeat_start": "Repeat sign (start)",
+        "repeat_end": "Repeat sign (end)",
+        "key_signature": "Key signature",
+        "time_signature": "Time signature",
+        "rehearsal_mark": "Rehearsal mark",
+    }
+    return labels.get(kind, kind.replace("_", " ").capitalize())
 
 
 def make_queue(source: Path, output: Path, limit: int) -> list[dict[str, object]]:
@@ -75,7 +95,7 @@ def make_queue(source: Path, output: Path, limit: int) -> list[dict[str, object]
 
 
 def page_html() -> str:
-    options = "".join(f'<option value="{kind}">{kind.replace("_", " ")}</option>' for kind in SYMBOL_KINDS)
+    options = "".join(f'<option value="{kind}">{display_kind(kind)}</option>' for kind in SYMBOL_KINDS)
     return f'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VocalDive symbol annotation</title>
 <style>*{{box-sizing:border-box}}body{{margin:0;background:#f3f5f7;color:#17202a;font:14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}}header{{background:#102a43;color:#fff;padding:16px 22px;display:flex;justify-content:space-between}}h1{{font-size:19px;margin:0}}main{{display:grid;grid-template-columns:minmax(420px,1fr) 320px;gap:16px;padding:16px;max-width:1500px;margin:auto}}.panel{{background:#fff;border:1px solid #d5dde5;border-radius:8px;padding:14px}}.viewer{{overflow:auto;max-height:82vh;background:#e7ecf0;padding:12px}}#stage{{position:relative;display:inline-block;line-height:0}}#page{{max-width:none;height:auto;display:block}}#overlay{{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}}.progress{{height:7px;background:#e2e8ee;border-radius:8px;overflow:hidden;margin:10px 0 16px}}.progress i{{display:block;height:100%;background:#1383d6}}label{{font-weight:650;display:block;margin-top:12px;margin-bottom:5px}}select,textarea{{width:100%;font:inherit;border:1px solid #b9c5cf;border-radius:6px;padding:8px}}textarea{{min-height:70px;resize:vertical}}button{{border:1px solid #b9c5cf;background:#fff;border-radius:6px;padding:9px 10px;font:inherit;cursor:pointer}}button.primary{{background:#087f5b;color:#fff;border-color:#087f5b}}button.warn{{background:#fff4e5;border-color:#f4c17c}}.actions,.nav{{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}}.nav button:first-child{{grid-column:1/-1}}#symbols{{display:flex;flex-direction:column;gap:6px;margin-top:12px;max-height:230px;overflow:auto}}.symbol{{display:flex;justify-content:space-between;padding:6px 8px;background:#f3f6f8;border-radius:5px;font-size:12px}}.symbol button{{padding:2px 6px;font-size:12px}}#status{{min-height:24px;margin-top:10px;color:#607080}}@media(max-width:900px){{main{{grid-template-columns:1fr}}.viewer{{max-height:60vh}}}}</style></head><body>
 <header><div><h1>VocalDive symbol annotation</h1><small>Reviewed systems only · source manifest is read-only</small></div><span id="saveState">Ready</span></header><main><section class="panel"><div class="viewer"><div id="stage"><img id="page" alt="Score page"><canvas id="overlay"></canvas></div></div></section><aside class="panel"><h2 id="title">Loading…</h2><div class="muted" id="details"></div><div class="progress"><i id="progress"></i></div><div class="muted">Drag a box around one symbol, choose its type, and save.</div><label for="kind">Next symbol type</label><select id="kind">{options}</select><div id="symbols"></div><label for="note">Annotation note</label><textarea id="note" placeholder="Optional: unclear stem, overlapping voices, etc."></textarea><div class="actions"><button class="primary" onclick="save('annotated')">Save annotations</button><button class="warn" onclick="save('skipped')">Skip system</button></div><div class="nav"><button onclick="previous()">Previous</button><button onclick="next()">Next</button></div><div id="status"></div></aside></main>

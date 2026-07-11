@@ -20,8 +20,17 @@ measure range, and normalized symbol boxes:
 }
 ```
 
-Allowed kinds are `notehead`, `rest`, `barline`, `clef`, `key_signature`,
-`time_signature`, `accidental`, `stem`, `beam`, `dot`, `lyric`, and `other`.
+Allowed kinds are grouped as follows:
+
+- notation: `notehead`, `rest`, `barline`, `clef`, `key_signature`, `time_signature`, `accidental`, `stem`, `beam`, `dot`, `articulation`, `slur`, `tie`, `fermata`
+- text and expression: `part_name`, `lyric`, `dynamic`, `crescendo`, `decrescendo`, `direction`, `tempo`, `rehearsal_mark`
+- navigation: `repeat_start`, `repeat_end`, `ending`
+- fallback: `other`
+
+Use `dynamic` for markings such as `p`, `f`, `mp`, and `mf`; use separate
+`crescendo` and `decrescendo` for hairpins or gradual dynamic markings. Use
+`repeat_start` and `repeat_end` for repeat barline signs. `part_name` is for
+printed labels such as Soprano, Alto, Tenor, or Bass.
 Coordinates are normalized to the full source page; later preprocessing
 converts them to system-relative coordinates. Only `alignment_status=verified`
 rows enter the queue. Existing derived rows are preserved and writes are
