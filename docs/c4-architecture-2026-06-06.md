@@ -379,3 +379,27 @@ CPDL material as research-only until it is reviewed. A first 12-system Jordan
 SATB MPS baseline has completed, but it is only a pipeline verification
 checkpoint. The app still has no bundled production OMR model until a larger
 paired dataset, held-out evaluation, and Apple export have passed.
+
+### 2026-07-11 update - CPDL vocal processing and baseline result
+
+The first reviewed CPDL subset is now processed through a conservative,
+voice-aware derived-data stage:
+
+reviewed PDF/MusicXML system
+  -> note rule extraction
+  -> vocal/instrument part classification
+  -> explicit pitch normalization
+  -> MusicXML fragment
+  -> LMX training manifest
+
+The source review manifest is immutable. Verified systems with clear vocal
+parts become training examples; ambiguous generic parts are quarantined rather
+than guessed. The initial release produced 403 accepted systems, 32
+quarantined systems, and 40 rejected systems. The remaining 2,618 systems are
+still unreviewed and are excluded from supervised training.
+
+The first 10-epoch MPS LMX baseline confirms the end-to-end data path but
+overfits: training loss reached 2.55, while best held-out test token accuracy
+was only 4.06% and exact sequence accuracy was 0%. The checkpoint is therefore
+research-only. Core ML conversion and app bundling remain blocked until the
+model architecture, dataset size, and held-out quality improve.

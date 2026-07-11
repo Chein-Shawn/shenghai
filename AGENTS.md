@@ -82,6 +82,15 @@ Keep personal Apple development-team data out of tracked project files.
 - Commit only shared signing defaults and the example template.
 - Do not hardcode a personal `DEVELOPMENT_TEAM` into `project.pbxproj` unless the user explicitly asks for that shortcut.
 
+## Research Dataset Rule
+
+Keep CPDL and other downloaded score binaries outside git.
+
+- Commit reproducible processing tools, schemas, checksums, reports, and sanitized metadata.
+- Do not commit downloaded PDFs, MusicXML/MXL files, rendered page images, virtual environments, or large checkpoints.
+- Treat external-SSD JSONL manifests as derived research data; never overwrite the raw source manifest.
+- Keep ambiguous score and part mappings in quarantine until a human decision is recorded.
+
 ## Implementation Guidance
 
 - Keep user-facing copy localizable through the app localization system.

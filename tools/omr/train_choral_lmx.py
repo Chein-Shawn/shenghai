@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 from pathlib import Path
 
 import numpy as np
@@ -70,6 +71,38 @@ def collate(batch: list[tuple[torch.Tensor, torch.Tensor]], pad: int) -> tuple[t
     return torch.stack(list(images)), target
 
 
+@torch.no_grad()
+def evaluate(model: nn.Module, loader: DataLoader, pad: int, device: torch.device) -> dict[str, float]:
+    model.eval()
+    total_loss = 0.0
+    batches = 0
+    correct = 0
+    tokens = 0
+    exact = 0
+    examples = 0
+    criterion = nn.CrossEntropyLoss(ignore_index=pad)
+    for images, target in loader:
+        if target.size(1) < 2:
+            continue
+        target_in = target[:, :-1].to(device)
+        target_out = target[:, 1:].to(device)
+        logits = model(images.to(device), target_in)
+        total_loss += float(criterion(logits.reshape(-1, logits.size(-1)), target_out.reshape(-1)).item())
+        batches += 1
+        prediction = logits.argmax(dim=-1)
+        mask = target_out != pad
+        correct += int(((prediction == target_out) & mask).sum().item())
+        tokens += int(mask.sum().item())
+        exact += int(((prediction == target_out) | ~mask).all(dim=1).sum().item())
+        examples += target.size(0)
+    return {
+        "loss": total_loss / batches if batches else 0.0,
+        "token_accuracy": correct / tokens if tokens else 0.0,
+        "exact_sequence_accuracy": exact / examples if examples else 0.0,
+        "examples": examples,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
@@ -77,25 +110,72 @@ def main() -> int:
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--width", type=int, default=768)
     parser.add_argument("--height", type=int, default=192)
+    parser.add_argument("--validation-manifest", type=Path)
+    parser.add_argument("--test-manifest", type=Path)
+    parser.add_argument("--metrics-output", type=Path)
+    parser.add_argument("--seed", type=int, default=20260711)
     args = parser.parse_args()
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
     vocab = build_vocab(args.manifest)
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     dataset = StaffDataset(args.manifest, vocab, args.width, args.height)
     loader = DataLoader(dataset, batch_size=1, shuffle=True, collate_fn=lambda batch: collate(batch, vocab["<pad>"]))
+    validation_loader = None
+    test_loader = None
+    if args.validation_manifest:
+        validation_loader = DataLoader(
+            StaffDataset(args.validation_manifest, vocab, args.width, args.height),
+            batch_size=1,
+            shuffle=False,
+            collate_fn=lambda batch: collate(batch, vocab["<pad>"]),
+        )
+    if args.test_manifest:
+        test_loader = DataLoader(
+            StaffDataset(args.test_manifest, vocab, args.width, args.height),
+            batch_size=1,
+            shuffle=False,
+            collate_fn=lambda batch: collate(batch, vocab["<pad>"]),
+        )
     model = StaffToLMX(len(vocab)).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
     criterion = nn.CrossEntropyLoss(ignore_index=vocab["<pad>"])
+    history = []
     model.train()
-    for _ in range(args.epochs):
+    for epoch in range(1, args.epochs + 1):
+        epoch_loss = 0.0
+        batches = 0
         for images, target in loader:
             logits = model(images.to(device), target[:, :-1].to(device))
             loss = criterion(logits.reshape(-1, logits.size(-1)), target[:, 1:].to(device).reshape(-1))
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
+            epoch_loss += float(loss.item())
+            batches += 1
+        record = {"epoch": epoch, "train_loss": epoch_loss / batches if batches else 0.0}
+        if validation_loader is not None:
+            record["validation"] = evaluate(model, validation_loader, vocab["<pad>"], device)
+        if test_loader is not None:
+            record["test"] = evaluate(model, test_loader, vocab["<pad>"], device)
+        history.append(record)
+        print(json.dumps(record), flush=True)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"state_dict": model.state_dict(), "vocab": vocab, "width": args.width, "height": args.height}, args.output)
-    print(json.dumps({"checkpoint": str(args.output), "device": str(device), "examples": len(dataset), "vocab": len(vocab)}))
+    metrics = {
+        "checkpoint": str(args.output),
+        "device": str(device),
+        "examples": len(dataset),
+        "vocab": len(vocab),
+        "epochs": args.epochs,
+        "seed": args.seed,
+        "history": history,
+    }
+    metrics_output = args.metrics_output or args.output.with_suffix(".metrics.json")
+    metrics_output.parent.mkdir(parents=True, exist_ok=True)
+    metrics_output.write_text(json.dumps(metrics, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(metrics))
     return 0
 
 

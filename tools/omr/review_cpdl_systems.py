@@ -253,7 +253,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", type=Path, default=VERSION_DEFAULT)
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--limit-scores", type=int, default=50)
+    parser.add_argument(
+        "--limit-scores",
+        type=int,
+        default=0,
+        help="Limit to this many score IDs; 0 loads every score in the manifest (default).",
+    )
     args = parser.parse_args()
     manifest = args.version.expanduser().resolve() / "manifests/system-candidate-manifest.jsonl"
     server_state = ReviewServer(manifest, args.limit_scores)
