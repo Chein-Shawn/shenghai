@@ -67,21 +67,40 @@ header{background:#102a43;color:#fff;padding:18px 28px;display:flex;justify-cont
 <script>
 let state={rows:[],index:0};
 async function init(){state=await (await fetch('/api/state')).json();document.getElementById('count').textContent=`${state.reviewed} reviewed · ${state.pending} pending · ${state.total} total`;loadRecord(state.firstPending)}
-function loadRecord(index){if(!state.rows.length)return;state.index=Math.max(0,Math.min(index,state.rows.length-1));const r=state.rows[state.index];
+function previewKey(row){return 'vocaldive.visual-score.'+(row.score_id||row.title||row.id)}
+function saveCurrentPreviewPosition(){
+  const row=state.rows[state.index],frame=document.getElementById('scoreFrame');
+  if(!row||!frame||!frame.contentWindow)return;
+  try{
+    const view=frame.contentWindow.vocalDiveGetViewState&&frame.contentWindow.vocalDiveGetViewState();
+    if(view)localStorage.setItem(previewKey(row),JSON.stringify(view));
+  }catch(error){/* The frame may still be loading. Its own persistence will retry. */}
+}
+function loadRecord(index,savePrevious=true){if(!state.rows.length)return;if(savePrevious)saveCurrentPreviewPosition();state.index=Math.max(0,Math.min(index,state.rows.length-1));const r=state.rows[state.index];
 document.getElementById('title').textContent=r.title;document.getElementById('split').textContent=`${r.split} · page ${r.page_index} · system ${r.system_index}`;document.getElementById('details').textContent=`Candidate ${state.index+1}/${state.rows.length} · ${r.alignment_status}`;
 document.getElementById('start').value=r.measure_start||'';document.getElementById('end').value=r.measure_end||'';document.getElementById('note').value=r.review_note||'';document.getElementById('status').textContent='';
 const scoreURL='/score/'+encodeURIComponent(r.id);document.getElementById('scoreFrame').src=scoreURL;
 const page=document.getElementById('page');page.innerHTML=`<img src="/image/${encodeURIComponent(r.id)}" onload="placeBox(this)"><div class="box" id="box"></div>`;document.getElementById('progress').style.width=`${Math.round((state.reviewed/state.total)*100)}%`}
 function placeBox(img){const r=state.rows[state.index],b=r.bounds_normalized,box=document.getElementById('box');box.style.left=(img.offsetLeft+b[0]*img.offsetWidth)+'px';box.style.top=(img.offsetTop+b[1]*img.offsetHeight)+'px';box.style.width=(b[2]*img.offsetWidth)+'px';box.style.height=(b[3]*img.offsetHeight)+'px'}
-async function save(status){const r=state.rows[state.index],payload={id:r.id,status,measure_start:document.getElementById('start').value||null,measure_end:document.getElementById('end').value||null,review_note:document.getElementById('note').value};if(status==='verified'&&(!payload.measure_start||!payload.measure_end)){document.getElementById('status').textContent='Enter both measure numbers before marking Correct.';return}document.getElementById('saveState').textContent='Saving…';const response=await fetch('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){document.getElementById('status').textContent='Save failed.';return}state=await response.json();document.getElementById('saveState').textContent='Saved';loadRecord(state.firstPending)}
+async function save(status){const r=state.rows[state.index],currentIndex=state.index;saveCurrentPreviewPosition();const payload={id:r.id,status,measure_start:document.getElementById('start').value||null,measure_end:document.getElementById('end').value||null,review_note:document.getElementById('note').value};if(status==='verified'&&(!payload.measure_start||!payload.measure_end)){document.getElementById('status').textContent='Enter both measure numbers before marking Correct.';return}document.getElementById('saveState').textContent='Saving…';const response=await fetch('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){document.getElementById('status').textContent='Save failed.';return}state=await response.json();document.getElementById('count').textContent=`${state.reviewed} reviewed · ${state.pending} pending · ${state.total} total`;document.getElementById('saveState').textContent='Saved';loadRecord(Math.min(currentIndex+1,state.rows.length-1),false)}
 function next(){loadRecord(state.index+1)}function previous(){loadRecord(state.index-1)}
-document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')next();if(e.key==='ArrowLeft')previous();if(e.key==='Enter'&&!e.shiftKey)save('verified')});init();
+window.addEventListener('beforeunload',saveCurrentPreviewPosition);
+document.addEventListener('keydown',e=>{
+  const target=e.target;
+  const editing=target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement||target instanceof HTMLSelectElement||target.isContentEditable;
+  if(editing||e.isComposing)return;
+  if(e.key==='ArrowRight')next();
+  if(e.key==='ArrowLeft')previous();
+  if(e.key==='Enter'&&!e.shiftKey)save('verified');
+});
+init();
 </script></body></html>'''
 
 
-def score_html(identifier: str) -> str:
+def score_html(identifier: str, score_key: str) -> str:
     """Render one MusicXML/MXL record with the bundled local OSMD renderer."""
     safe_identifier = json.dumps(identifier, ensure_ascii=False)
+    safe_score_key = json.dumps(score_key, ensure_ascii=False)
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VocalDive visual score preview</title>
@@ -100,7 +119,8 @@ body{{padding:10px}}
 <div id="toolbar"><button type="button" onclick="changeZoom(-0.1)" aria-label="Zoom out">−</button><span id="zoom-label">100%</span><button type="button" onclick="changeZoom(0.1)" aria-label="Zoom in">＋</button><button type="button" onclick="resetView()">Reset view</button><span id="status">Loading visual score…</span></div><div id="score"></div>
 <script>
 const recordID={safe_identifier};
-const viewKey="vocaldive.visual-score."+recordID;
+const scoreID={safe_score_key};
+const viewKey="vocaldive.visual-score."+scoreID;
 let zoom=1;
 let saveTimer=null;
 function storedView(){{
@@ -119,6 +139,7 @@ function applyZoom(){{
 }}
 function changeZoom(delta){{ zoom=Math.min(2.5,Math.max(0.5,Math.round((zoom+delta)*10)/10)); applyZoom(); }}
 function resetView(){{ zoom=1; const root=document.getElementById('score'); root.scrollTop=0; root.scrollLeft=0; applyZoom(); }}
+window.vocalDiveGetViewState=function(){{ const root=document.getElementById('score'); return {{scrollTop:root.scrollTop,scrollLeft:root.scrollLeft,zoom}}; }};
 async function render(){{
   const status=document.getElementById('status'),root=document.getElementById('score'),saved=storedView();
   zoom=typeof saved.zoom==='number'?Math.min(2.5,Math.max(0.5,saved.zoom)):1;
@@ -211,7 +232,7 @@ def make_handler(server: ReviewServer):
             if path.startswith("/score/"):
                 ident = urllib.parse.unquote(path.removeprefix("/score/")); row = next((r for r in server.rows if r.get("id") == ident), None)
                 if row:
-                    data = score_html(str(row["id"])).encode("utf-8"); self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
+                    data = score_html(str(row["id"]), str(row.get("score_id") or row["id"])).encode("utf-8"); self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
             if path.startswith("/musicxml/"):
                 ident = urllib.parse.unquote(path.removeprefix("/musicxml/")); row = next((r for r in server.rows if r.get("id") == ident), None)
                 if row:
