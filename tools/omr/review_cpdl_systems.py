@@ -85,21 +85,61 @@ def score_html(identifier: str) -> str:
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>VocalDive visual score preview</title>
-<style>html,body{{margin:0;background:#fff;color:#17202a;font:14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}}body{{padding:12px}}#status{{color:#607080;margin-bottom:8px}}#score{{min-height:300px;overflow:auto}}svg{{max-width:100%;height:auto}}</style>
+<style>
+html,body{{margin:0;background:#fff;color:#17202a;font:14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}}
+body{{padding:10px}}
+#toolbar{{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:6px;padding:2px 0 9px;background:#fff;border-bottom:1px solid #e5e7eb}}
+#toolbar button{{border:1px solid #b8c4ce;border-radius:6px;background:#f8fafc;color:#17202a;padding:6px 10px;font:inherit;cursor:pointer}}
+#toolbar button:hover{{background:#eef3f7}}
+#zoom-label{{min-width:54px;text-align:center;color:#475569;font-variant-numeric:tabular-nums}}
+#status{{margin-left:auto;color:#607080;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+#score{{height:calc(100vh - 58px);min-height:300px;overflow:auto;padding:12px 4px 36px;background:#fff}}
+#score svg{{max-width:none;width:100%;height:auto;display:block}}
+</style>
 <script src="/assets/opensheetmusicdisplay.min.js"></script></head><body>
-<div id="status">Loading visual score…</div><div id="score"></div>
+<div id="toolbar"><button type="button" onclick="changeZoom(-0.1)" aria-label="Zoom out">−</button><span id="zoom-label">100%</span><button type="button" onclick="changeZoom(0.1)" aria-label="Zoom in">＋</button><button type="button" onclick="resetView()">Reset view</button><span id="status">Loading visual score…</span></div><div id="score"></div>
 <script>
 const recordID={safe_identifier};
+const viewKey="vocaldive.visual-score."+recordID;
+let zoom=1;
+let saveTimer=null;
+function storedView(){{
+  try{{ return JSON.parse(localStorage.getItem(viewKey)||"{{}}")||{{}}; }}catch(error){{ return {{}}; }}
+}}
+function saveView(){{
+  const root=document.getElementById('score');
+  try{{ localStorage.setItem(viewKey,JSON.stringify({{scrollTop:root.scrollTop,scrollLeft:root.scrollLeft,zoom}})); }}catch(error){{}}
+}}
+function scheduleSave(){{ clearTimeout(saveTimer); saveTimer=setTimeout(saveView,150); }}
+function applyZoom(){{
+  const svg=document.querySelector('#score svg');
+  if(svg){{ svg.style.width=(zoom*100)+'%'; svg.style.maxWidth='none'; }}
+  document.getElementById('zoom-label').textContent=Math.round(zoom*100)+'%';
+  scheduleSave();
+}}
+function changeZoom(delta){{ zoom=Math.min(2.5,Math.max(0.5,Math.round((zoom+delta)*10)/10)); applyZoom(); }}
+function resetView(){{ zoom=1; const root=document.getElementById('score'); root.scrollTop=0; root.scrollLeft=0; applyZoom(); }}
 async function render(){{
-  const status=document.getElementById('status'),root=document.getElementById('score');
+  const status=document.getElementById('status'),root=document.getElementById('score'),saved=storedView();
+  zoom=typeof saved.zoom==='number'?Math.min(2.5,Math.max(0.5,saved.zoom)):1;
   try{{
     const response=await fetch('/musicxml/'+encodeURIComponent(recordID));
     if(!response.ok) throw new Error('MusicXML could not be loaded');
     const musicXML=await response.text();
     const osmd=new opensheetmusicdisplay.OpenSheetMusicDisplay(root,{{autoResize:true,drawTitle:true,drawComposer:true,drawLyrics:true,backend:'svg'}});
-    await osmd.load(musicXML); osmd.render(); status.textContent='Visual score ready';
+    await osmd.load(musicXML); osmd.render(); applyZoom();
+    requestAnimationFrame(()=>{{ root.scrollTop=Number(saved.scrollTop)||0; root.scrollLeft=Number(saved.scrollLeft)||0; }});
+    status.textContent='Visual score ready · position remembered';
   }}catch(error){{ console.error(error); status.textContent='Visual score could not be rendered'; root.innerHTML='<p style="color:#b42318">The MusicXML source could not be rendered. Keep this candidate marked for review.</p>'; }}
 }}
+const scoreRoot=document.getElementById('score');
+scoreRoot.addEventListener('scroll',scheduleSave);
+scoreRoot.addEventListener('wheel',(event)=>{{
+  if(!event.ctrlKey) return;
+  event.preventDefault();
+  changeZoom(event.deltaY<0?0.1:-0.1);
+}},{{passive:false}});
+window.addEventListener('beforeunload',saveView);
 render();
 </script></body></html>'''
 
