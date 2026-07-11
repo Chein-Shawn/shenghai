@@ -321,6 +321,13 @@ def download(args: argparse.Namespace, root: Path) -> int:
         for name in (record.get("pdf_files", []) + record.get("musicxml_files", []))
     })
     media_urls = resolve_media_batch(media_names, args.delay)
+    paired_titles = {
+        str(item.get("title", ""))
+        for line in queue.read_text(encoding="utf-8").splitlines()
+        for item in [json.loads(line)]
+        if item.get("pdf_files") and item.get("musicxml_files")
+    }
+    terminal_states = {"paired", "pdf_only", "musicxml_only"}
     for record in pending_records:
             title = str(record.get("title", ""))
             previous = latest.get(title)
@@ -364,8 +371,18 @@ def download(args: argparse.Namespace, root: Path) -> int:
             latest[title] = record
             write_manifest(latest, manifest)
             count += 1
-            if count % 25 == 0:
-                print(json.dumps({"downloaded_records": count}))
+            completed = sum(
+                1 for title in paired_titles
+                if latest.get(title, {}).get("pairing_status") in terminal_states
+            )
+            print(json.dumps({
+                "batch_downloaded": count,
+                "batch_target": len(pending_records),
+                "completed_candidates": completed,
+                "remaining_candidates": len(paired_titles) - completed,
+                "title": title,
+                "status": record["pairing_status"],
+            }, ensure_ascii=False), flush=True)
     print(json.dumps({"manifest": str(manifest), "records": count}, indent=2))
     return 0
 
