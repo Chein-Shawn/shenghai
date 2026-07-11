@@ -767,3 +767,12 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added `process_cpdl_vocal_training.py` to create a derived, voice-aware CPDL release without modifying raw files. It preserves original notes, excludes rejected and unreviewed systems, removes clear instrumental parts, applies explicit pitch shifts, and quarantines ambiguous part mappings.
 - Generated `cpdl-v1-vocal-processed-1` on the external SSD: 403 included systems, 32 quarantined systems, 40 rejected systems, and 2,618 unreviewed systems. All included MusicXML fragments parsed successfully; 20 used a -12 semitone correction.
 - Added validation and test metrics to `train_choral_lmx.py` and trained a 10-epoch MPS baseline on 267 train systems. Training loss reached 2.55, but held-out exact sequence accuracy remained 0%, so the checkpoint is not eligible for Core ML or app bundling.
+# 2026-07-11: OMR baseline failure analysis and revised training boundary
+
+- Confirmed the first CPDL LMX baseline is overfit: train loss fell from 7.22 to 2.55 while validation loss worsened, validation accuracy stayed near 2.43%, test accuracy near 4.06%, and exact sequence accuracy remained 0%.
+- Added metadata-only dataset diagnostics for token sparsity, sequence length, crop aspect ratio, missing images, XML parsing, part selection, notes, and duplicate IDs.
+- Added aspect-preserving padded image preprocessing, optional light augmentation, gradient clipping, validation checkpointing, early stopping, and explicit device selection to the LMX baseline.
+- Added a separate CTC staff/system diagnostic model so image-to-sequence learnability can be tested without making raw MusicXML autoregression the only architecture.
+- CTC smoke testing exposed that the installed PyTorch build does not implement `torch.ctc_loss` on MPS; the CTC tool now defaults to CPU rather than failing mid-run.
+- Ran a 16-example MPS smoke test for 40 epochs; loss reached 0.34, confirming the revised loader and model can fit a tiny controlled set. This is a pipeline check, not a generalization result.
+- Decision: do not keep extending the failed full run. Build the next OMR route as system/staff detection, symbol maps, structured musical events, and MusicXML assembly; defer Core ML until real held-out scores improve.
