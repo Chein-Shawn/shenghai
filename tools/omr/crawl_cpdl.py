@@ -300,11 +300,15 @@ def download(args: argparse.Namespace, root: Path) -> int:
                 continue
     count = 0
     pending_records: list[dict[str, object]] = []
+    pending_seen = 0
     for line in queue.read_text(encoding="utf-8").splitlines():
         record = json.loads(line)
         title = str(record.get("title", ""))
         previous = latest.get(title)
         if previous and previous.get("pairing_status") in {"paired", "pdf_only", "musicxml_only"}:
+            continue
+        if pending_seen < args.offset:
+            pending_seen += 1
             continue
         pending_records.append(record)
         if args.limit and len(pending_records) >= args.limit:
@@ -315,11 +319,7 @@ def download(args: argparse.Namespace, root: Path) -> int:
         for name in (record.get("pdf_files", []) + record.get("musicxml_files", []))
     })
     media_urls = resolve_media_batch(media_names, args.delay)
-    with queue.open(encoding="utf-8") as source:
-        for line in source:
-            if args.limit and count >= args.limit:
-                break
-            record = json.loads(line)
+    for record in pending_records:
             title = str(record.get("title", ""))
             previous = latest.get(title)
             if previous and previous.get("pairing_status") in {"paired", "pdf_only", "musicxml_only"}:
@@ -427,6 +427,7 @@ def main() -> int:
     parser.add_argument("--delay", type=float, default=1.0)
     parser.add_argument("--max-pages", type=int, default=0)
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--offset", type=int, default=0)
     args = parser.parse_args()
     root = Path("/Volumes/Crucial X6/vocaldive-ml/choral-omr/raw/cpdl")
     root.mkdir(parents=True, exist_ok=True)
