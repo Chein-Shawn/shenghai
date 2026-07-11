@@ -776,3 +776,5 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - CTC smoke testing exposed that the installed PyTorch build does not implement `torch.ctc_loss` on MPS; the CTC tool now defaults to CPU rather than failing mid-run.
 - Ran a 16-example MPS smoke test for 40 epochs; loss reached 0.34, confirming the revised loader and model can fit a tiny controlled set. This is a pipeline check, not a generalization result.
 - Decision: do not keep extending the failed full run. Build the next OMR route as system/staff detection, symbol maps, structured musical events, and MusicXML assembly; defer Core ML until real held-out scores improve.
+- Added `tools/omr/annotate_cpdl_symbols.py` and the symbol annotation schema. It creates a resumable derived queue from verified systems only, stores normalized symbol boxes outside the raw CPDL manifest, and does not require reading MusicXML source text.
+- Initialized the first external-SSD symbol annotation queue with 50 verified systems (`50 pending`, `0 annotated`). The queue is derived data and can be resumed without changing the source review manifest.
