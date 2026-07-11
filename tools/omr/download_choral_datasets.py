@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import ssl
 import sys
 import urllib.request
 from datetime import datetime, timezone
@@ -56,7 +57,12 @@ def download_direct(name: str) -> Path:
     destination = paths["raw"] / name
     destination.mkdir(parents=True, exist_ok=True)
     output = destination / "source.tar.gz"
-    with urllib.request.urlopen(DIRECT_DOWNLOADS[name]) as source, output.open("wb") as target:
+    try:
+        import certifi
+        context = ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        context = ssl.create_default_context()
+    with urllib.request.urlopen(DIRECT_DOWNLOADS[name], context=context) as source, output.open("wb") as target:
         shutil.copyfileobj(source, target)
     write_receipt(destination, {"dataset": name, "source": DIRECT_DOWNLOADS[name], "downloaded_at": utc_now(), "kind": "direct"})
     return output
