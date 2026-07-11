@@ -1,6 +1,6 @@
 # C4 Architecture Plan
 
-Date: 2026-06-06
+Established Date: 2026-06-06
 
 ## Level 1: System Context
 
@@ -349,6 +349,12 @@ every proposed box is marked `manual_review_required` until its PDF page and
 MusicXML measure range are confirmed. Only explicitly verified rows can create
 MusicXML fragments and LMX training targets. This prevents a convenient but
 incorrect automatic page-to-measure assumption from becoming model truth.
+
+The alignment review is performed with a local click-through tool. It shows
+one candidate system at a time with its source-page red box, accepts Correct /
+Incorrect / Skip, and writes verified measure ranges back to the external JSONL
+manifest. This keeps review state out of the app and makes the training target
+creation reproducible.
 
 ### 2026-07-11 update - CPDL research ingestion and baseline gate
 
