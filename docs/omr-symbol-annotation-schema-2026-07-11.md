@@ -6,6 +6,17 @@ The CPDL system manifest remains read-only. Symbol annotations are stored in:
 /Volumes/Crucial X6/vocaldive-ml/choral-omr/prepared/cpdl-v1/symbols/symbol-annotation-manifest.jsonl
 ```
 
+The editable dropdown configuration is stored separately at:
+
+```text
+/Volumes/Crucial X6/vocaldive-ml/choral-omr/prepared/cpdl-v1/symbols/symbol-kinds.json
+```
+
+Use the `Add type` and `Remove selected type` controls in the annotation page.
+New keys are normalized to lowercase English `snake_case`, while an optional
+display name controls what appears in the menu. Removing a type only removes
+it from the active menu; old annotation boxes using that key remain preserved.
+
 Each row keeps the reviewed system identity, source page path, system bounds,
 measure range, and normalized symbol boxes:
 
