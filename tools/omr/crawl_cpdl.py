@@ -307,6 +307,8 @@ def download(args: argparse.Namespace, root: Path) -> int:
         previous = latest.get(title)
         if previous and previous.get("pairing_status") in {"paired", "pdf_only", "musicxml_only"}:
             continue
+        if args.paired_only and not (record.get("pdf_files") and record.get("musicxml_files")):
+            continue
         if pending_seen < args.offset:
             pending_seen += 1
             continue
@@ -428,6 +430,7 @@ def main() -> int:
     parser.add_argument("--max-pages", type=int, default=0)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--offset", type=int, default=0)
+    parser.add_argument("--paired-only", action="store_true", help="download only candidates with both PDF and MusicXML links")
     args = parser.parse_args()
     root = Path("/Volumes/Crucial X6/vocaldive-ml/choral-omr/raw/cpdl")
     root.mkdir(parents=True, exist_ok=True)
