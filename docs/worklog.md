@@ -751,3 +751,10 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added `review_cpdl_systems.py`, a local browser review tool for the first 50 CPDL-v1 works. It displays the source page and heuristic red system box, records Correct/Incorrect/Skip plus MusicXML measure start/end, and saves immediately to the external system manifest. Verified rows can then be finalized into LMX targets.
 - Fixed the review tool's `Open MusicXML` endpoint for CPDL `.mxl` files. MXL is a ZIP container, so the server now extracts and serves its internal XML while preserving all existing reviewed statuses, measure ranges, and notes. Confirmed 268 reviewed rows remain intact.
 - Investigated the `Petrum charitas nascentem` MusicXML display. The extracted MXL XML parses successfully as MusicXML 3.0 with five parts and 1.4 MB of XML. The browser message about missing style information is normal for raw XML; an `alphaxiv-link-badge-style` block was injected by a browser extension, not stored in the source file or review manifest.
+
+## 2026-07-11 - CPDL visual MusicXML review preview
+
+- Replaced the review tool's raw `Open MusicXML` action with a visual score workflow. The reviewer now shows the original scanned page, the heuristic red system box, and a side-by-side OSMD-rendered MusicXML preview.
+- Reused the repository's bundled `opensheetmusicdisplay.min.js`; no CDN or network renderer is required. `.mxl` files continue to be unpacked by the local server before rendering.
+- Kept the existing alignment manifest as the source of truth. The visual-preview change does not reset or rewrite any reviewed status, measure range, or review note, including the previously verified rows.
+- Static endpoint checks passed for the reviewer page, local OSMD asset, extracted Petrum MusicXML, and visual score route. A browser screenshot was not run because the local automation browser executable is not installed; manual visual confirmation should be done after restarting the reviewer.

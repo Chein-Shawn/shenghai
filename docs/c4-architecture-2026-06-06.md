@@ -351,10 +351,13 @@ MusicXML fragments and LMX training targets. This prevents a convenient but
 incorrect automatic page-to-measure assumption from becoming model truth.
 
 The alignment review is performed with a local click-through tool. It shows
-one candidate system at a time with its source-page red box, accepts Correct /
-Incorrect / Skip, and writes verified measure ranges back to the external JSONL
-manifest. This keeps review state out of the app and makes the training target
-creation reproducible.
+one candidate system at a time with the source-page red box and a visual
+OSMD-rendered MusicXML preview side by side. Reviewers compare the printed
+system against the engraved score rather than reading raw XML, then use
+Correct / Incorrect / Skip and write verified measure ranges back to the
+external JSONL manifest. This keeps review state out of the app and makes the
+training target creation reproducible. The bundled renderer is served locally
+from the repository, so the review workflow does not depend on a CDN.
 
 ### 2026-07-11 update - CPDL research ingestion and baseline gate
 

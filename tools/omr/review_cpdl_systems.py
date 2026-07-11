@@ -49,19 +49,20 @@ def html() -> str:
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17202a;font:15px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}
 header{background:#102a43;color:#fff;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;gap:20px}h1{font-size:20px;margin:0}header small{opacity:.78}
-main{max-width:1220px;margin:24px auto;padding:0 20px}.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}.pill{background:#fff;border:1px solid #d7dee5;padding:8px 12px;border-radius:8px}.spacer{flex:1}
-.layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px}.panel{background:#fff;border:1px solid #d7dee5;border-radius:8px;padding:18px;box-shadow:0 2px 8px #102a4312}.page{position:relative;background:#e9edf1;overflow:auto;max-height:72vh;text-align:center;padding:14px}.page img{display:block;max-width:100%;height:auto;margin:auto}.box{position:absolute;border:4px solid #e53935;pointer-events:none;box-shadow:0 0 0 2px #fff8}
+.layout{display:grid;grid-template-columns:minmax(320px,1fr) minmax(420px,1.35fr) 320px;gap:18px;align-items:start}.panel{background:#fff;border:1px solid #d7dee5;border-radius:8px;padding:18px;box-shadow:0 2px 8px #102a4312}.panel h2{font-size:18px;margin:0 0 12px}.page{position:relative;background:#e9edf1;overflow:auto;max-height:72vh;text-align:center;padding:14px}.page img{display:block;max-width:100%;height:auto;margin:auto}.box{position:absolute;border:4px solid #e53935;pointer-events:none;box-shadow:0 0 0 2px #fff8}.score-preview{padding:0;overflow:hidden}.score-preview iframe{display:block;width:100%;height:72vh;min-height:560px;border:0;background:#fff}.preview-note{font-size:13px;color:#607080;margin:0 0 12px}.open-score{display:inline-block;margin-bottom:12px;border:1px solid #b8c4ce;border-radius:6px;padding:8px 10px;color:#17202a;text-decoration:none;background:#f8fafc}
 .meta h2{font-size:21px;margin:0 0 8px}.muted{color:#607080}.field{display:flex;flex-direction:column;gap:6px;margin-top:14px}.field label{font-weight:650}.field input,.field textarea{font:inherit;border:1px solid #b8c4ce;border-radius:6px;padding:9px;width:100%}.field textarea{min-height:86px;resize:vertical}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}.actions button{border:0;border-radius:7px;padding:11px;font:inherit;font-weight:650;cursor:pointer}.correct{background:#167c46;color:#fff}.incorrect{background:#b42318;color:#fff}.skip{background:#e8edf2;color:#17202a}.nav{display:flex;gap:8px;margin-top:12px}.nav button{flex:1;padding:9px;border:1px solid #b8c4ce;border-radius:6px;background:#fff;cursor:pointer}.status{margin-top:12px;min-height:22px;color:#607080}.progress{height:8px;background:#e4e9ee;border-radius:10px;overflow:hidden;margin:8px 0 16px}.progress i{display:block;height:100%;background:#1683d8;width:0}.warning{background:#fff4e5;border:1px solid #f4c17c;padding:10px;border-radius:6px;margin-top:14px;color:#6b3e00}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.page{max-height:55vh}header{padding:15px 18px}}
+@media(max-width:1120px){.layout{grid-template-columns:minmax(300px,1fr) minmax(360px,1fr)}.meta{grid-column:1 / -1}.meta .field{display:inline-flex;width:31%;vertical-align:top;margin-right:1.5%}.meta .field textarea{min-height:42px}.meta .actions{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:850px){.layout{grid-template-columns:1fr}.meta{grid-column:auto}.meta .field{display:flex;width:auto;margin-right:0}.meta .actions{grid-template-columns:1fr 1fr}.page{max-height:55vh}.score-preview iframe{height:60vh;min-height:440px}header{padding:15px 18px}}
 </style></head><body>
 <header><div><h1>CPDL System Alignment Review</h1><small>VocalDive research dataset · cpdl-v1</small></div><small id="saveState">Ready</small></header>
 <main><div class="bar"><span class="pill" id="count">Loading…</span><span class="pill" id="split"></span><span class="spacer"></span><button class="nav" style="margin:0" onclick="loadRecord(0)">Restart pending</button></div>
-<div class="progress"><i id="progress"></i></div><div class="layout"><section class="panel"><div class="page" id="page"><div class="muted">Loading page…</div></div></section>
-<aside class="panel meta"><h2 id="title">Loading…</h2><div class="muted" id="details"></div><div class="warning">The red box is a heuristic system proposal. Confirm that it contains the intended printed system, then compare its first and last measure with the MusicXML source.</div>
+<div class="progress"><i id="progress"></i></div><div class="layout"><section class="panel"><h2>Original page</h2><div class="page" id="page"><div class="muted">Loading page…</div></div></section>
+<section class="panel score-preview"><h2>Visual MusicXML preview</h2><p class="preview-note">Use the engraved score here to check the candidate measures. The XML file stays hidden behind the preview.</p><a class="open-score" id="openScore" href="#" target="_blank" rel="noopener">Open visual score</a><iframe id="scoreFrame" title="Visual MusicXML score preview"></iframe></section>
+<aside class="panel meta"><h2 id="title">Loading…</h2><div class="muted" id="details"></div><div class="warning">The red box is a heuristic system proposal. Confirm that it contains the intended printed system, then compare its first and last measure with the visual score.</div>
 <div class="field"><label for="start">MusicXML measure start</label><input id="start" type="number" min="1" placeholder="e.g. 1"></div>
 <div class="field"><label for="end">MusicXML measure end</label><input id="end" type="number" min="1" placeholder="e.g. 4"></div>
 <div class="field"><label for="note">Review note</label><textarea id="note" placeholder="Optional: wrong edition, crop too wide, unclear barline…"></textarea></div>
-<div class="actions"><button class="correct" onclick="save('verified')">Correct</button><button class="incorrect" onclick="save('rejected')">Incorrect</button><button class="skip" onclick="save('skipped')">Skip</button><button class="skip" onclick="openMusicXML()">Open MusicXML</button></div>
+<div class="actions"><button class="correct" onclick="save('verified')">Correct</button><button class="incorrect" onclick="save('rejected')">Incorrect</button><button class="skip" onclick="save('skipped')">Skip</button></div>
 <div class="nav"><button onclick="previous()">Previous</button><button onclick="next()">Next</button></div><div class="status" id="status"></div></aside></div></main>
 <script>
 let state={rows:[],index:0};
@@ -69,11 +70,37 @@ async function init(){state=await (await fetch('/api/state')).json();document.ge
 function loadRecord(index){if(!state.rows.length)return;state.index=Math.max(0,Math.min(index,state.rows.length-1));const r=state.rows[state.index];
 document.getElementById('title').textContent=r.title;document.getElementById('split').textContent=`${r.split} · page ${r.page_index} · system ${r.system_index}`;document.getElementById('details').textContent=`Candidate ${state.index+1}/${state.rows.length} · ${r.alignment_status}`;
 document.getElementById('start').value=r.measure_start||'';document.getElementById('end').value=r.measure_end||'';document.getElementById('note').value=r.review_note||'';document.getElementById('status').textContent='';
+const scoreURL='/score/'+encodeURIComponent(r.id),frame=document.getElementById('scoreFrame');frame.src=scoreURL;document.getElementById('openScore').href=scoreURL;
 const page=document.getElementById('page');page.innerHTML=`<img src="/image/${encodeURIComponent(r.id)}" onload="placeBox(this)"><div class="box" id="box"></div>`;document.getElementById('progress').style.width=`${Math.round((state.reviewed/state.total)*100)}%`}
 function placeBox(img){const r=state.rows[state.index],b=r.bounds_normalized,box=document.getElementById('box');box.style.left=(img.offsetLeft+b[0]*img.offsetWidth)+'px';box.style.top=(img.offsetTop+b[1]*img.offsetHeight)+'px';box.style.width=(b[2]*img.offsetWidth)+'px';box.style.height=(b[3]*img.offsetHeight)+'px'}
 async function save(status){const r=state.rows[state.index],payload={id:r.id,status,measure_start:document.getElementById('start').value||null,measure_end:document.getElementById('end').value||null,review_note:document.getElementById('note').value};if(status==='verified'&&(!payload.measure_start||!payload.measure_end)){document.getElementById('status').textContent='Enter both measure numbers before marking Correct.';return}document.getElementById('saveState').textContent='Saving…';const response=await fetch('/api/review',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){document.getElementById('status').textContent='Save failed.';return}state=await response.json();document.getElementById('saveState').textContent='Saved';loadRecord(state.firstPending)}
-function next(){loadRecord(state.index+1)}function previous(){loadRecord(state.index-1)}function openMusicXML(){window.open('/musicxml/'+encodeURIComponent(state.rows[state.index].id),'_blank')}
+function next(){loadRecord(state.index+1)}function previous(){loadRecord(state.index-1)}
 document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')next();if(e.key==='ArrowLeft')previous();if(e.key==='Enter'&&!e.shiftKey)save('verified')});init();
+</script></body></html>'''
+
+
+def score_html(identifier: str) -> str:
+    """Render one MusicXML/MXL record with the bundled local OSMD renderer."""
+    safe_identifier = json.dumps(identifier, ensure_ascii=False)
+    return f'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VocalDive visual score preview</title>
+<style>html,body{{margin:0;background:#fff;color:#17202a;font:14px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif}}body{{padding:12px}}#status{{color:#607080;margin-bottom:8px}}#score{{min-height:300px;overflow:auto}}svg{{max-width:100%;height:auto}}</style>
+<script src="/assets/opensheetmusicdisplay.min.js"></script></head><body>
+<div id="status">Loading visual score…</div><div id="score"></div>
+<script>
+const recordID={safe_identifier};
+async function render(){{
+  const status=document.getElementById('status'),root=document.getElementById('score');
+  try{{
+    const response=await fetch('/musicxml/'+encodeURIComponent(recordID));
+    if(!response.ok) throw new Error('MusicXML could not be loaded');
+    const musicXML=await response.text();
+    const osmd=new opensheetmusicdisplay.OpenSheetMusicDisplay(root,{{autoResize:true,drawTitle:true,drawComposer:true,drawLyrics:true,backend:'svg'}});
+    await osmd.load(musicXML); osmd.render(); status.textContent='Visual score ready';
+  }}catch(error){{ console.error(error); status.textContent='Visual score could not be rendered'; root.innerHTML='<p style="color:#b42318">The MusicXML source could not be rendered. Keep this candidate marked for review.</p>'; }}
+}}
+render();
 </script></body></html>'''
 
 
@@ -132,10 +159,19 @@ def make_handler(server: ReviewServer):
             if path == "/":
                 data = html().encode(); self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
             if path == "/api/state": self.send_json(server.state()); return
+            if path == "/assets/opensheetmusicdisplay.min.js":
+                asset = Path(__file__).resolve().parents[2] / "ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OSMD/opensheetmusicdisplay.min.js"
+                if asset.is_file():
+                    data = asset.read_bytes(); self.send_response(200); self.send_header("Content-Type", "application/javascript; charset=utf-8"); self.send_header("Cache-Control", "public, max-age=3600"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
+                self.send_error(404, "Bundled OSMD renderer is missing"); return
             if path.startswith("/image/"):
                 ident = urllib.parse.unquote(path.removeprefix("/image/")); row = next((r for r in server.rows if r.get("id") == ident), None)
                 if row:
                     image = Path(str(row["image_path"])); data = image.read_bytes(); self.send_response(200); self.send_header("Content-Type", mimetypes.guess_type(image.name)[0] or "image/png"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
+            if path.startswith("/score/"):
+                ident = urllib.parse.unquote(path.removeprefix("/score/")); row = next((r for r in server.rows if r.get("id") == ident), None)
+                if row:
+                    data = score_html(str(row["id"])).encode("utf-8"); self.send_response(200); self.send_header("Content-Type", "text/html; charset=utf-8"); self.send_header("Content-Length", str(len(data))); self.end_headers(); self.wfile.write(data); return
             if path.startswith("/musicxml/"):
                 ident = urllib.parse.unquote(path.removeprefix("/musicxml/")); row = next((r for r in server.rows if r.get("id") == ident), None)
                 if row:
