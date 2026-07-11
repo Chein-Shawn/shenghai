@@ -69,9 +69,10 @@ class StaffToLMX(nn.Module):
         return self.head(self.decoder(target, features, tgt_mask=mask))
 
 
-def build_vocab(manifest: Path) -> dict[str, int]:
+def build_vocab(manifest: Path, limit: int | None = None) -> dict[str, int]:
     tokens = {"<pad>", "<unk>"}
-    for line in manifest.read_text(encoding="utf-8").splitlines():
+    lines = [line for line in manifest.read_text(encoding="utf-8").splitlines() if line.strip()]
+    for line in lines[:limit] if limit else lines:
         if line.strip():
             tokens.update(json.loads(line)["tokens"])
     return {token: index for index, token in enumerate(sorted(tokens))}
@@ -138,7 +139,7 @@ def main() -> int:
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    vocab = build_vocab(args.manifest)
+    vocab = build_vocab(args.manifest, args.limit)
     if args.device == "mps" or (args.device == "auto" and torch.backends.mps.is_available()):
         device = torch.device("mps")
     else:
