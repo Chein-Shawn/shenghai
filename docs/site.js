@@ -14,6 +14,18 @@
     bar.style.width = `${max > 0 ? Math.min(100, (window.scrollY / max) * 100) : 0}%`;
   }
 
+  function initTelemetry() {
+    const clocks = document.querySelectorAll('[data-live-clock]');
+    if (!clocks.length) return;
+    const update = () => {
+      const now = new Date();
+      const value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+      clocks.forEach(clock => { clock.textContent = value; });
+    };
+    update();
+    window.setInterval(update, 1000);
+  }
+
   function initNavigation() {
     const menu = document.querySelector('.nav-menu');
     const links = document.querySelector('.nav-links');
@@ -165,6 +177,7 @@
   window.addEventListener('resize', updateScrollProgress);
   document.addEventListener('DOMContentLoaded', () => {
     updateScrollProgress();
+    initTelemetry();
     initNavigation();
     initReveal();
     initToneButtons();

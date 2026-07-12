@@ -797,3 +797,10 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Kept the live microphone pitch check, phrase navigation, interactive score notes, and small MusicXML composer while presenting them in a consistent dark choir-practice workspace.
 - Raised the voice-part reference notes from low edge-of-range examples to clearer starting notes: Soprano C5, Alto A4, Tenor D4, and Bass G3.
 - Replaced the short single sine beep with a longer, user-triggered tuning-fork-style tone: a sustained fundamental, a quiet second harmonic, a gentle attack, and a longer natural decay. No audio is autoplayed.
+
+# 2026-07-12: High-tech rehearsal interface pass
+
+- Added a shared VocalDive telemetry strip to the homepage, manual, changelog, and singing demo. It shows the rehearsal system identity, page-specific signal state, and a live local clock.
+- Added subtle scanline motion, status pulses, electric corner markers, live HUD labels, and score data readouts to make the site feel like a modern audio/rehearsal workstation rather than a static brochure.
+- Kept the visual language tied to choir practice: the homepage still centers Soprano/Alto/Tenor/Bass lines, while the telemetry labels describe score input, voice parts, and rehearsal mode.
+- All motion remains CSS/Canvas-based, has a reduced-motion fallback, and does not add external frameworks or automatic sound.
