@@ -44,20 +44,31 @@
       if (!AudioContext) return;
       const context = new AudioContext();
       const oscillator = context.createOscillator();
+      const harmonic = context.createOscillator();
+      const harmonicGain = context.createGain();
       const gain = context.createGain();
       const frequency = Number(button.dataset.tone) || 440;
+      const duration = Math.max(1.2, Number(button.dataset.toneDuration) || 2.1);
+      if (context.state === 'suspended') context.resume();
       oscillator.type = 'sine';
       oscillator.frequency.value = frequency;
+      harmonic.type = 'sine';
+      harmonic.frequency.value = frequency * 2;
+      harmonicGain.gain.value = .1;
       gain.gain.setValueAtTime(.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.08, context.currentTime + .03);
-      gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + .85);
+      gain.gain.linearRampToValueAtTime(.12, context.currentTime + .08);
+      gain.gain.setValueAtTime(.12, context.currentTime + Math.max(.18, duration - .48));
+      gain.gain.exponentialRampToValueAtTime(.0001, context.currentTime + duration);
       oscillator.connect(gain).connect(context.destination);
+      harmonic.connect(harmonicGain).connect(gain);
       oscillator.start();
-      oscillator.stop(context.currentTime + .9);
+      harmonic.start();
+      oscillator.stop(context.currentTime + duration + .03);
+      harmonic.stop(context.currentTime + duration + .03);
       const original = button.textContent;
       button.textContent = button.dataset.playingLabel || 'Listening...';
       button.disabled = true;
-      window.setTimeout(() => { button.textContent = original; button.disabled = false; context.close(); }, 950);
+      window.setTimeout(() => { button.textContent = original; button.disabled = false; context.close(); }, (duration + .15) * 1000);
     }));
   }
 

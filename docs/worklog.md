@@ -790,3 +790,10 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added user-triggered reference tones for rehearsal exploration. Audio never starts automatically and the pages respect reduced-motion preferences.
 - Kept the public pages bilingual (`zh-Hant` / `en`) through the existing `i18n.js` contract and kept support links on `support@vocaldive.com` with `www.vocaldive.com` as the canonical site.
 - Removed old-brand and internal benchmark/provider wording from the public homepage, manual, and changelog. Research and model-development notes remain in the repository documentation rather than the user-facing site.
+
+# 2026-07-12: Singing demo visual and reference-tone refresh
+
+- Rebuilt `docs/demo.html` on the same VocalDive rehearsal-console visual system used by the homepage, manual, and changelog. The public demo no longer routes users into the old branded layout.
+- Kept the live microphone pitch check, phrase navigation, interactive score notes, and small MusicXML composer while presenting them in a consistent dark choir-practice workspace.
+- Raised the voice-part reference notes from low edge-of-range examples to clearer starting notes: Soprano C5, Alto A4, Tenor D4, and Bass G3.
+- Replaced the short single sine beep with a longer, user-triggered tuning-fork-style tone: a sustained fundamental, a quiet second harmonic, a gentle attack, and a longer natural decay. No audio is autoplayed.

@@ -1,537 +1,58 @@
 <!doctype html>
-<html lang="en" data-title-zh="聲海試唱 Demo" data-title-en="VocalDive Singing Practice Demo">
+<html lang="zh-Hant" data-title-zh="VocalDive 試唱示範" data-title-en="VocalDive Singing Demo">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VocalDive Singing Practice Demo</title>
-  <meta name="description" content="Try a zero-install VocalDive demo: sing Happy Birthday into the microphone and see live pitch feedback." data-zh="免安裝試用聲海 Demo：對著麥克風唱 Happy Birthday，並查看即時音準回饋。" data-en="Try a zero-install VocalDive demo: sing Happy Birthday into the microphone and see live pitch feedback.">
-  <style>
-    :root {
-      color-scheme: light dark;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      line-height: 1.6;
-      --muted: color-mix(in srgb, CanvasText 68%, transparent);
-      --line: color-mix(in srgb, CanvasText 14%, transparent);
-      --surface: color-mix(in srgb, CanvasText 5%, transparent);
-      --surface-strong: color-mix(in srgb, CanvasText 9%, transparent);
-      --accent: #2f7dd3;
-      --good: #238636;
-      --warn: #b45309;
-      --bad: #d1242f;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: Canvas;
-      color: CanvasText;
-    }
-    nav, header, main, footer {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding-left: 24px;
-      padding-right: 24px;
-    }
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding-top: 22px;
-      padding-bottom: 22px;
-    }
-    nav a {
-      color: var(--muted);
-      text-decoration: none;
-      margin-left: 16px;
-    }
-    nav a:first-child {
-      margin-left: 0;
-      color: CanvasText;
-      font-weight: 850;
-    }
-    nav a:hover { color: CanvasText; }
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-      justify-content: flex-end;
-    }
-    .nav-links a { margin-left: 0; }
-    .language-switch {
-      display: inline-flex;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .language-switch button {
-      appearance: none;
-      border: 0;
-      border-left: 1px solid var(--line);
-      background: transparent;
-      color: var(--muted);
-      min-height: 34px;
-      padding: 6px 10px;
-      font: inherit;
-      font-weight: 800;
-      cursor: pointer;
-    }
-    .language-switch button:first-child { border-left: 0; }
-    .language-switch button.active {
-      background: var(--accent);
-      color: white;
-    }
-    header {
-      padding-top: 48px;
-      padding-bottom: 30px;
-    }
-    .eyebrow {
-      color: var(--accent);
-      font-weight: 850;
-      margin: 0 0 12px;
-    }
-    h1 {
-      max-width: 930px;
-      margin: 0 0 18px;
-      font-size: clamp(2.35rem, 7vw, 5rem);
-      line-height: 1.02;
-      letter-spacing: 0;
-    }
-    .lead {
-      max-width: 840px;
-      color: var(--muted);
-      font-size: clamp(1.08rem, 2vw, 1.34rem);
-      margin: 0 0 22px;
-    }
-    section {
-      border-top: 1px solid var(--line);
-      padding: 34px 0;
-    }
-    h2 {
-      margin: 0 0 16px;
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      line-height: 1.16;
-    }
-    h3 { margin: 0 0 8px; }
-    p { margin: 0 0 12px; }
-    .muted { color: var(--muted); }
-    .actions, .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-    }
-    button, .button {
-      appearance: none;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
-      color: CanvasText;
-      min-height: 42px;
-      padding: 9px 13px;
-      font: inherit;
-      font-weight: 780;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    button:hover, .button:hover { background: var(--surface-strong); }
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-    .primary {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: white;
-    }
-    .demo-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 0.52fr);
-      gap: 16px;
-      align-items: start;
-    }
-    @media (max-width: 860px) {
-      nav { align-items: flex-start; flex-direction: column; }
-      nav a { margin-left: 0; margin-right: 14px; }
-      .demo-layout { grid-template-columns: 1fr; }
-    }
-    .panel, .card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
-      padding: 18px;
-    }
-    .stage {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background:
-        linear-gradient(to bottom, transparent 47px, color-mix(in srgb, CanvasText 14%, transparent) 48px, transparent 49px),
-        Canvas;
-      background-size: 100% 49px;
-      padding: 18px;
-      overflow: hidden;
-    }
-    svg {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    .note-head {
-      fill: CanvasText;
-      transition: fill 160ms ease, transform 160ms ease;
-    }
-    .note-head.active {
-      fill: var(--accent);
-      transform: translateY(-4px);
-    }
-    .note-head.good { fill: var(--good); }
-    .note-head.bad { fill: var(--bad); }
-    .note-label {
-      font-size: 13px;
-      fill: CanvasText;
-      opacity: 0.72;
-    }
-    .feedback-tag {
-      opacity: 0;
-      transition: opacity 160ms ease;
-    }
-    .feedback-tag.visible { opacity: 1; }
-    .phrase-strip {
-      display: grid;
-      gap: 8px;
-      margin: 14px 0 0;
-    }
-    .phrase-progress {
-      height: 10px;
-      border-radius: 999px;
-      background: var(--line);
-      overflow: hidden;
-    }
-    .phrase-progress span {
-      display: block;
-      width: 0%;
-      height: 100%;
-      background: var(--accent);
-      transition: width 180ms ease;
-    }
-    .lyric-line {
-      font-size: 1.35rem;
-      font-weight: 900;
-      line-height: 1.2;
-    }
-    .side {
-      display: grid;
-      gap: 12px;
-    }
-    .readout {
-      display: grid;
-      gap: 12px;
-    }
-    .metric {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-      padding: 12px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface);
-    }
-    .metric strong { font-size: 1.05rem; }
-    .meter {
-      height: 9px;
-      background: var(--line);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-    .meter span {
-      display: block;
-      width: 0%;
-      height: 100%;
-      background: var(--accent);
-      transition: width 120ms ease, background 120ms ease;
-    }
-    .verdict {
-      border-radius: 8px;
-      padding: 14px;
-      background: var(--surface-strong);
-      border: 1px solid var(--line);
-      font-weight: 850;
-      min-height: 56px;
-    }
-    .verdict.good { color: var(--good); }
-    .verdict.bad { color: var(--bad); }
-    .verdict.waiting { color: var(--muted); }
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 12px;
-      margin-top: 18px;
-    }
-    .step {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      padding: 14px;
-      background: var(--surface);
-    }
-    .step span {
-      display: inline-grid;
-      place-items: center;
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: white;
-      font-weight: 900;
-      margin-bottom: 10px;
-    }
-    .composer {
-      display: grid;
-      gap: 10px;
-    }
-    .chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .chip {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--surface-strong);
-      padding: 8px 10px;
-      font-weight: 760;
-    }
-    textarea {
-      width: 100%;
-      min-height: 148px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: Canvas;
-      color: CanvasText;
-      padding: 12px;
-      resize: vertical;
-      font: 0.92rem ui-monospace, SFMono-Regular, Menlo, monospace;
-      line-height: 1.45;
-    }
-    footer {
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      padding-top: 30px;
-      padding-bottom: 44px;
-    }
-  </style>
+  <meta name="description" data-zh="在 VocalDive 試唱示範中聆聽參考音、跟唱一小段旋律，查看即時音準回饋。" data-en="Try VocalDive: listen to a reference tone, sing a short phrase, and see live pitch feedback." content="">
+  <meta name="theme-color" content="#07121b">
+  <title>VocalDive 試唱示範</title>
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <nav aria-label="Main navigation">
-    <a href="index.html">聲海 VocalDive</a>
-    <div class="nav-links">
-      <a href="demo.html">Demo</a>
-      <a href="manual.html" data-zh="使用手冊" data-en="Manual">Manual</a>
-      <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">Changelog</a>
-      <span class="language-switch" aria-label="Language">
-        <button type="button" data-lang-button="zh-Hant">繁</button>
-        <button type="button" data-lang-button="en">EN</button>
-      </span>
-    </div>
+  <div class="site-progress" aria-hidden="true"><span></span></div>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="brand-lockup" href="index.html"><span class="brand-mark">VD</span><span><b class="brand-name">VocalDive 聲潛</b><small class="brand-sub" data-zh="為聲樂與合唱練習打造" data-en="Built for singing and choir practice">為聲樂與合唱練習打造</small></span></a>
+    <button class="nav-menu" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
+    <div class="nav-actions"><div class="nav-links"><a href="index.html#features" data-zh="功能" data-en="Explore">功能</a><a href="index.html#practice-loop" data-zh="練習流程" data-en="Practice loop">練習流程</a><a href="index.html#about" data-zh="關於我們" data-en="About">關於我們</a><a href="manual.html" data-zh="手冊" data-en="Manual">手冊</a><a href="changelog.html" data-zh="更新" data-en="Updates">更新</a></div><div class="language-switch" aria-label="Language"><button type="button" data-lang-button="zh-Hant">中</button><button type="button" data-lang-button="en">EN</button></div></div>
   </nav>
 
-  <header>
-    <p class="eyebrow" data-zh="公開試唱 Demo" data-en="Public singing practice demo">Public singing practice demo</p>
-    <h1 data-zh="唱 Happy Birthday，立即看到音準哪裡偏了。" data-en="Sing Happy Birthday and see where your pitch is wrong.">Sing Happy Birthday and see where your pitch is wrong.</h1>
-    <p class="lead" data-zh="聲海是為樂譜式聲樂練習打造的原型。這個網頁 Demo 會帶你唱一段熟悉旋律，聽你的聲音，並即時標出音準偏差。" data-en="VocalDive is a prototype for score-based singing practice. This web demo guides you through a familiar melody, listens to your voice, and marks pitch mistakes in real time.">VocalDive is a prototype for score-based singing practice. This web demo guides you through a familiar melody, listens to your voice, and marks pitch mistakes in real time.</p>
-    <div class="actions">
-      <a class="button primary" href="#try" data-zh="開始試唱 Demo" data-en="Start the singing demo">Start the singing demo</a>
-      <a class="button" href="manual.html" data-zh="閱讀使用手冊" data-en="Read user guide">Read user guide</a>
-    </div>
-  </header>
+  <main class="site-main">
+    <header class="page-hero reveal"><div class="kicker">SINGING DEMO / 試唱示範</div><h1><span data-zh="唱一小句，" data-en="Sing one phrase.">唱一小句，</span> <span data-zh="看見音準。" data-en="See your pitch.">看見音準。</span></h1><p class="lead" data-zh="先聽參考音，再對著麥克風唱一段熟悉旋律。VocalDive 會把你唱出的音高和樂譜放在同一個視圖裡。" data-en="Listen to a reference tone, then sing a familiar phrase into your microphone. VocalDive places your sung pitch beside the score target.">先聽參考音，再對著麥克風唱一段熟悉旋律。VocalDive 會把你唱出的音高和樂譜放在同一個視圖裡。</p><div class="actions"><a class="button primary" href="#try" data-zh="開始試唱" data-en="Start singing">開始試唱</a><a class="button" href="manual.html" data-zh="閱讀手冊" data-en="Read the guide">閱讀手冊</a><button class="button" type="button" data-tone="440" data-tone-duration="2.4" data-playing-label="播放中..." data-zh="播放音叉參考音" data-en="Play tuning tone">播放音叉參考音</button></div></header>
 
-  <main>
-    <section id="try">
-      <h2 data-zh="現在試唱" data-en="Try it now">Try it now</h2>
-      <p class="muted" data-zh="建議使用耳機。先播放示範旋律，開啟麥克風，接著唱 highlighted Happy Birthday lyric。當你接近目標音時音符會變綠；太高或太低時會變紅。" data-en="Use headphones if possible. Play the model melody once, start the microphone, then sing the highlighted Happy Birthday lyric. The demo turns notes green when you are close and red when you are too sharp or flat.">Use headphones if possible. Play the model melody once, start the microphone, then sing the highlighted Happy Birthday lyric. The demo turns notes green when you are close and red when you are too sharp or flat.</p>
-
+    <section class="section reveal" id="try">
+      <div class="section-heading"><div><div class="kicker" data-zh="立即試唱" data-en="Try it now">立即試唱</div><h2 data-zh="聆聽、跟唱、調整。" data-en="Listen, sing, adjust.">聆聽、跟唱、調整。</h2></div><p data-zh="建議使用耳機。先播放示範旋律或目前音符，再開啟麥克風；你可以點選樂譜上的音符重新練習。" data-en="Headphones are recommended. Play the phrase or highlighted note, then start the microphone. Select any note to rehearse it again.">建議使用耳機。先播放示範旋律或目前音符，再開啟麥克風；你可以點選樂譜上的音符重新練習。</p></div>
       <div class="demo-layout">
-        <div class="panel">
-          <div class="toolbar" aria-label="Practice controls">
-            <button class="primary" id="playPhrase" data-zh="播放 Happy Birthday" data-en="Play Happy Birthday">Play Happy Birthday</button>
-            <button id="playTarget" data-zh="播放目前音符" data-en="Play highlighted note">Play highlighted note</button>
-            <button id="startMic" data-zh="開啟麥克風" data-en="Start microphone">Start microphone</button>
-            <button id="stopMic" disabled data-zh="停止麥克風" data-en="Stop microphone">Stop microphone</button>
-            <button id="nextNote" data-zh="下一個 lyric" data-en="Next lyric">Next lyric</button>
-            <button id="resetDemo" data-zh="重設" data-en="Reset">Reset</button>
-          </div>
-          <div class="phrase-strip" aria-live="polite">
-            <div class="lyric-line" id="currentLyric">Happy</div>
-            <div class="phrase-progress" aria-label="Song progress"><span id="phraseProgress"></span></div>
-          </div>
-
-          <div class="stage" aria-label="Practice score">
-            <svg viewBox="0 0 820 660" role="img" aria-label="Happy Birthday score with live pitch feedback">
-              <text x="20" y="32" font-size="22" font-weight="850" fill="currentColor">Happy Birthday practice</text>
-              <text id="scoreInstruction" x="20" y="56" font-size="14" fill="currentColor" opacity="0.7">Target: C4 on "Happy". Listen, then sing.</text>
-
-              <g transform="translate(28 94)" stroke="currentColor" opacity="0.62" stroke-width="2">
-                <line x1="0" y1="0" x2="760" y2="0"/>
-                <line x1="0" y1="18" x2="760" y2="18"/>
-                <line x1="0" y1="36" x2="760" y2="36"/>
-                <line x1="0" y1="54" x2="760" y2="54"/>
-                <line x1="0" y1="72" x2="760" y2="72"/>
-              </g>
-              <g transform="translate(28 214)" stroke="currentColor" opacity="0.62" stroke-width="2">
-                <line x1="0" y1="0" x2="760" y2="0"/>
-                <line x1="0" y1="18" x2="760" y2="18"/>
-                <line x1="0" y1="36" x2="760" y2="36"/>
-                <line x1="0" y1="54" x2="760" y2="54"/>
-                <line x1="0" y1="72" x2="760" y2="72"/>
-              </g>
-              <g transform="translate(28 334)" stroke="currentColor" opacity="0.62" stroke-width="2">
-                <line x1="0" y1="0" x2="760" y2="0"/>
-                <line x1="0" y1="18" x2="760" y2="18"/>
-                <line x1="0" y1="36" x2="760" y2="36"/>
-                <line x1="0" y1="54" x2="760" y2="54"/>
-                <line x1="0" y1="72" x2="760" y2="72"/>
-              </g>
-              <g transform="translate(28 444)" stroke="currentColor" opacity="0.62" stroke-width="2">
-                <line x1="0" y1="0" x2="760" y2="0"/>
-                <line x1="0" y1="18" x2="760" y2="18"/>
-                <line x1="0" y1="36" x2="760" y2="36"/>
-                <line x1="0" y1="54" x2="760" y2="54"/>
-                <line x1="0" y1="72" x2="760" y2="72"/>
-              </g>
-              <g id="birthdayNotes"></g>
-
-              <g class="feedback-tag" id="feedbackTag">
-                <rect id="feedbackRect" x="50" y="74" width="300" height="40" rx="8" fill="color-mix(in srgb, #d1242f 18%, transparent)" stroke="#d1242f"/>
-                <text id="feedbackText" x="66" y="100" font-size="18" font-weight="850" fill="currentColor">Waiting for microphone</text>
-              </g>
-
-              <g transform="translate(28 522)">
-                <text x="0" y="-16" font-size="14" font-weight="850" fill="currentColor" data-zh="即時音高軌跡" data-en="Live pitch trace">Live pitch trace</text>
-                <line x1="0" y1="56" x2="740" y2="56" stroke="currentColor" opacity="0.18"/>
-                <polyline id="pitchTrace" points="" fill="none" stroke="#2f7dd3" stroke-width="4"/>
-                <text x="0" y="88" font-size="13" fill="currentColor" opacity="0.68" data-zh="麥克風運作時，偵測到的音高會顯示在這裡。" data-en="Your detected pitch appears here while the microphone is running.">Your detected pitch appears here while the microphone is running.</text>
-              </g>
-            </svg>
-          </div>
+        <div class="demo-panel">
+          <div class="demo-toolbar" aria-label="Practice controls"><button class="button primary" id="playPhrase" data-zh="播放示範旋律" data-en="Play phrase">播放示範旋律</button><button class="button" id="playTarget" data-zh="播放目前音符" data-en="Play highlighted note">播放目前音符</button><button class="button" id="startMic" data-zh="開啟麥克風" data-en="Start microphone">開啟麥克風</button><button class="button" id="stopMic" disabled data-zh="停止麥克風" data-en="Stop microphone">停止麥克風</button><button class="button" id="nextNote" data-zh="下一個音符" data-en="Next note">下一個音符</button><button class="button" id="resetDemo" data-zh="重設" data-en="Reset">重設</button></div>
+          <div class="demo-progress" aria-live="polite"><div class="demo-lyric" id="currentLyric">Happy</div><div class="demo-progress-bar" aria-label="Song progress"><span id="phraseProgress"></span></div></div>
+          <div class="demo-stage" aria-label="Interactive Happy Birthday practice score"><svg viewBox="0 0 820 660" role="img" aria-label="Happy Birthday score with live pitch feedback"><text x="20" y="32" font-size="22" font-weight="850" fill="currentColor" data-zh="Happy Birthday 試唱" data-en="Happy Birthday practice">Happy Birthday 試唱</text><text id="scoreInstruction" x="20" y="56" font-size="14" fill="currentColor" opacity=".65">Target: C4 on “Hap-”. Listen, then sing.</text>
+            <g transform="translate(28 94)"><line class="staff-line" x1="0" y1="0" x2="760" y2="0"/><line class="staff-line" x1="0" y1="18" x2="760" y2="18"/><line class="staff-line" x1="0" y1="36" x2="760" y2="36"/><line class="staff-line" x1="0" y1="54" x2="760" y2="54"/><line class="staff-line" x1="0" y1="72" x2="760" y2="72"/></g>
+            <g transform="translate(28 214)"><line class="staff-line" x1="0" y1="0" x2="760" y2="0"/><line class="staff-line" x1="0" y1="18" x2="760" y2="18"/><line class="staff-line" x1="0" y1="36" x2="760" y2="36"/><line class="staff-line" x1="0" y1="54" x2="760" y2="54"/><line class="staff-line" x1="0" y1="72" x2="760" y2="72"/></g>
+            <g transform="translate(28 334)"><line class="staff-line" x1="0" y1="0" x2="760" y2="0"/><line class="staff-line" x1="0" y1="18" x2="760" y2="18"/><line class="staff-line" x1="0" y1="36" x2="760" y2="36"/><line class="staff-line" x1="0" y1="54" x2="760" y2="54"/><line class="staff-line" x1="0" y1="72" x2="760" y2="72"/></g>
+            <g transform="translate(28 444)"><line class="staff-line" x1="0" y1="0" x2="760" y2="0"/><line class="staff-line" x1="0" y1="18" x2="760" y2="18"/><line class="staff-line" x1="0" y1="36" x2="760" y2="36"/><line class="staff-line" x1="0" y1="54" x2="760" y2="54"/><line class="staff-line" x1="0" y1="72" x2="760" y2="72"/></g>
+            <g id="birthdayNotes"></g><g class="feedback-tag" id="feedbackTag"><rect id="feedbackRect" x="50" y="74" width="330" height="40" rx="6" fill="rgba(255,155,125,.16)" stroke="#ff9b7d"/><text id="feedbackText" x="66" y="100" font-size="16" font-weight="850" fill="currentColor">Waiting for microphone</text></g>
+            <g transform="translate(28 522)"><text x="0" y="-16" font-size="14" font-weight="850" fill="currentColor" data-zh="即時音高軌跡" data-en="Live pitch trace">即時音高軌跡</text><line x1="0" y1="56" x2="740" y2="56" stroke="currentColor" opacity=".18"/><polyline id="pitchTrace" points="" fill="none" stroke="#70d7f3" stroke-width="4"/><text x="0" y="88" font-size="13" fill="currentColor" opacity=".6" data-zh="麥克風運作時，偵測到的音高會顯示在這裡。" data-en="Your detected pitch appears here while the microphone is running.">麥克風運作時，偵測到的音高會顯示在這裡。</text></g>
+          </svg></div>
         </div>
-
-        <aside class="side">
-          <div class="readout">
-            <div class="metric">
-              <div>
-                <strong data-zh="目標音" data-en="Target">Target</strong>
-                <div class="meter"><span id="targetMeter" style="width: 100%;"></span></div>
-              </div>
-              <span id="targetValue">C4 / 261.6 Hz</span>
-            </div>
-            <div class="metric">
-              <div>
-                <strong data-zh="目前 lyric" data-en="Current lyric">Current lyric</strong>
-                <div class="meter"><span id="lyricMeter" style="width: 100%;"></span></div>
-              </div>
-              <span id="lyricValue">Happy</span>
-            </div>
-            <div class="metric">
-              <div>
-                <strong data-zh="你的音高" data-en="Your pitch">Your pitch</strong>
-                <div class="meter"><span id="pitchMeter"></span></div>
-              </div>
-              <span id="pitchValue">--</span>
-            </div>
-            <div class="metric">
-              <div>
-                <strong data-zh="音準偏差" data-en="Pitch error">Pitch error</strong>
-                <div class="meter"><span id="errorMeter"></span></div>
-              </div>
-              <span id="errorValue">--</span>
-            </div>
-          </div>
-          <div class="verdict waiting" id="verdict">Start the microphone, then sing "Happy" on C4.</div>
-          <div class="card">
-            <h3 data-zh="這個 Demo 證明什麼" data-en="What this demo proves">What this demo proves</h3>
-            <p data-zh="聲海可以把歌曲樂譜轉成練習路徑，聽使用者的聲音，並顯示每個音是否接近、偏高或偏低。" data-en="VocalDive can turn a song score into a guided practice path, listen to the user's voice, and display whether each sung note is close, sharp, or flat.">VocalDive can turn a song score into a guided practice path, listen to the user's voice, and display whether each sung note is close, sharp, or flat.</p>
-          </div>
-        </aside>
+        <aside class="demo-side"><div class="demo-readout"><div class="demo-metric"><div><strong data-zh="目標音" data-en="Target">目標音</strong><div class="demo-meter"><span style="width:100%"></span></div></div><span class="demo-metric-value" id="targetValue">C4 / 261.6 Hz</span></div><div class="demo-metric"><div><strong data-zh="目前歌詞" data-en="Current lyric">目前歌詞</strong><div class="demo-meter"><span style="width:100%"></span></div></div><span class="demo-metric-value" id="lyricValue">Hap-</span></div><div class="demo-metric"><div><strong data-zh="你的音高" data-en="Your pitch">你的音高</strong><div class="demo-meter"><span id="pitchMeter"></span></div></div><span class="demo-metric-value" id="pitchValue">--</span></div><div class="demo-metric"><div><strong data-zh="音準偏差" data-en="Pitch error">音準偏差</strong><div class="demo-meter"><span id="errorMeter"></span></div></div><span class="demo-metric-value" id="errorValue">--</span></div></div><div class="demo-verdict waiting" id="verdict">Start the microphone, then sing “Hap-” on C4.</div><div class="demo-card"><div class="kicker" data-zh="練習提示" data-en="Practice note">練習提示</div><h3 data-zh="先聽，再唱。" data-en="Listen before you sing.">先聽，再唱。</h3><p class="demo-note" data-zh="參考音是協助你定位音高的短音叉聲，不是完整伴奏。" data-en="The reference tone is a sustained tuning-fork guide, not a full accompaniment.">參考音是協助你定位音高的短音叉聲，不是完整伴奏。</p></div></aside>
       </div>
-
-      <div class="steps">
-        <div class="step"><span>1</span><strong data-zh="聆聽" data-en="Listen">Listen</strong><p class="muted" data-zh="播放 Happy Birthday 或目前音符。" data-en="Play Happy Birthday or the highlighted note.">Play Happy Birthday or the highlighted note.</p></div>
-        <div class="step"><span>2</span><strong data-zh="跟唱" data-en="Sing">Sing</strong><p class="muted" data-zh="跟著 highlighted lyric 唱完整片段。" data-en="Follow the highlighted lyric through the phrase.">Follow the highlighted lyric through the phrase.</p></div>
-        <div class="step"><span>3</span><strong data-zh="修正" data-en="Correct">Correct</strong><p class="muted" data-zh="用紅色/綠色回饋調整音準。" data-en="Use the red/green feedback to adjust pitch.">Use the red/green feedback to adjust pitch.</p></div>
-      </div>
+      <div class="demo-steps"><div class="demo-step"><b>1</b><strong data-zh="聆聽" data-en="Listen">聆聽</strong><p data-zh="播放示範旋律或目前音符。" data-en="Play the phrase or highlighted note.">播放示範旋律或目前音符。</p></div><div class="demo-step"><b>2</b><strong data-zh="跟唱" data-en="Sing">跟唱</strong><p data-zh="跟著目前歌詞唱完整片段。" data-en="Follow the highlighted lyric through the phrase.">跟著目前歌詞唱完整片段。</p></div><div class="demo-step"><b>3</b><strong data-zh="調整" data-en="Adjust">調整</strong><p data-zh="看見偏高或偏低，下一次更接近目標。" data-en="See sharp or flat movement and move closer next time.">看見偏高或偏低，下一次更接近目標。</p></div></div>
     </section>
 
-    <section>
-      <h2 data-zh="建立簡單 MusicXML 目標" data-en="Create a simple MusicXML target">Create a simple MusicXML target</h2>
-      <p class="muted" data-zh="原生 App 也有 Compose 頁面。這個小型網頁打譜器示範使用者如何自己建立目標旋律，而不只能匯入樂譜。" data-en="The native app also has a Compose page. This small web composer shows how a user can create a target melody instead of importing one.">The native app also has a Compose page. This small web composer shows how a user can create a target melody instead of importing one.</p>
-      <div class="demo-layout">
-        <div class="panel composer">
-          <div class="toolbar">
-            <button data-add="C4">C4</button>
-            <button data-add="D4">D4</button>
-            <button data-add="E4">E4</button>
-            <button data-add="F4">F4</button>
-            <button data-add="G4">G4</button>
-            <button data-add="A4">A4</button>
-            <button data-add="Bb4">Bb4</button>
-            <button data-add="C5">C5</button>
-            <button data-add="Rest">Rest</button>
-            <button id="clearComposer" data-zh="清除" data-en="Clear">Clear</button>
-          </div>
-          <div class="chips" id="noteChips" aria-label="Composed notes"></div>
-          <textarea id="musicXMLPreview" spellcheck="false" aria-label="MusicXML preview"></textarea>
-        </div>
-        <div class="card">
-          <h3 data-zh="為什麼使用 MusicXML" data-en="Why MusicXML">Why MusicXML</h3>
-          <p data-zh="MusicXML 讓聲海能穩定串起讀譜、播放、目標音高與使用者回饋。" data-en="MusicXML gives VocalDive a stable bridge between score reading, playback, pitch targets, and user feedback.">MusicXML gives VocalDive a stable bridge between score reading, playback, pitch targets, and user feedback.</p>
-        </div>
-      </div>
-    </section>
+    <section class="section reveal"><div class="section-heading"><div><div class="kicker" data-zh="聲部暖身音" data-en="Voice-part warm-ups">聲部暖身音</div><h2 data-zh="先找到舒服的起點。" data-en="Find a comfortable starting point.">先找到舒服的起點。</h2></div><p data-zh="這些是偏中高音域的參考音，比低音極限更適合開始定位聲部。點擊後會播放較長、帶自然衰減的音叉音色。" data-en="These mid-to-upper reference notes are easier starting points than the bottom of a voice range. Click to hear a longer tuning-fork tone with a natural decay.">這些是偏中高音域的參考音，比低音極限更適合開始定位聲部。點擊後會播放較長、帶自然衰減的音叉音色。</p></div><div class="voice-legend"><button class="voice-chip" type="button" data-tone="523.25" data-tone-duration="2.4" data-playing-label="播放中..." style="--voice-color:#9af3d0"><b>S · C5</b><small data-zh="女高音參考音" data-en="Soprano reference">女高音參考音</small></button><button class="voice-chip" type="button" data-tone="440" data-tone-duration="2.4" data-playing-label="播放中..." style="--voice-color:#70d7f3"><b>A · A4</b><small data-zh="女低音參考音" data-en="Alto reference">女低音參考音</small></button><button class="voice-chip" type="button" data-tone="293.66" data-tone-duration="2.4" data-playing-label="播放中..." style="--voice-color:#ff9b7d"><b>T · D4</b><small data-zh="男高音參考音" data-en="Tenor reference">男高音參考音</small></button><button class="voice-chip" type="button" data-tone="196" data-tone-duration="2.4" data-playing-label="播放中..." style="--voice-color:#f3ca75"><b>B · G3</b><small data-zh="男低音參考音" data-en="Bass reference">男低音參考音</small></button></div></section>
+
+    <section class="section reveal"><div class="section-heading"><div><div class="kicker" data-zh="簡易編譜" data-en="Small score builder">簡易編譜</div><h2 data-zh="建立一個自己的 MusicXML 目標。" data-en="Build a small MusicXML target.">建立一個自己的 MusicXML 目標。</h2></div><p data-zh="這個小工具讓你快速排列幾個音符，看看結構化樂譜如何成為練習目標。" data-en="Arrange a few notes and see how a structured score can become a practice target.">這個小工具讓你快速排列幾個音符，看看結構化樂譜如何成為練習目標。</p></div><div class="composer-grid"><div class="demo-panel"><div class="demo-toolbar"><button class="button" data-add="C4">C4</button><button class="button" data-add="D4">D4</button><button class="button" data-add="E4">E4</button><button class="button" data-add="F4">F4</button><button class="button" data-add="G4">G4</button><button class="button" data-add="A4">A4</button><button class="button" data-add="Bb4">Bb4</button><button class="button" data-add="C5">C5</button><button class="button" data-add="Rest">Rest</button><button class="button" id="clearComposer" data-zh="清除" data-en="Clear">清除</button></div><div class="composer-chips" id="noteChips" aria-label="Composed notes"></div><textarea id="musicXMLPreview" spellcheck="false" aria-label="MusicXML preview"></textarea></div><div class="demo-card"><div class="kicker" data-zh="為什麼使用 MusicXML" data-en="Why MusicXML">為什麼使用 MusicXML</div><h3 data-zh="讓樂譜能被編修、播放與練習。" data-en="A score you can edit, play, and rehearse.">讓樂譜能被編修、播放與練習。</h3><p class="demo-note" data-zh="MusicXML 是 VocalDive 連接讀譜、聲部、目標音高和練習回饋的結構。" data-en="MusicXML gives VocalDive a structured bridge between score reading, voice parts, pitch targets, and practice feedback.">MusicXML 是 VocalDive 連接讀譜、聲部、目標音高和練習回饋的結構。</p></div></div></section>
   </main>
 
-  <footer>
-    <span data-zh="聲海是 Chien-Hsiang Chien 建立的早期原型。這個 Demo 的麥克風聲音只在你的瀏覽器中處理，不會上傳。" data-en="VocalDive is an early prototype by Chien-Hsiang Chien. Microphone audio in this demo is processed in your browser and is not uploaded.">VocalDive is an early prototype by Chien-Hsiang Chien. Microphone audio in this demo is processed in your browser and is not uploaded.</span>
-  </footer>
-
+  <footer class="site-footer"><span data-zh="VocalDive 試唱示範的麥克風聲音只在你的瀏覽器中處理，不會上傳。" data-en="Microphone audio in this VocalDive demo is processed in your browser and is not uploaded.">VocalDive 試唱示範的麥克風聲音只在你的瀏覽器中處理，不會上傳。</span> · <a href="mailto:support@vocaldive.com">support@vocaldive.com</a></footer>
   <script src="i18n.js"></script>
   <script>
-    const pitchTable = {
-      C4: 261.63,
-      D4: 293.66,
-      E4: 329.63,
-      F4: 349.23,
-      G4: 392.00,
-      A4: 440.00,
-      Bb4: 466.16,
-      C5: 523.25
-    };
+    const pitchTable = { C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392, A4: 440, Bb4: 466.16, C5: 523.25 };
     const targetNotes = [
-      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 },
-      { name: "C4", lyric: "-py", freq: pitchTable.C4 },
-      { name: "D4", lyric: "birth-", freq: pitchTable.D4 },
-      { name: "C4", lyric: "-day", freq: pitchTable.C4 },
-      { name: "F4", lyric: "to", freq: pitchTable.F4 },
-      { name: "E4", lyric: "you", freq: pitchTable.E4 },
-      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 },
-      { name: "C4", lyric: "-py", freq: pitchTable.C4 },
-      { name: "D4", lyric: "birth-", freq: pitchTable.D4 },
-      { name: "C4", lyric: "-day", freq: pitchTable.C4 },
-      { name: "G4", lyric: "to", freq: pitchTable.G4 },
-      { name: "F4", lyric: "you", freq: pitchTable.F4 },
-      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 },
-      { name: "C4", lyric: "-py", freq: pitchTable.C4 },
-      { name: "C5", lyric: "birth-", freq: pitchTable.C5 },
-      { name: "A4", lyric: "-day", freq: pitchTable.A4 },
-      { name: "F4", lyric: "dear", freq: pitchTable.F4 },
-      { name: "E4", lyric: "sing-", freq: pitchTable.E4 },
-      { name: "D4", lyric: "-er", freq: pitchTable.D4 },
-      { name: "Bb4", lyric: "Hap-", freq: pitchTable.Bb4 },
-      { name: "Bb4", lyric: "-py", freq: pitchTable.Bb4 },
-      { name: "A4", lyric: "birth-", freq: pitchTable.A4 },
-      { name: "F4", lyric: "-day", freq: pitchTable.F4 },
-      { name: "G4", lyric: "to", freq: pitchTable.G4 },
-      { name: "F4", lyric: "you", freq: pitchTable.F4 }
+      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 }, { name: "C4", lyric: "-py", freq: pitchTable.C4 }, { name: "D4", lyric: "birth-", freq: pitchTable.D4 }, { name: "C4", lyric: "-day", freq: pitchTable.C4 }, { name: "F4", lyric: "to", freq: pitchTable.F4 }, { name: "E4", lyric: "you", freq: pitchTable.E4 },
+      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 }, { name: "C4", lyric: "-py", freq: pitchTable.C4 }, { name: "D4", lyric: "birth-", freq: pitchTable.D4 }, { name: "C4", lyric: "-day", freq: pitchTable.C4 }, { name: "G4", lyric: "to", freq: pitchTable.G4 }, { name: "F4", lyric: "you", freq: pitchTable.F4 },
+      { name: "C4", lyric: "Hap-", freq: pitchTable.C4 }, { name: "C4", lyric: "-py", freq: pitchTable.C4 }, { name: "C5", lyric: "birth-", freq: pitchTable.C5 }, { name: "A4", lyric: "-day", freq: pitchTable.A4 }, { name: "F4", lyric: "dear", freq: pitchTable.F4 }, { name: "E4", lyric: "sing-", freq: pitchTable.E4 }, { name: "D4", lyric: "-er", freq: pitchTable.D4 },
+      { name: "Bb4", lyric: "Hap-", freq: pitchTable.Bb4 }, { name: "Bb4", lyric: "-py", freq: pitchTable.Bb4 }, { name: "A4", lyric: "birth-", freq: pitchTable.A4 }, { name: "F4", lyric: "-day", freq: pitchTable.F4 }, { name: "G4", lyric: "to", freq: pitchTable.G4 }, { name: "F4", lyric: "you", freq: pitchTable.F4 }
     ];
     let selectedIndex = 0;
     let audioContext;
@@ -542,365 +63,43 @@
     const pitchHistory = [];
     let stableHitFrames = 0;
     const interfaceText = {
-      en: {
-        listenTarget: target => `Listen to ${target.name} for "${target.lyric}", then sing it.`,
-        phrasePlayed: "Listen once, then start the microphone and sing the highlighted lyric.",
-        micSing: target => `Sing "${target.lyric}" on ${target.name}.`,
-        micNeeded: "Microphone permission is needed to try live pitch feedback.",
-        micStopped: "Microphone stopped.",
-        good: target => `Good: ${target.name} is in tune.`,
-        adjust: (direction, cents) => `Adjust: you are ${direction} by ${cents} cents.`,
-        sharp: "sharp",
-        flat: "flat",
-        inTuneTag: target => `${target.lyric} ${target.name}: in tune`,
-        errorTag: (target, direction, cents) => `${target.lyric} ${target.name}: ${direction} ${cents} cents`,
-        currentLyric: target => `Sing "${target.lyric}" on ${target.name}`,
-        scoreInstruction: target => `Target: ${target.name} on "${target.lyric}". Listen, then sing.`,
-        next: target => `Good. Next: sing "${target.lyric}" on ${target.name}.`,
-        start: target => `Start the microphone, then sing "${target.lyric}" on ${target.name}.`
-      },
-      zh: {
-        listenTarget: target => `先聽 ${target.name} 的 "${target.lyric}"，接著跟唱。`,
-        phrasePlayed: "先聽一次示範旋律，接著開啟麥克風並唱 highlighted lyric。",
-        micSing: target => `請用 ${target.name} 唱 "${target.lyric}"。`,
-        micNeeded: "需要允許麥克風權限，才能試用即時音準回饋。",
-        micStopped: "麥克風已停止。",
-        good: target => `很好：${target.name} 音準接近。`,
-        adjust: (direction, cents) => `請調整：你${direction} ${cents} cents。`,
-        sharp: "偏高",
-        flat: "偏低",
-        inTuneTag: target => `${target.lyric} ${target.name}：音準接近`,
-        errorTag: (target, direction, cents) => `${target.lyric} ${target.name}：${direction} ${cents} cents`,
-        currentLyric: target => `用 ${target.name} 唱 "${target.lyric}"`,
-        scoreInstruction: target => `目標：用 ${target.name} 唱 "${target.lyric}"。先聽，再跟唱。`,
-        next: target => `很好。下一個：用 ${target.name} 唱 "${target.lyric}"。`,
-        start: target => `開啟麥克風，然後用 ${target.name} 唱 "${target.lyric}"。`
-      }
+      en: { listenTarget: t => `Listen to ${t.name} for “${t.lyric}”, then sing it.`, phrasePlayed: "Listen once, then start the microphone and sing the highlighted lyric.", micSing: t => `Sing “${t.lyric}” on ${t.name}.`, micNeeded: "Microphone permission is needed to try live pitch feedback.", micStopped: "Microphone stopped.", good: t => `Good: ${t.name} is in tune.`, adjust: (d, c) => `Adjust: you are ${d} by ${c} cents.`, sharp: "sharp", flat: "flat", inTuneTag: t => `${t.lyric} ${t.name}: in tune`, errorTag: (t, d, c) => `${t.lyric} ${t.name}: ${d} ${c} cents`, currentLyric: t => `Sing “${t.lyric}” on ${t.name}`, scoreInstruction: t => `Target: ${t.name} on “${t.lyric}”. Listen, then sing.`, next: t => `Good. Next: sing “${t.lyric}” on ${t.name}.`, start: t => `Start the microphone, then sing “${t.lyric}” on ${t.name}.` },
+      zh: { listenTarget: t => `先聽 ${t.name} 的「${t.lyric}」，接著跟唱。`, phrasePlayed: "先聽一次示範旋律，接著開啟麥克風並唱目前歌詞。", micSing: t => `請用 ${t.name} 唱「${t.lyric}」。`, micNeeded: "需要允許麥克風權限，才能試用即時音準回饋。", micStopped: "麥克風已停止。", good: t => `很好：${t.name} 音準接近。`, adjust: (d, c) => `請調整：你${d} ${c} cents。`, sharp: "偏高", flat: "偏低", inTuneTag: t => `${t.lyric} ${t.name}：音準接近`, errorTag: (t, d, c) => `${t.lyric} ${t.name}：${d} ${c} cents`, currentLyric: t => `用 ${t.name} 唱「${t.lyric}」`, scoreInstruction: t => `目標：用 ${t.name} 唱「${t.lyric}」。先聽，再跟唱。`, next: t => `很好。下一個：用 ${t.name} 唱「${t.lyric}」。`, start: t => `開啟麥克風，然後用 ${t.name} 唱「${t.lyric}」。` }
     };
-
-    function copy() {
-      const language = window.vocaldiveI18n?.getLanguage?.() === "zh-Hant" ? "zh" : "en";
-      return interfaceText[language];
+    function copy() { return interfaceText[window.vocaldiveI18n?.getLanguage?.() === "zh-Hant" ? "zh" : "en"]; }
+    function ensureAudioContext() { audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)(); if (audioContext.state === "suspended") audioContext.resume(); return audioContext; }
+    function playTuningTone(context, frequency, start, duration, level = .12) {
+      const master = context.createGain();
+      const fundamental = context.createOscillator();
+      const harmonic = context.createOscillator();
+      const harmonicGain = context.createGain();
+      fundamental.type = "sine"; fundamental.frequency.value = frequency;
+      harmonic.type = "sine"; harmonic.frequency.value = frequency * 2;
+      harmonicGain.gain.value = .1;
+      master.gain.setValueAtTime(.0001, start);
+      master.gain.linearRampToValueAtTime(level, start + .08);
+      master.gain.setValueAtTime(level, start + Math.max(.18, duration - .48));
+      master.gain.exponentialRampToValueAtTime(.0001, start + duration);
+      fundamental.connect(master); harmonic.connect(harmonicGain).connect(master); master.connect(context.destination);
+      fundamental.start(start); harmonic.start(start); fundamental.stop(start + duration + .03); harmonic.stop(start + duration + .03);
     }
-
-    function ensureAudioContext() {
-      audioContext = audioContext || new (window.AudioContext || window.webkitAudioContext)();
-      return audioContext;
-    }
-
-    function playTarget() {
-      const context = ensureAudioContext();
-      const target = targetNotes[selectedIndex];
-      const osc = context.createOscillator();
-      const gain = context.createGain();
-      osc.type = "sine";
-      osc.frequency.value = target.freq;
-      gain.gain.setValueAtTime(0.001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.16, context.currentTime + 0.03);
-      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.85);
-      osc.connect(gain).connect(context.destination);
-      osc.start();
-      osc.stop(context.currentTime + 0.9);
-      setVerdict(copy().listenTarget(target), "waiting");
-    }
-
-    async function playPhrase() {
-      const context = ensureAudioContext();
-      const start = context.currentTime + 0.08;
-      let time = start;
-      targetNotes.forEach((target, index) => {
-        const osc = context.createOscillator();
-        const gain = context.createGain();
-        const duration = index === 5 || index === 11 || index === 18 || index === 24 ? 0.72 : 0.42;
-        osc.type = "sine";
-        osc.frequency.value = target.freq;
-        gain.gain.setValueAtTime(0.001, time);
-        gain.gain.exponentialRampToValueAtTime(0.14, time + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
-        osc.connect(gain).connect(context.destination);
-        osc.start(time);
-        osc.stop(time + duration + 0.02);
-        time += duration;
-      });
-      setVerdict(copy().phrasePlayed, "waiting");
-    }
-
-    async function startMic() {
-      try {
-        const context = ensureAudioContext();
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
-          }
-        });
-        const source = context.createMediaStreamSource(mediaStream);
-        analyser = context.createAnalyser();
-        analyser.fftSize = 4096;
-        source.connect(analyser);
-        document.getElementById("startMic").disabled = true;
-        document.getElementById("stopMic").disabled = false;
-        setVerdict(copy().micSing(targetNotes[selectedIndex]), "waiting");
-        detectLoop();
-      } catch (error) {
-        setVerdict(copy().micNeeded, "bad");
-      }
-    }
-
-    function stopMic() {
-      if (animationID) cancelAnimationFrame(animationID);
-      if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
-      mediaStream = null;
-      analyser = null;
-      document.getElementById("startMic").disabled = false;
-      document.getElementById("stopMic").disabled = true;
-      setVerdict(copy().micStopped, "waiting");
-    }
-
-    function detectLoop() {
-      const buffer = new Float32Array(analyser.fftSize);
-      analyser.getFloatTimeDomainData(buffer);
-      const frequency = autoCorrelate(buffer, audioContext.sampleRate);
-      if (frequency > 0) updatePitchFeedback(frequency);
-      animationID = requestAnimationFrame(detectLoop);
-    }
-
-    function autoCorrelate(buffer, sampleRate) {
-      let rms = 0;
-      for (let i = 0; i < buffer.length; i++) rms += buffer[i] * buffer[i];
-      rms = Math.sqrt(rms / buffer.length);
-      if (rms < 0.012) return -1;
-
-      let bestOffset = -1;
-      let bestCorrelation = 0;
-      const minFrequency = 80;
-      const maxFrequency = 900;
-      const minOffset = Math.floor(sampleRate / maxFrequency);
-      const maxOffset = Math.floor(sampleRate / minFrequency);
-
-      for (let offset = minOffset; offset <= maxOffset; offset++) {
-        let correlation = 0;
-        for (let i = 0; i < buffer.length - offset; i++) {
-          correlation += 1 - Math.abs(buffer[i] - buffer[i + offset]);
-        }
-        correlation /= buffer.length - offset;
-        if (correlation > bestCorrelation) {
-          bestCorrelation = correlation;
-          bestOffset = offset;
-        }
-      }
-
-      if (bestCorrelation < 0.86 || bestOffset <= 0) return -1;
-      return sampleRate / bestOffset;
-    }
-
-    function updatePitchFeedback(frequency) {
-      const target = targetNotes[selectedIndex];
-      const cents = 1200 * Math.log2(frequency / target.freq);
-      const absCents = Math.abs(cents);
-      const close = absCents <= 35;
-      const direction = cents > 0 ? copy().sharp : copy().flat;
-
-      document.getElementById("pitchValue").textContent = `${frequency.toFixed(1)} Hz`;
-      document.getElementById("errorValue").textContent = `${cents > 0 ? "+" : ""}${cents.toFixed(0)} cents`;
-      document.getElementById("pitchMeter").style.width = `${Math.max(8, Math.min(100, 100 - absCents))}%`;
-      document.getElementById("pitchMeter").style.background = close ? "var(--good)" : "var(--bad)";
-      document.getElementById("errorMeter").style.width = `${Math.max(8, Math.min(100, absCents))}%`;
-      document.getElementById("errorMeter").style.background = close ? "var(--good)" : "var(--bad)";
-
-      setVerdict(close ? copy().good(target) : copy().adjust(direction, Math.round(absCents)), close ? "good" : "bad");
-      updateScoreFeedback(close, direction, cents);
-      updatePitchTrace(frequency, target.freq);
-      maybeAdvance(close);
-    }
-
-    function updateScoreFeedback(close, direction, cents) {
-      document.querySelectorAll(".note-head").forEach(note => note.classList.remove("good", "bad"));
-      const note = document.querySelector(`.note-head[data-index="${selectedIndex}"]`);
-      if (note) note.classList.add(close ? "good" : "bad");
-      const tag = document.getElementById("feedbackTag");
-      const rect = document.getElementById("feedbackRect");
-      const text = document.getElementById("feedbackText");
-      const target = targetNotes[selectedIndex];
-      tag.classList.add("visible");
-      if (close) {
-        rect.setAttribute("stroke", "#238636");
-        rect.setAttribute("fill", "color-mix(in srgb, #238636 18%, transparent)");
-        text.textContent = copy().inTuneTag(target);
-      } else {
-        rect.setAttribute("stroke", "#d1242f");
-        rect.setAttribute("fill", "color-mix(in srgb, #d1242f 18%, transparent)");
-        text.textContent = copy().errorTag(target, direction, Math.round(Math.abs(cents)));
-      }
-    }
-
-    function maybeAdvance(close) {
-      stableHitFrames = close ? stableHitFrames + 1 : 0;
-      if (stableHitFrames >= 16 && selectedIndex < targetNotes.length - 1) {
-        stableHitFrames = 0;
-        selectNote(selectedIndex + 1, true);
-      }
-    }
-
-    function updatePitchTrace(frequency, targetFrequency) {
-      const normalized = Math.max(-1, Math.min(1, Math.log2(frequency / targetFrequency)));
-      pitchHistory.push(normalized);
-      while (pitchHistory.length > 80) pitchHistory.shift();
-      const points = pitchHistory.map((value, index) => {
-        const x = index * (740 / 79);
-        const y = 56 - value * 92;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      }).join(" ");
-      document.getElementById("pitchTrace").setAttribute("points", points);
-    }
-
-    function setVerdict(message, kind) {
-      const verdict = document.getElementById("verdict");
-      verdict.textContent = message;
-      verdict.className = `verdict ${kind}`;
-    }
-
-    function selectNote(index, fromAutoAdvance = false) {
-      selectedIndex = index;
-      const target = targetNotes[selectedIndex];
-      document.querySelectorAll(".note-head").forEach(note => {
-        note.classList.remove("active", "good", "bad");
-      });
-      const active = document.querySelector(`.note-head[data-index="${selectedIndex}"]`);
-      if (active) active.classList.add("active");
-      document.getElementById("targetValue").textContent = `${target.name} / ${target.freq.toFixed(1)} Hz`;
-      document.getElementById("lyricValue").textContent = target.lyric;
-      document.getElementById("currentLyric").textContent = copy().currentLyric(target);
-      document.getElementById("scoreInstruction").textContent = copy().scoreInstruction(target);
-      document.getElementById("phraseProgress").style.width = `${((selectedIndex + 1) / targetNotes.length * 100).toFixed(1)}%`;
-      document.getElementById("feedbackTag").classList.remove("visible");
-      pitchHistory.length = 0;
-      stableHitFrames = 0;
-      document.getElementById("pitchTrace").setAttribute("points", "");
-      if (fromAutoAdvance) {
-        setVerdict(copy().next(target), "waiting");
-      } else {
-        setVerdict(copy().start(target), "waiting");
-      }
-    }
-
-    function resetDemo() {
-      stopMic();
-      document.getElementById("pitchValue").textContent = "--";
-      document.getElementById("errorValue").textContent = "--";
-      document.getElementById("pitchMeter").style.width = "0%";
-      document.getElementById("errorMeter").style.width = "0%";
-      selectNote(0);
-    }
-
-    function renderBirthdayScore() {
-      const group = document.getElementById("birthdayNotes");
-      group.innerHTML = "";
-      const rows = [
-        { start: 0, end: 6, y: 94 },
-        { start: 6, end: 12, y: 214 },
-        { start: 12, end: 19, y: 334 },
-        { start: 19, end: 25, y: 444 }
-      ];
-      const pitchY = {
-        C4: 72,
-        D4: 63,
-        E4: 54,
-        F4: 45,
-        G4: 36,
-        A4: 27,
-        Bb4: 18,
-        C5: 9
-      };
-      rows.forEach(row => {
-        const count = row.end - row.start;
-        for (let i = row.start; i < row.end; i++) {
-          const target = targetNotes[i];
-          const localIndex = i - row.start;
-          const x = 56 + localIndex * (680 / Math.max(1, count - 1));
-          const y = row.y + pitchY[target.name];
-          const note = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
-          note.setAttribute("class", `note-head${i === selectedIndex ? " active" : ""}`);
-          note.setAttribute("data-index", String(i));
-          note.setAttribute("cx", String(x));
-          note.setAttribute("cy", String(y));
-          note.setAttribute("rx", "15");
-          note.setAttribute("ry", "11");
-          note.style.cursor = "pointer";
-          note.addEventListener("click", () => selectNote(i));
-
-          const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
-          stem.setAttribute("x1", String(x + 14));
-          stem.setAttribute("y1", String(y));
-          stem.setAttribute("x2", String(x + 14));
-          stem.setAttribute("y2", String(y - 48));
-          stem.setAttribute("stroke", "currentColor");
-          stem.setAttribute("stroke-width", "4");
-
-          const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          label.setAttribute("class", "note-label");
-          label.setAttribute("x", String(x - 24));
-          label.setAttribute("y", String(row.y + 106));
-          label.textContent = target.lyric;
-
-          const pitch = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          pitch.setAttribute("class", "note-label");
-          pitch.setAttribute("x", String(x - 18));
-          pitch.setAttribute("y", String(row.y + 122));
-          pitch.textContent = target.name;
-
-          group.appendChild(stem);
-          group.appendChild(note);
-          group.appendChild(label);
-          group.appendChild(pitch);
-        }
-      });
-    }
-
-    function renderComposer() {
-      const noteChips = document.getElementById("noteChips");
-      noteChips.innerHTML = "";
-      notes.forEach((note, index) => {
-        const chip = document.createElement("span");
-        chip.className = "chip";
-        chip.textContent = `${index + 1}. ${note}`;
-        noteChips.appendChild(chip);
-      });
-      document.getElementById("musicXMLPreview").value = [
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
-        "<score-partwise version=\"4.0\">",
-        "  <part id=\"P1\">",
-        "    <measure number=\"1\">",
-        ...notes.map(note => note === "Rest"
-            ? "      <note><rest/><duration>2</duration><type>quarter</type></note>"
-          : `      <note><pitch><step>${note.replace(/[0-9]/g, "").replace("b", "")}</step>${note.includes("b") ? "<alter>-1</alter>" : ""}<octave>${note.match(/[0-9]/)?.[0] || "4"}</octave></pitch><duration>2</duration><type>quarter</type></note>`),
-        "    </measure>",
-        "  </part>",
-        "</score-partwise>"
-      ].join("\n");
-    }
-
-    document.getElementById("playPhrase").addEventListener("click", playPhrase);
-    document.getElementById("playTarget").addEventListener("click", playTarget);
-    document.getElementById("startMic").addEventListener("click", startMic);
-    document.getElementById("stopMic").addEventListener("click", stopMic);
-    document.getElementById("nextNote").addEventListener("click", () => selectNote((selectedIndex + 1) % targetNotes.length));
-    document.getElementById("resetDemo").addEventListener("click", resetDemo);
-    document.querySelectorAll("[data-add]").forEach(button => {
-      button.addEventListener("click", () => {
-        notes.push(button.dataset.add);
-        renderComposer();
-      });
-    });
-    document.getElementById("clearComposer").addEventListener("click", () => {
-      notes = [];
-      renderComposer();
-    });
-    renderBirthdayScore();
-    selectNote(0);
-    renderComposer();
-    window.addEventListener("vocaldive:languagechange", () => selectNote(selectedIndex));
+    function playTarget() { const context = ensureAudioContext(); const target = targetNotes[selectedIndex]; playTuningTone(context, target.freq, context.currentTime + .03, 2.1, .14); setVerdict(copy().listenTarget(target), "waiting"); }
+    function playPhrase() { const context = ensureAudioContext(); let time = context.currentTime + .08; targetNotes.forEach((target, index) => { const duration = [5, 11, 18, 24].includes(index) ? .92 : .62; playTuningTone(context, target.freq, time, duration, .09); time += duration; }); setVerdict(copy().phrasePlayed, "waiting"); }
+    async function startMic() { try { const context = ensureAudioContext(); if (!navigator.mediaDevices?.getUserMedia) throw new Error("microphone unavailable"); mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); const source = context.createMediaStreamSource(mediaStream); analyser = context.createAnalyser(); analyser.fftSize = 4096; source.connect(analyser); document.getElementById("startMic").disabled = true; document.getElementById("stopMic").disabled = false; setVerdict(copy().micSing(targetNotes[selectedIndex]), "waiting"); detectLoop(); } catch (error) { setVerdict(copy().micNeeded, "bad"); } }
+    function stopMic() { if (animationID) cancelAnimationFrame(animationID); if (mediaStream) mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; analyser = null; document.getElementById("startMic").disabled = false; document.getElementById("stopMic").disabled = true; setVerdict(copy().micStopped, "waiting"); }
+    function detectLoop() { if (!analyser) return; const buffer = new Float32Array(analyser.fftSize); analyser.getFloatTimeDomainData(buffer); const frequency = autoCorrelate(buffer, audioContext.sampleRate); if (frequency > 0) updatePitchFeedback(frequency); animationID = requestAnimationFrame(detectLoop); }
+    function autoCorrelate(buffer, sampleRate) { let rms = 0; for (let i = 0; i < buffer.length; i += 1) rms += buffer[i] * buffer[i]; rms = Math.sqrt(rms / buffer.length); if (rms < .012) return -1; let bestOffset = -1; let bestCorrelation = 0; const minOffset = Math.floor(sampleRate / 900); const maxOffset = Math.floor(sampleRate / 80); for (let offset = minOffset; offset <= maxOffset; offset += 1) { let correlation = 0; for (let i = 0; i < buffer.length - offset; i += 1) correlation += 1 - Math.abs(buffer[i] - buffer[i + offset]); correlation /= buffer.length - offset; if (correlation > bestCorrelation) { bestCorrelation = correlation; bestOffset = offset; } } return bestCorrelation < .86 || bestOffset <= 0 ? -1 : sampleRate / bestOffset; }
+    function updatePitchFeedback(frequency) { const target = targetNotes[selectedIndex]; const cents = 1200 * Math.log2(frequency / target.freq); const absCents = Math.abs(cents); const close = absCents <= 35; const direction = cents > 0 ? copy().sharp : copy().flat; document.getElementById("pitchValue").textContent = `${frequency.toFixed(1)} Hz`; document.getElementById("errorValue").textContent = `${cents > 0 ? "+" : ""}${cents.toFixed(0)} cents`; document.getElementById("pitchMeter").style.width = `${Math.max(8, Math.min(100, 100 - absCents))}%`; document.getElementById("pitchMeter").style.background = close ? "#6ee7a2" : "#ff9b7d"; document.getElementById("errorMeter").style.width = `${Math.max(8, Math.min(100, absCents))}%`; document.getElementById("errorMeter").style.background = close ? "#6ee7a2" : "#ff9b7d"; setVerdict(close ? copy().good(target) : copy().adjust(direction, Math.round(absCents)), close ? "good" : "bad"); updateScoreFeedback(close, direction, cents); updatePitchTrace(frequency, target.freq); maybeAdvance(close); }
+    function updateScoreFeedback(close, direction, cents) { document.querySelectorAll(".note-head").forEach(note => note.classList.remove("good", "bad")); const note = document.querySelector(`.note-head[data-index="${selectedIndex}"]`); if (note) note.classList.add(close ? "good" : "bad"); const tag = document.getElementById("feedbackTag"); const rect = document.getElementById("feedbackRect"); const text = document.getElementById("feedbackText"); const target = targetNotes[selectedIndex]; tag.classList.add("visible"); rect.setAttribute("stroke", close ? "#6ee7a2" : "#ff9b7d"); rect.setAttribute("fill", close ? "rgba(110,231,162,.16)" : "rgba(255,155,125,.16)"); text.textContent = close ? copy().inTuneTag(target) : copy().errorTag(target, direction, Math.round(Math.abs(cents))); }
+    function maybeAdvance(close) { stableHitFrames = close ? stableHitFrames + 1 : 0; if (stableHitFrames >= 16 && selectedIndex < targetNotes.length - 1) { stableHitFrames = 0; selectNote(selectedIndex + 1, true); } }
+    function updatePitchTrace(frequency, targetFrequency) { const normalized = Math.max(-1, Math.min(1, Math.log2(frequency / targetFrequency))); pitchHistory.push(normalized); while (pitchHistory.length > 80) pitchHistory.shift(); document.getElementById("pitchTrace").setAttribute("points", pitchHistory.map((value, index) => `${(index * (740 / 79)).toFixed(1)},${(56 - value * 92).toFixed(1)}`).join(" ")); }
+    function setVerdict(message, kind) { const verdict = document.getElementById("verdict"); verdict.textContent = message; verdict.className = `demo-verdict ${kind}`; }
+    function selectNote(index, fromAutoAdvance = false) { selectedIndex = index; const target = targetNotes[selectedIndex]; document.querySelectorAll(".note-head").forEach(note => note.classList.remove("active", "good", "bad")); document.querySelector(`.note-head[data-index="${selectedIndex}"]`)?.classList.add("active"); document.getElementById("targetValue").textContent = `${target.name} / ${target.freq.toFixed(1)} Hz`; document.getElementById("lyricValue").textContent = target.lyric; document.getElementById("currentLyric").textContent = copy().currentLyric(target); document.getElementById("scoreInstruction").textContent = copy().scoreInstruction(target); document.getElementById("phraseProgress").style.width = `${((selectedIndex + 1) / targetNotes.length * 100).toFixed(1)}%`; document.getElementById("feedbackTag").classList.remove("visible"); pitchHistory.length = 0; stableHitFrames = 0; document.getElementById("pitchTrace").setAttribute("points", ""); setVerdict(fromAutoAdvance ? copy().next(target) : copy().start(target), "waiting"); }
+    function resetDemo() { stopMic(); document.getElementById("pitchValue").textContent = "--"; document.getElementById("errorValue").textContent = "--"; document.getElementById("pitchMeter").style.width = "0%"; document.getElementById("errorMeter").style.width = "0%"; selectNote(0); }
+    function renderBirthdayScore() { const group = document.getElementById("birthdayNotes"); group.innerHTML = ""; const rows = [{ start: 0, end: 6, y: 94 }, { start: 6, end: 12, y: 214 }, { start: 12, end: 19, y: 334 }, { start: 19, end: 25, y: 444 }]; const pitchY = { C4: 72, D4: 63, E4: 54, F4: 45, G4: 36, A4: 27, Bb4: 18, C5: 9 }; rows.forEach(row => { const count = row.end - row.start; for (let i = row.start; i < row.end; i += 1) { const target = targetNotes[i]; const x = 56 + (i - row.start) * (680 / Math.max(1, count - 1)); const y = row.y + pitchY[target.name]; const note = document.createElementNS("http://www.w3.org/2000/svg", "ellipse"); note.setAttribute("class", `note-head${i === selectedIndex ? " active" : ""}`); note.dataset.index = String(i); note.setAttribute("cx", String(x)); note.setAttribute("cy", String(y)); note.setAttribute("rx", "15"); note.setAttribute("ry", "11"); note.style.cursor = "pointer"; note.addEventListener("click", () => selectNote(i)); const stem = document.createElementNS("http://www.w3.org/2000/svg", "line"); stem.setAttribute("x1", String(x + 14)); stem.setAttribute("y1", String(y)); stem.setAttribute("x2", String(x + 14)); stem.setAttribute("y2", String(y - 48)); stem.setAttribute("stroke", "currentColor"); stem.setAttribute("stroke-width", "4"); const label = document.createElementNS("http://www.w3.org/2000/svg", "text"); label.setAttribute("class", "note-label"); label.setAttribute("x", String(x - 24)); label.setAttribute("y", String(row.y + 106)); label.textContent = target.lyric; const pitch = document.createElementNS("http://www.w3.org/2000/svg", "text"); pitch.setAttribute("class", "note-label"); pitch.setAttribute("x", String(x - 18)); pitch.setAttribute("y", String(row.y + 122)); pitch.textContent = target.name; group.appendChild(stem); group.appendChild(note); group.appendChild(label); group.appendChild(pitch); } }); }
+    function renderComposer() { const chips = document.getElementById("noteChips"); chips.innerHTML = ""; notes.forEach((note, index) => { const chip = document.createElement("span"); chip.className = "composer-chip"; chip.textContent = `${index + 1}. ${note}`; chips.appendChild(chip); }); document.getElementById("musicXMLPreview").value = ["<?xml version=\"1.0\" encoding=\"UTF-8\"?>", "<score-partwise version=\"4.0\">", "  <part id=\"P1\">", "    <measure number=\"1\">", ...notes.map(note => note === "Rest" ? "      <note><rest/><duration>2</duration><type>quarter</type></note>" : `      <note><pitch><step>${note.replace(/[0-9]/g, "").replace("b", "")}</step>${note.includes("b") ? "<alter>-1</alter>" : ""}<octave>${note.match(/[0-9]/)?.[0] || "4"}</octave></pitch><duration>2</duration><type>quarter</type></note>`), "    </measure>", "  </part>", "</score-partwise>"].join("\n"); }
+    document.getElementById("playPhrase").addEventListener("click", playPhrase); document.getElementById("playTarget").addEventListener("click", playTarget); document.getElementById("startMic").addEventListener("click", startMic); document.getElementById("stopMic").addEventListener("click", stopMic); document.getElementById("nextNote").addEventListener("click", () => selectNote((selectedIndex + 1) % targetNotes.length)); document.getElementById("resetDemo").addEventListener("click", resetDemo); document.querySelectorAll("[data-add]").forEach(button => button.addEventListener("click", () => { notes.push(button.dataset.add); renderComposer(); })); document.getElementById("clearComposer").addEventListener("click", () => { notes = []; renderComposer(); }); renderBirthdayScore(); selectNote(0); renderComposer(); window.addEventListener("vocaldive:languagechange", () => selectNote(selectedIndex));
   </script>
+  <script src="site.js"></script>
 </body>
 </html>
