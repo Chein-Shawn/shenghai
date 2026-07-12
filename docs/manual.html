@@ -1,248 +1,45 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant" data-title-zh="VocalDive 使用手冊" data-title-en="VocalDive Manual">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VocalDive Manual | 聲潛使用手冊</title>
-  <meta name="description" content="A beginner-friendly guide for VocalDive, a score-to-practice workspace for singers and choir learners.">
-  <style>
-    :root {
-      color-scheme: light;
-      --ink: #172033;
-      --muted: #667085;
-      --line: #dce3ef;
-      --paper: #f8fbff;
-      --brand: #0969da;
-      --accent: #12b886;
-      --warm: #ffb020;
-      --panel: rgba(255,255,255,.86);
-      --shadow: 0 18px 48px rgba(20, 35, 60, .12);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(circle at 18% 12%, rgba(18,184,134,.18), transparent 32%),
-        radial-gradient(circle at 82% 2%, rgba(9,105,218,.16), transparent 30%),
-        linear-gradient(180deg, #f9fcff 0%, #eef6ff 44%, #fff 100%);
-    }
-    a { color: inherit; }
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      justify-content: space-between;
-      gap: 18px;
-      align-items: center;
-      padding: 14px clamp(18px, 4vw, 56px);
-      background: rgba(255,255,255,.76);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(220,227,239,.8);
-    }
-    .brand { font-weight: 800; letter-spacing: 0; }
-    .links { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
-    .links a { text-decoration: none; }
-    .hero {
-      min-height: 58vh;
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
-      align-items: center;
-      gap: clamp(28px, 5vw, 72px);
-      padding: clamp(46px, 8vw, 92px) clamp(20px, 6vw, 86px) 42px;
-    }
-    h1 {
-      font-size: clamp(44px, 7vw, 82px);
-      line-height: .95;
-      margin: 0 0 22px;
-      letter-spacing: 0;
-    }
-    .lead {
-      font-size: clamp(18px, 2.2vw, 24px);
-      line-height: 1.5;
-      color: #344054;
-      max-width: 760px;
-    }
-    .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
-    .button {
-      display: inline-flex;
-      align-items: center;
-      min-height: 44px;
-      padding: 0 18px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      border: 1px solid var(--line);
-      background: white;
-    }
-    .button.primary { background: var(--brand); color: white; border-color: var(--brand); }
-    .score-card {
-      position: relative;
-      min-height: 360px;
-      border: 1px solid rgba(220,227,239,.9);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      padding: 28px;
-    }
-    .staff { margin-top: 30px; display: grid; gap: 19px; }
-    .line { height: 2px; background: #c6d0df; border-radius: 2px; }
-    .note {
-      width: 34px; height: 24px; border-radius: 50%;
-      background: var(--brand);
-      position: absolute;
-      animation: bob 3.4s ease-in-out infinite;
-      box-shadow: 0 10px 22px rgba(9,105,218,.25);
-    }
-    .n1 { left: 22%; top: 42%; }
-    .n2 { left: 47%; top: 55%; animation-delay: .45s; background: var(--accent); }
-    .n3 { left: 71%; top: 36%; animation-delay: .9s; background: var(--warm); }
-    @keyframes bob { 0%,100% { transform: translateY(0) rotate(-10deg); } 50% { transform: translateY(-12px) rotate(8deg); } }
-    main { padding: 0 clamp(20px, 6vw, 86px) 80px; }
-    .section { max-width: 1160px; margin: 0 auto 28px; }
-    .section h2 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 18px; letter-spacing: 0; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255,255,255,.82);
-      padding: 20px;
-      box-shadow: 0 10px 28px rgba(20,35,60,.07);
-    }
-    .card h3 { margin: 0 0 8px; font-size: 20px; }
-    .card p { margin: 0; color: var(--muted); line-height: 1.55; }
-    details {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: rgba(255,255,255,.88);
-      margin: 12px 0;
-      padding: 4px 18px;
-    }
-    summary { cursor: pointer; font-weight: 800; padding: 16px 0; }
-    details p, details li { color: var(--muted); line-height: 1.62; }
-    .steps { counter-reset: step; display: grid; gap: 12px; }
-    .step {
-      counter-increment: step;
-      display: grid;
-      grid-template-columns: 44px 1fr;
-      gap: 14px;
-      align-items: start;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: white;
-    }
-    .step::before {
-      content: counter(step);
-      display: grid;
-      place-items: center;
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      color: white;
-      background: var(--brand);
-      font-weight: 800;
-    }
-    .step h3 { margin: 0 0 6px; }
-    .step p { margin: 0; color: var(--muted); line-height: 1.55; }
-    .footer {
-      padding: 28px clamp(20px, 6vw, 86px);
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      background: white;
-    }
-    [data-animate] { opacity: 0; transform: translateY(18px); transition: .7s ease; }
-    [data-animate].in { opacity: 1; transform: translateY(0); }
-    @media (max-width: 860px) {
-      .hero { grid-template-columns: 1fr; }
-      .grid { grid-template-columns: 1fr; }
-      .links { font-size: 13px; }
-    }
-  </style>
+  <meta name="description" data-zh="VocalDive 聲潛使用手冊：從匯入樂譜、編修聲部到開始練習。" data-en="VocalDive guide: bring in a score, shape your part, and start rehearsing." content="">
+  <meta name="theme-color" content="#07121b">
+  <title>VocalDive 使用手冊</title>
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <nav class="nav">
-    <div class="brand">VocalDive / 聲潛</div>
-    <div class="links">
-      <a href="index.html">Home</a>
-      <a href="manual.html">Manual</a>
-      <a href="changelog.html">Changelog</a>
-      <a href="mailto:support@vocaldive.com">Support</a>
-    </div>
+  <div class="site-progress" aria-hidden="true"><span></span></div>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="brand-lockup" href="index.html"><span class="brand-mark">VD</span><span><b class="brand-name">VocalDive 聲潛</b><small class="brand-sub" data-zh="為聲樂與合唱練習打造" data-en="Built for singing and choir practice">為聲樂與合唱練習打造</small></span></a>
+    <button class="nav-menu" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
+    <div class="nav-actions"><div class="nav-links"><a href="index.html#features" data-zh="功能" data-en="Explore">功能</a><a href="index.html#practice-loop" data-zh="練習流程" data-en="Practice loop">練習流程</a><a href="index.html#about" data-zh="關於我們" data-en="About">關於我們</a><a href="manual.html" aria-current="page" data-zh="手冊" data-en="Manual">手冊</a><a href="changelog.html" data-zh="更新" data-en="Updates">更新</a></div><div class="language-switch" aria-label="Language"><button type="button" data-lang-button="zh-Hant">中</button><button type="button" data-lang-button="en">EN</button></div></div>
   </nav>
 
-  <header class="hero">
-    <div>
-      <h1>Learn a score by hearing, singing, and correcting.</h1>
-      <p class="lead">VocalDive helps singers turn scores into editable MusicXML, practice with clearer feedback, and keep rehearsal work organized across devices.</p>
-      <div class="cta-row">
-        <a class="button primary" href="#start">Start guide</a>
-        <a class="button" href="changelog.html">See updates</a>
-      </div>
-    </div>
-    <div class="score-card" aria-label="Animated score preview">
-      <strong>VocalDive practice flow</strong>
-      <div class="staff">
-        <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
-      </div>
-      <div class="note n1"></div>
-      <div class="note n2"></div>
-      <div class="note n3"></div>
-    </div>
-  </header>
+  <main class="site-main">
+    <header class="page-hero reveal"><div class="kicker">MANUAL / 使用手冊</div><h1 data-zh="從你想唱出的聲音開始。" data-en="Start with the sound you want to make.">從你想唱出的聲音開始。</h1><p class="lead" data-zh="VocalDive 把複雜的準備工作整理成一條清楚的路：帶入樂譜、確認聲部、開始練習，然後聽見自己的變化。" data-en="VocalDive turns the setup into a clear path: bring in your score, confirm your part, rehearse, and hear your progress.">VocalDive 把複雜的準備工作整理成一條清楚的路：帶入樂譜、確認聲部、開始練習，然後聽見自己的變化。</p></header>
 
-  <main>
-    <section class="section" id="start" data-animate>
-      <h2>Start with three paths</h2>
-      <div class="grid">
-        <article class="card">
-          <h3>MusicXML Editor</h3>
-          <p>Paste or import MusicXML, review the score, and correct notes, rests, lyrics, measures, and markings before practice.</p>
-        </article>
-        <article class="card">
-          <h3>Scan to MusicXML</h3>
-          <p>Import a PDF or image, let VocalDive create a MusicXML candidate, then compare it with the source page and correct it.</p>
-        </article>
-        <article class="card">
-          <h3>Create from Scratch</h3>
-          <p>Build a simple score directly when you want a quick practice track or a clean MusicXML starting point.</p>
-        </article>
-      </div>
+    <section class="practice-console reveal" aria-label="Practice tone console">
+      <div class="console-screen"><div class="kicker">REHEARSAL CONSOLE / 排練控制台</div><h2 data-zh="先聽見，再開始唱。" data-en="Listen first. Then sing.">先聽見，再開始唱。</h2><p data-zh="點選一個聲部播放短暫參考音。這個音效只會在你主動點擊時播放。" data-en="Choose a voice to play a short reference tone. Audio starts only when you ask for it.">點選一個聲部播放短暫參考音。這個音效只會在你主動點擊時播放。</p><div class="console-lines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="stage-top" style="padding:16px 0 0;border-bottom:0"><span data-zh="準備就緒" data-en="READY">準備就緒</span><span data-zh="選擇一個聲部" data-en="Choose a voice">選擇一個聲部</span></div></div>
+      <div class="console-controls"><button type="button" data-tone="261.63" data-playing-label="Playing..." data-zh="Soprano · C4" data-en="Soprano · C4">Soprano · C4</button><button type="button" data-tone="220" data-playing-label="Playing..." data-zh="Alto · A3" data-en="Alto · A3">Alto · A3</button><button type="button" data-tone="146.83" data-playing-label="Playing..." data-zh="Tenor · D3" data-en="Tenor · D3">Tenor · D3</button><button type="button" data-tone="98" data-playing-label="Playing..." data-zh="Bass · G2" data-en="Bass · G2">Bass · G2</button><a class="button primary" href="demo.html#try" data-zh="進入唱歌示範" data-en="Open singing demo">進入唱歌示範</a></div>
     </section>
 
-    <section class="section" data-animate>
-      <h2>Beginner workflow</h2>
-      <div class="steps">
-        <div class="step"><div><h3>Import or create a score</h3><p>Start from MusicXML, a scanned score, or a new draft. Try the included Twinkle sample if you want a safe first test.</p></div></div>
-        <div class="step"><div><h3>Review the editable score</h3><p>Open the score editor, select symbols, and correct the MusicXML before relying on it for practice.</p></div></div>
-        <div class="step"><div><h3>Practice with feedback</h3><p>Use playback, pitch guidance, metronome, piano, tuning fork, and practice stats to make rehearsal more deliberate.</p></div></div>
-        <div class="step"><div><h3>Send feedback</h3><p>Use the support area or contact <a href="mailto:support@vocaldive.com">support@vocaldive.com</a>. We are building this with singers, not above them.</p></div></div>
-      </div>
+    <section class="section reveal"><div class="section-heading"><div><div class="kicker" data-zh="四個步驟" data-en="Four steps">四個步驟</div><h2 data-zh="把排練變得更有方向。" data-en="Give every rehearsal a direction.">把排練變得更有方向。</h2></div><p data-zh="不需要一次理解所有功能。先完成一個小循環，就能開始感覺到差異。" data-en="You do not need to learn everything at once. Complete one small loop and build from there.">不需要一次理解所有功能。先完成一個小循環，就能開始感覺到差異。</p></div><div class="guide-grid">
+      <article class="guide-card"><div class="feature-index">01 / SCORE</div><h2 data-zh="帶入你的樂譜" data-en="Bring in your score">帶入你的樂譜</h2><p data-zh="在 Score 中選擇 MusicXML Editor，貼上或匯入 MusicXML。若手上是紙本或 PDF，選擇 Scan to MusicXML。" data-en="In Score, choose MusicXML Editor to paste or import MusicXML. For paper or PDFs, choose Scan to MusicXML.">在 Score 中選擇 MusicXML Editor，貼上或匯入 MusicXML。若手上是紙本或 PDF，選擇 Scan to MusicXML。</p></article>
+      <article class="guide-card"><div class="feature-index">02 / SHAPE</div><h2 data-zh="確認聲部與小節" data-en="Shape the part">確認聲部與小節</h2><p data-zh="在視覺化樂譜中選取音符、休止符與聲部，必要時用原始頁面對照修正。" data-en="Select notes, rests, and parts in the visual score, using the original page as a reference when needed.">在視覺化樂譜中選取音符、休止符與聲部，必要時用原始頁面對照修正。</p></article>
+      <article class="guide-card"><div class="feature-index">03 / PRACTICE</div><h2 data-zh="只練習你的線" data-en="Rehearse your line">只練習你的線</h2><p data-zh="選擇 S、A、T 或 B，搭配播放與麥克風練習。把注意力放在下一個音，而不是整頁的複雜資訊。" data-en="Choose S, A, T, or B and practice with playback and microphone feedback. Focus on the next note, not the whole page.">選擇 S、A、T 或 B，搭配播放與麥克風練習。把注意力放在下一個音，而不是整頁的複雜資訊。</p></article>
+      <article class="guide-card"><div class="feature-index">04 / FEEDBACK</div><h2 data-zh="回看，再唱一次" data-en="Review and return">回看，再唱一次</h2><p data-zh="用音準與練習紀錄找出需要重來的片段。每次只處理一個小問題，進步會更清楚。" data-en="Use pitch feedback and practice history to find the next passage to revisit. One small problem at a time makes progress visible.">用音準與練習紀錄找出需要重來的片段。每次只處理一個小問題，進步會更清楚。</p></article>
+    </div></section>
+
+    <section class="section reveal"><div class="section-heading"><div><div class="kicker" data-zh="快速回答" data-en="Quick answers">快速回答</div><h2 data-zh="開始前想知道的事。" data-en="A few things to know before you start.">開始前想知道的事。</h2></div></div>
+      <details open><summary data-zh="我沒有 MusicXML，可以使用 VocalDive 嗎？" data-en="Can I use VocalDive without MusicXML?">我沒有 MusicXML，可以使用 VocalDive 嗎？</summary><p data-zh="可以。先從 Scan to MusicXML 匯入 PDF 或圖片，完成後在視覺化編輯器中確認結果。掃描結果需要人工校對時，原始頁面會保留在旁邊。" data-en="Yes. Start with Scan to MusicXML and import a PDF or image. Review the result in the visual editor; the original page stays available beside it when correction is needed.">可以。先從 Scan to MusicXML 匯入 PDF 或圖片，完成後在視覺化編輯器中確認結果。掃描結果需要人工校對時，原始頁面會保留在旁邊。</p></details>
+      <details><summary data-zh="我可以只練習一個聲部嗎？" data-en="Can I rehearse only one voice part?">我可以只練習一個聲部嗎？</summary><p data-zh="可以。選擇你的 Soprano、Alto、Tenor 或 Bass 聲部，將注意力放在自己的旋律線，再逐步加回其他聲部。" data-en="Yes. Choose Soprano, Alto, Tenor, or Bass, focus on your line, then gradually bring the other voices back in.">可以。選擇你的 Soprano、Alto、Tenor 或 Bass 聲部，將注意力放在自己的旋律線，再逐步加回其他聲部。</p></details>
+      <details><summary data-zh="我的手寫註記會消失嗎？" data-en="Will my handwritten notes disappear?">我的手寫註記會消失嗎？</summary><p data-zh="不會。原始 PDF 或圖片會保留為對照來源，排版後的 MusicXML 是另一個可編修版本。" data-en="No. Your original PDF or image remains available for reference, while MusicXML becomes a separate editable version.">不會。原始 PDF 或圖片會保留為對照來源，排版後的 MusicXML 是另一個可編修版本。</p></details>
     </section>
 
-    <section class="section" data-animate>
-      <h2>Feature guide</h2>
-      <details open><summary>How do I import a score?</summary><p>Open Score, choose MusicXML Editor for existing MusicXML, or Scan to MusicXML for PDF/image sources. Scanned results should be reviewed before practice.</p></details>
-      <details><summary>How do I edit MusicXML?</summary><p>Select a symbol in the score editor, adjust it in the inspector, and save the corrected score. The corrected MusicXML becomes the source for playback and practice.</p></details>
-      <details><summary>How do I practice?</summary><p>Choose a score, select the part you want to rehearse, and use playback, mixer, metronome, pitch reference, and practice review tools.</p></details>
-      <details><summary>How do I get help?</summary><p>Visit <a href="https://www.vocaldive.com">www.vocaldive.com</a> or email <a href="mailto:support@vocaldive.com">support@vocaldive.com</a>.</p></details>
-    </section>
+    <section class="section reveal"><div class="quote-band"><div><div class="kicker" data-zh="需要幫忙？" data-en="Need a hand?">需要幫忙？</div><h2 data-zh="把你的排練問題寄給我們。" data-en="Bring your rehearsal question to us.">把你的排練問題寄給我們。</h2><p data-zh="歡迎告訴我們你使用的裝置、樂譜格式，以及哪一個聲部需要更清楚的幫助。" data-en="Tell us your device, score format, and where your voice part needs clearer support.">歡迎告訴我們你使用的裝置、樂譜格式，以及哪一個聲部需要更清楚的幫助。</p></div><a class="button" href="mailto:support@vocaldive.com">support@vocaldive.com</a></div></section>
   </main>
-
-  <footer class="footer">
-    VocalDive / 聲潛 · Built for singers and chorus learners · support@vocaldive.com
-  </footer>
-
-  <script>
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) entry.target.classList.add('in');
-      }
-    }, { threshold: 0.14 });
-    document.querySelectorAll('[data-animate]').forEach((el) => observer.observe(el));
-  </script>
+  <footer class="site-footer"><span>© 2026 VocalDive 聲潛</span> · <a href="index.html" data-zh="首頁" data-en="Home">首頁</a> · <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">更新日誌</a> · <a href="mailto:support@vocaldive.com">support@vocaldive.com</a></footer>
+  <script src="i18n.js"></script><script src="site.js"></script>
 </body>
 </html>

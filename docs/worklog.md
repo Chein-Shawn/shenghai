@@ -782,3 +782,11 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added the first fixed-schema OMR v1 preparation layer. `tools/omr/omr_v1_schema.py` defines the stable 14-class symbol vocabulary, while `tools/omr/prepare_omr_v1.py` writes external-SSD audit reports, score-level 70/15/15 splits, and system-relative symbol manifests without modifying raw CPDL data. Reviewer-only labels such as part names, dynamics, and rare markings remain metadata until a later model version.
 - Downloaded and verified the DeepScoresV2 dense subset to the external SSD. The archive is 741,814,529 bytes with SHA-256 `b08d7a9d34e62ad4854ddfbabc21a758c4bd2d93ff818457cc64e630602fc64e`; extraction contains 1,362 train pages, 352 test pages, and the original object annotations. Added `tools/omr/ingest_deepscores_dense.py` to turn page-level boxes into overlapping 1024x256 tile manifests without duplicating source images.
 - Added `tools/omr/train_symbol_heatmap.py`, a fixed-shape 14-channel Core ML-friendly detector baseline. The eight-tile train/validation smoke test completed successfully; it is only a pipeline check because CPDL currently has one annotated system and still needs representative choral symbol annotations before generalization training.
+
+# 2026-07-12: VocalDive public website refresh
+
+- Rebuilt the public homepage, manual, and changelog around VocalDive's choir-practice workflow rather than internal research terminology.
+- Added a shared static visual system with a dark rehearsal-console aesthetic, responsive navigation, scroll progress, reveal motion, four-part animated voice lines, interactive practice steps, and update filters.
+- Added user-triggered reference tones for rehearsal exploration. Audio never starts automatically and the pages respect reduced-motion preferences.
+- Kept the public pages bilingual (`zh-Hant` / `en`) through the existing `i18n.js` contract and kept support links on `support@vocaldive.com` with `www.vocaldive.com` as the canonical site.
+- Removed old-brand and internal benchmark/provider wording from the public homepage, manual, and changelog. Research and model-development notes remain in the repository documentation rather than the user-facing site.

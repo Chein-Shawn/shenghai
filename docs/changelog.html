@@ -1,239 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant" data-title-zh="VocalDive 更新日誌" data-title-en="VocalDive Updates">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>VocalDive Changelog | 聲潛更新日誌</title>
-  <meta name="description" content="User-facing VocalDive product updates.">
-  <style>
-    :root {
-      --ink: #172033;
-      --muted: #667085;
-      --line: #dce3ef;
-      --brand: #0969da;
-      --accent: #12b886;
-      --paper: #f8fbff;
-      --panel: rgba(255,255,255,.88);
-      --shadow: 0 18px 48px rgba(20, 35, 60, .12);
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--ink);
-      background:
-        linear-gradient(135deg, rgba(9,105,218,.12), transparent 34%),
-        linear-gradient(225deg, rgba(18,184,134,.13), transparent 36%),
-        #fbfdff;
-    }
-    .nav {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: center;
-      padding: 14px clamp(18px, 4vw, 56px);
-      background: rgba(255,255,255,.78);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid var(--line);
-    }
-    .brand { font-weight: 800; }
-    .links { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
-    .links a { color: inherit; text-decoration: none; }
-    .hero { padding: clamp(48px, 8vw, 96px) clamp(20px, 6vw, 86px) 28px; }
-    h1 {
-      margin: 0 0 18px;
-      font-size: clamp(44px, 7vw, 82px);
-      line-height: .95;
-      letter-spacing: 0;
-      max-width: 980px;
-    }
-    .lead { color: #344054; font-size: clamp(18px, 2vw, 23px); line-height: 1.5; max-width: 840px; }
-    .filters { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
-    .filter {
-      border: 1px solid var(--line);
-      background: white;
-      border-radius: 999px;
-      min-height: 38px;
-      padding: 0 15px;
-      cursor: pointer;
-      font-weight: 700;
-      color: var(--muted);
-    }
-    .filter.active { color: white; border-color: var(--brand); background: var(--brand); }
-    main { padding: 18px clamp(20px, 6vw, 86px) 80px; }
-    .timeline { max-width: 1040px; margin: 0 auto; position: relative; }
-    .timeline::before {
-      content: "";
-      position: absolute;
-      left: 21px;
-      top: 10px;
-      bottom: 10px;
-      width: 2px;
-      background: linear-gradient(var(--brand), var(--accent));
-    }
-    .entry {
-      position: relative;
-      display: grid;
-      grid-template-columns: 56px 1fr;
-      gap: 14px;
-      margin: 18px 0;
-      opacity: 0;
-      transform: translateY(16px);
-      transition: .55s ease;
-    }
-    .entry.in { opacity: 1; transform: translateY(0); }
-    .dot {
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      color: white;
-      background: var(--brand);
-      box-shadow: 0 10px 24px rgba(9,105,218,.24);
-      font-weight: 800;
-      z-index: 1;
-    }
-    .card {
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      padding: 20px;
-    }
-    .meta { display: flex; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 14px; margin-bottom: 8px; }
-    .tag { color: var(--brand); font-weight: 800; }
-    h2 { margin: 0 0 8px; font-size: clamp(22px, 3vw, 32px); }
-    ul { margin: 12px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.62; }
-    .footer {
-      padding: 28px clamp(20px, 6vw, 86px);
-      border-top: 1px solid var(--line);
-      background: white;
-      color: var(--muted);
-    }
-    @media (max-width: 720px) {
-      .timeline::before { left: 17px; }
-      .entry { grid-template-columns: 48px 1fr; }
-      .dot { width: 36px; height: 36px; }
-    }
-  </style>
+  <meta name="description" data-zh="VocalDive 聲潛更新日誌：查看樂譜、練習與支援體驗的最新改進。" data-en="VocalDive updates: see what is improving across scores, practice, and support."><meta name="theme-color" content="#07121b">
+  <title>VocalDive 更新日誌</title>
+  <link rel="stylesheet" href="site.css">
 </head>
 <body>
-  <nav class="nav">
-    <div class="brand">VocalDive / 聲潛</div>
-    <div class="links">
-      <a href="index.html">Home</a>
-      <a href="manual.html">Manual</a>
-      <a href="changelog.html">Changelog</a>
-      <a href="mailto:support@vocaldive.com">Support</a>
-    </div>
+  <div class="site-progress" aria-hidden="true"><span></span></div>
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="brand-lockup" href="index.html"><span class="brand-mark">VD</span><span><b class="brand-name">VocalDive 聲潛</b><small class="brand-sub" data-zh="為聲樂與合唱練習打造" data-en="Built for singing and choir practice">為聲樂與合唱練習打造</small></span></a>
+    <button class="nav-menu" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
+    <div class="nav-actions"><div class="nav-links"><a href="index.html#features" data-zh="功能" data-en="Explore">功能</a><a href="index.html#practice-loop" data-zh="練習流程" data-en="Practice loop">練習流程</a><a href="index.html#about" data-zh="關於我們" data-en="About">關於我們</a><a href="manual.html" data-zh="手冊" data-en="Manual">手冊</a><a href="changelog.html" aria-current="page" data-zh="更新" data-en="Updates">更新</a></div><div class="language-switch" aria-label="Language"><button type="button" data-lang-button="zh-Hant">中</button><button type="button" data-lang-button="en">EN</button></div></div>
   </nav>
 
-  <header class="hero">
-    <h1>Updates that help singers practice sooner.</h1>
-    <p class="lead">This changelog keeps user-facing VocalDive changes in one place: new features, interface improvements, and fixes that affect rehearsal.</p>
-    <div class="filters" aria-label="Changelog filters">
-      <button class="filter active" data-filter="all">All</button>
-      <button class="filter" data-filter="score">Score</button>
-      <button class="filter" data-filter="practice">Practice</button>
-      <button class="filter" data-filter="support">Support</button>
-    </div>
-  </header>
+  <main class="site-main">
+    <header class="page-hero reveal"><div class="kicker">UPDATES / 更新日誌</div><h1 data-zh="每一次更新，都讓排練更順。" data-en="A better rehearsal, one release at a time.">每一次更新，都讓排練更順。</h1><p class="lead" data-zh="這裡記錄 VocalDive 對使用者真正有感的改進：更清楚的入口、更好用的樂譜、更安心的練習流程。" data-en="A user-first record of what is getting better: clearer entry points, better scores, and a calmer practice flow.">這裡記錄 VocalDive 對使用者真正有感的改進：更清楚的入口、更好用的樂譜、更安心的練習流程。</p><div class="filters" role="group" aria-label="Filter updates"><button class="filter active" type="button" data-filter="all" data-zh="全部" data-en="All">全部</button><button class="filter" type="button" data-filter="score" data-zh="樂譜" data-en="Scores">樂譜</button><button class="filter" type="button" data-filter="practice" data-zh="練習" data-en="Practice">練習</button><button class="filter" type="button" data-filter="support" data-zh="支援" data-en="Support">支援</button></div></header>
 
-  <main>
-    <section class="timeline">
-      <article class="entry" data-kind="score">
-        <div class="dot">7/10</div>
-        <div class="card">
-          <div class="meta"><span>July 10, 2026</span><span class="tag">Score</span></div>
-          <h2>MusicXML and Scan to MusicXML are clearer paths</h2>
-          <ul>
-            <li>Score work is now presented as task-based entry points instead of a research console.</li>
-            <li>MusicXML editing and scanned-score conversion are treated as separate workflows.</li>
-            <li>VocalDive continues preparing on-device OMR so scanned scores can become editable MusicXML.</li>
-          </ul>
-        </div>
-      </article>
-
-      <article class="entry" data-kind="support">
-        <div class="dot">7/09</div>
-        <div class="card">
-          <div class="meta"><span>July 9, 2026</span><span class="tag">Support</span></div>
-          <h2>VocalDive / 聲潛 branding and support domain</h2>
-          <ul>
-            <li>The public product name is now VocalDive / 聲潛.</li>
-            <li>Official website and support contact are aligned around www.vocaldive.com and support@vocaldive.com.</li>
-            <li>User-facing pages are being rewritten for singers, choir members, and early testers.</li>
-          </ul>
-        </div>
-      </article>
-
-      <article class="entry" data-kind="score">
-        <div class="dot">7/08</div>
-        <div class="card">
-          <div class="meta"><span>July 8, 2026</span><span class="tag">Score</span></div>
-          <h2>Twinkle sample pack for first-time testing</h2>
-          <ul>
-            <li>A copyright-safe Twinkle sample is available for trying score import and review.</li>
-            <li>The sample is intended to help new users test the flow even without a score nearby.</li>
-            <li>Scanned results should still be reviewed before practice.</li>
-          </ul>
-        </div>
-      </article>
-
-      <article class="entry" data-kind="practice">
-        <div class="dot">7/06</div>
-        <div class="card">
-          <div class="meta"><span>July 6, 2026</span><span class="tag">Practice</span></div>
-          <h2>Practice tools continue expanding</h2>
-          <ul>
-            <li>Practice areas now include pitch-oriented rehearsal, metronome, piano reference, and tuning fork planning.</li>
-            <li>The goal is to help singers connect score reading, listening, and voice feedback.</li>
-          </ul>
-        </div>
-      </article>
-
-      <article class="entry" data-kind="support">
-        <div class="dot">6/30</div>
-        <div class="card">
-          <div class="meta"><span>June 30, 2026</span><span class="tag">Support</span></div>
-          <h2>Settings, feedback, and sync direction</h2>
-          <ul>
-            <li>Settings now gathers language, usage, documentation, contact, and feedback areas.</li>
-            <li>iCloud sync is being shaped around same-Apple-ID devices and user-controlled setup.</li>
-            <li>Feedback is planned as a simple path for bug reports and feature suggestions.</li>
-          </ul>
-        </div>
-      </article>
-    </section>
+    <section class="section reveal"><div class="timeline">
+      <article class="timeline-entry" data-entry-kind="score"><div class="timeline-dot">12</div><div class="timeline-card"><div class="timeline-meta"><span>2026.07.12</span><span class="tag" data-zh="網站" data-en="Website">網站</span></div><h2 data-zh="新的 VocalDive 練習入口" data-en="A clearer way into VocalDive">新的 VocalDive 練習入口</h2><ul><li data-zh="首頁、手冊與更新日誌改成同一套排練工作區視覺。" data-en="Home, guide, and updates now share one rehearsal-workspace visual language.">首頁、手冊與更新日誌改成同一套排練工作區視覺。</li><li data-zh="新增四聲部互動視圖、練習流程和手動播放的參考音。" data-en="Added an interactive four-part view, practice loop, and user-triggered reference tones.">新增四聲部互動視圖、練習流程和手動播放的參考音。</li></ul></div></article>
+      <article class="timeline-entry" data-entry-kind="score"><div class="timeline-dot">10</div><div class="timeline-card"><div class="timeline-meta"><span>2026.07.10</span><span class="tag" data-zh="樂譜" data-en="Scores">樂譜</span></div><h2 data-zh="MusicXML Editor 與 Scan to MusicXML 分流更清楚" data-en="Clearer paths for MusicXML and scans">MusicXML Editor 與 Scan to MusicXML 分流更清楚</h2><ul><li data-zh="Score 區把直接編修與掃描匯入分成明確入口。" data-en="Score now separates direct editing from scan import with clearer entry points.">Score 區把直接編修與掃描匯入分成明確入口。</li><li data-zh="匯入後可以在原始頁面與視覺化樂譜之間對照。" data-en="Imported scores can be checked beside their original pages in a visual editor.">匯入後可以在原始頁面與視覺化樂譜之間對照。</li></ul></div></article>
+      <article class="timeline-entry" data-entry-kind="support"><div class="timeline-dot">09</div><div class="timeline-card"><div class="timeline-meta"><span>2026.07.09</span><span class="tag" data-zh="品牌" data-en="Brand">品牌</span></div><h2 data-zh="VocalDive / 聲潛品牌更新" data-en="The VocalDive brand update">VocalDive / 聲潛品牌更新</h2><ul><li data-zh="網站、支援信箱與產品名稱統一為 VocalDive / 聲潛。" data-en="The website, support address, and product name now use VocalDive / 聲潛 consistently.">網站、支援信箱與產品名稱統一為 VocalDive / 聲潛。</li><li data-zh="新的官方聯絡方式是 support@vocaldive.com。" data-en="The official support contact is support@vocaldive.com.">新的官方聯絡方式是 support@vocaldive.com。</li></ul></div></article>
+      <article class="timeline-entry" data-entry-kind="score"><div class="timeline-dot">08</div><div class="timeline-card"><div class="timeline-meta"><span>2026.07.08</span><span class="tag" data-zh="樂譜" data-en="Scores">樂譜</span></div><h2 data-zh="加入多頁 Twinkle 範例" data-en="A multi-page Twinkle sample">加入多頁 Twinkle 範例</h2><ul><li data-zh="提供可列印的公開領域多頁樂譜，讓沒有曲譜的人也能立即試用流程。" data-en="Added a printable public-domain score so anyone can try the workflow right away.">提供可列印的公開領域多頁樂譜，讓沒有曲譜的人也能立即試用流程。</li><li data-zh="原始頁面與可編修樂譜可以一起查看。" data-en="Original pages and the editable score can be viewed together.">原始頁面與可編修樂譜可以一起查看。</li></ul></div></article>
+      <article class="timeline-entry" data-entry-kind="practice"><div class="timeline-dot">06</div><div class="timeline-card"><div class="timeline-meta"><span>2026.07.06</span><span class="tag" data-zh="練習" data-en="Practice">練習</span></div><h2 data-zh="練習回饋更容易讀懂" data-en="Practice feedback is easier to read">練習回饋更容易讀懂</h2><ul><li data-zh="音準、聲部與練習狀態集中在清楚的工作區中。" data-en="Pitch, voice part, and practice status are brought into a clearer workspace.">音準、聲部與練習狀態集中在清楚的工作區中。</li><li data-zh="練習後可以回看需要再唱一次的段落。" data-en="After practice, revisit the passages that deserve another take.">練習後可以回看需要再唱一次的段落。</li></ul></div></article>
+      <article class="timeline-entry" data-entry-kind="support"><div class="timeline-dot">30</div><div class="timeline-card"><div class="timeline-meta"><span>2026.06.30</span><span class="tag" data-zh="支援" data-en="Support">支援</span></div><h2 data-zh="設定與回饋入口整理" data-en="Settings and support, together">設定與回饋入口整理</h2><ul><li data-zh="使用者可以在設定中找到支援與回饋方式。" data-en="Support and feedback are easier to find from Settings.">使用者可以在設定中找到支援與回饋方式。</li><li data-zh="同步功能以清楚的選擇呈現，使用者可以自行決定。" data-en="Sync is presented as a clear choice that stays under the user's control.">同步功能以清楚的選擇呈現，使用者可以自行決定。</li></ul></div></article>
+    </div></section>
+    <section class="section reveal"><div class="quote-band"><div><div class="kicker" data-zh="想知道下一步？" data-en="Ready for the next rehearsal?">想知道下一步？</div><h2 data-zh="回到你的樂譜，唱一小段。" data-en="Return to your score and sing one passage.">回到你的樂譜，唱一小段。</h2><p data-zh="從手冊開始，或直接試用唱歌示範。" data-en="Start with the guide, or jump straight into the singing demo.">從手冊開始，或直接試用唱歌示範。</p></div><div class="actions" style="margin:0"><a class="button primary" href="manual.html" data-zh="閱讀手冊" data-en="Read the guide">閱讀手冊</a><a class="button" href="demo.html#try" data-zh="試用示範" data-en="Try the demo">試用示範</a></div></div></section>
   </main>
-
-  <footer class="footer">
-    VocalDive / 聲潛 · www.vocaldive.com · support@vocaldive.com
-  </footer>
-
-  <script>
-    const entries = [...document.querySelectorAll('.entry')];
-    const observer = new IntersectionObserver((items) => {
-      for (const item of items) {
-        if (item.isIntersecting) item.target.classList.add('in');
-      }
-    }, { threshold: 0.12 });
-    entries.forEach((entry) => observer.observe(entry));
-
-    document.querySelectorAll('.filter').forEach((button) => {
-      button.addEventListener('click', () => {
-        document.querySelectorAll('.filter').forEach((b) => b.classList.remove('active'));
-        button.classList.add('active');
-        const kind = button.dataset.filter;
-        entries.forEach((entry) => {
-          entry.style.display = kind === 'all' || entry.dataset.kind === kind ? 'grid' : 'none';
-        });
-      });
-    });
-  </script>
+  <footer class="site-footer"><span>© 2026 VocalDive 聲潛</span> · <a href="index.html" data-zh="首頁" data-en="Home">首頁</a> · <a href="manual.html" data-zh="使用手冊" data-en="Manual">使用手冊</a> · <a href="mailto:support@vocaldive.com">support@vocaldive.com</a></footer>
+  <script src="i18n.js"></script><script src="site.js"></script>
 </body>
 </html>
