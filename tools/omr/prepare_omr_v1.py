@@ -9,7 +9,6 @@ under the external-SSD prepared dataset.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -17,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from omr_v1_schema import CORE_SYMBOL_KINDS, MODEL_SCHEMA_VERSION, model_kind, schema_payload
+from omr_v1_schema import CORE_SYMBOL_KINDS, MODEL_SCHEMA_VERSION, PRIMARY_SYMBOL_KINDS, model_kind, schema_payload
 
 
 DEFAULT_VERSION = Path("/Volumes/Crucial X6/vocaldive-ml/choral-omr/prepared/cpdl-v1")
@@ -40,16 +39,28 @@ def write_jsonl(path: Path, rows: list[dict[str, object]]) -> None:
     path.write_text("".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8")
 
 
-def stable_score_split(score_id: str) -> str:
-    """Assign a score deterministically without leaking pages across splits."""
+def balanced_score_split_map(rows: list[dict[str, object]]) -> dict[str, str]:
+    """Assign complete scores to balanced splits without score leakage."""
 
-    digest = hashlib.sha256(score_id.encode("utf-8")).digest()
-    bucket = int.from_bytes(digest[:8], "big") % 100
-    if bucket < 70:
-        return "train"
-    if bucket < 85:
-        return "validation"
-    return "test"
+    grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for row in rows:
+        score_id = str(row.get("score_id", ""))
+        if score_id:
+            grouped[score_id].append(row)
+    ordered = sorted(grouped, key=lambda score_id: (-len(grouped[score_id]), score_id))
+    total = sum(len(values) for values in grouped.values())
+    targets = {"train": total * 0.70, "validation": total * 0.15, "test": total * 0.15}
+    assigned = {"train": 0, "validation": 0, "test": 0}
+    mapping: dict[str, str] = {}
+    split_order = ("train", "validation", "test")
+    for index, score_id in enumerate(ordered):
+        if index < len(split_order):
+            split = split_order[index]
+        else:
+            split = min(split_order, key=lambda candidate: (assigned[candidate] / max(1.0, targets[candidate]), assigned[candidate], candidate))
+        mapping[score_id] = split
+        assigned[split] += len(grouped[score_id])
+    return mapping
 
 
 def image_size(path: Path) -> tuple[int, int] | None:
@@ -64,10 +75,11 @@ def audit(version: Path, training_path: Path, symbols_path: Path) -> dict[str, o
     training = load_jsonl(training_path)
     symbols = load_jsonl(symbols_path)
     annotated = [row for row in symbols if row.get("annotation_status") == "annotated"]
+    core_complete = [row for row in annotated if row.get("core_annotation_complete") is True]
     symbol_counts: Counter[str] = Counter()
     model_counts: Counter[str] = Counter()
     unsupported_counts: Counter[str] = Counter()
-    for row in annotated:
+    for row in core_complete:
         for symbol in row.get("symbols", []):
             source_kind = str(symbol.get("kind", "other"))
             symbol_counts[source_kind] += 1
@@ -87,6 +99,7 @@ def audit(version: Path, training_path: Path, symbols_path: Path) -> dict[str, o
         "training_records": len(training),
         "training_scores": len(score_ids),
         "annotated_symbol_records": len(annotated),
+        "core_complete_symbol_records": len(core_complete),
         "pending_symbol_records": sum(row.get("annotation_status") not in {"annotated", "skipped"} for row in symbols),
         "image_missing": image_missing,
         "musicxml_fragment_missing": musicxml_missing,
@@ -94,7 +107,8 @@ def audit(version: Path, training_path: Path, symbols_path: Path) -> dict[str, o
         "source_symbol_counts": dict(symbol_counts),
         "model_symbol_counts": dict(model_counts),
         "unsupported_symbol_counts": dict(unsupported_counts),
-        "note": "Unsupported labels remain metadata and are not v1 supervised targets.",
+        "primary_trainable_classes": list(PRIMARY_SYMBOL_KINDS),
+        "note": "Only core-complete records supervise CPDL v1. Unsupported labels remain metadata.",
     }
     output = version / "reports/omr-v1-audit.json"
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -104,26 +118,24 @@ def audit(version: Path, training_path: Path, symbols_path: Path) -> dict[str, o
 
 def build_splits(version: Path, training_path: Path) -> dict[str, object]:
     rows = load_jsonl(training_path)
-    grouped: dict[str, list[dict[str, object]]] = defaultdict(list)
+    score_splits = balanced_score_split_map(rows)
+    split_rows: dict[str, list[dict[str, object]]] = {"train": [], "validation": [], "test": []}
     for row in rows:
         score_id = str(row.get("score_id", ""))
-        if score_id:
-            grouped[score_id].append(row)
-    split_rows: dict[str, list[dict[str, object]]] = {"train": [], "validation": [], "test": []}
-    for score_id, score_rows in sorted(grouped.items()):
-        split = stable_score_split(score_id)
-        for row in score_rows:
-            derived = dict(row)
-            derived["split"] = split
-            derived["split_schema"] = "score_hash_70_15_15_v1"
-            split_rows[split].append(derived)
+        if score_id not in score_splits:
+            continue
+        split = score_splits[score_id]
+        derived = dict(row)
+        derived["split"] = split
+        derived["split_schema"] = "score_greedy_balanced_70_15_15_v2"
+        split_rows[split].append(derived)
     for split, values in split_rows.items():
         write_jsonl(version / f"splits/omr-v1-{split}.jsonl", values)
     summary = {
         "created_at": now(),
         "schema_version": MODEL_SCHEMA_VERSION,
         "split_by": "score_id",
-        "rule": "sha256(score_id) bucketed 70/15/15",
+        "rule": "deterministic greedy score assignment targeting 70/15/15 systems",
         "scores": {split: len({str(row["score_id"]) for row in values}) for split, values in split_rows.items()},
         "systems": {split: len(values) for split, values in split_rows.items()},
     }
@@ -166,14 +178,18 @@ def relative_symbols(row: dict[str, object]) -> tuple[list[dict[str, object]], i
     return derived, unsupported
 
 
-def build_symbol_manifest(version: Path, symbols_path: Path) -> dict[str, object]:
+def build_symbol_manifest(version: Path, training_path: Path, symbols_path: Path) -> dict[str, object]:
     rows = load_jsonl(symbols_path)
+    score_splits = balanced_score_split_map(load_jsonl(training_path))
     output_rows: list[dict[str, object]] = []
     skipped = Counter()
     unsupported = 0
     for row in rows:
         if row.get("annotation_status") != "annotated":
             skipped[str(row.get("annotation_status", "unknown"))] += 1
+            continue
+        if row.get("core_annotation_complete") is not True:
+            skipped["incomplete_core_annotation"] += 1
             continue
         symbols, unsupported_count = relative_symbols(row)
         unsupported += unsupported_count
@@ -188,10 +204,12 @@ def build_symbol_manifest(version: Path, symbols_path: Path) -> dict[str, object
             "system_bounds": row.get("system_bounds"),
             "measure_start": row.get("measure_start"),
             "measure_end": row.get("measure_end"),
-            "split": stable_score_split(str(row.get("score_id", ""))),
+            "split": score_splits.get(str(row.get("score_id", "")), "unassigned"),
             "review_status": "verified",
             "source_review_note": row.get("source_review_note", ""),
             "annotation_note": row.get("annotation_note", ""),
+            "core_annotation_complete": True,
+            "supervised_model_kinds": list(PRIMARY_SYMBOL_KINDS),
             "symbols": symbols,
             "schema_version": MODEL_SCHEMA_VERSION,
         })
@@ -227,11 +245,10 @@ def main() -> int:
     elif args.command == "build-splits":
         result = build_splits(version, args.training_manifest.expanduser().resolve())
     else:
-        result = build_symbol_manifest(version, args.symbol_manifest.expanduser().resolve())
+        result = build_symbol_manifest(version, args.training_manifest.expanduser().resolve(), args.symbol_manifest.expanduser().resolve())
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

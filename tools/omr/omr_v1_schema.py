@@ -28,6 +28,22 @@ CORE_SYMBOL_KINDS = (
     "repeat_or_direction",
 )
 
+# These classes are the first reliable bridge from printed notation to musical
+# events. The remaining output channels stay stable for future expansion, but
+# are not treated as CPDL fine-tuning targets until they have dense labels.
+PRIMARY_SYMBOL_KINDS = (
+    "notehead",
+    "rest",
+    "barline",
+    "clef",
+    "key_signature",
+    "time_signature",
+    "accidental",
+    "stem",
+    "beam",
+    "dot",
+)
+
 MODEL_SCHEMA_VERSION = "vocaldive-symbols-v1"
 UNSUPPORTED_FALLBACK = "other"
 
@@ -58,6 +74,11 @@ def model_kind(source_kind: str) -> str | None:
         "notehead_empty": "notehead",
         "measure_separator": "barline",
         "key_signature_accidental": "key_signature",
+        "keyflat": "key_signature",
+        "keysharp": "key_signature",
+        "keynatural": "key_signature",
+        "key_double_flat": "key_signature",
+        "key_double_sharp": "key_signature",
         "time": "time_signature",
         "sharp": "accidental",
         "flat": "accidental",
@@ -82,6 +103,8 @@ def model_kind(source_kind: str) -> str | None:
     if kind.startswith("clef"):
         return "clef"
     if kind.startswith("key_sig") or kind.startswith("keysig"):
+        return "key_signature"
+    if kind.startswith("keyflat") or kind.startswith("keysharp") or kind.startswith("keynatural"):
         return "key_signature"
     if kind.startswith("time_sig") or kind.startswith("timesig"):
         return "time_signature"
@@ -115,6 +138,7 @@ def schema_payload() -> dict[str, object]:
     return {
         "schema_version": MODEL_SCHEMA_VERSION,
         "classes": list(CORE_SYMBOL_KINDS),
+        "primary_trainable_classes": list(PRIMARY_SYMBOL_KINDS),
         "unsupported_annotation_fallback": UNSUPPORTED_FALLBACK,
         "input": {
             "color": "grayscale",
