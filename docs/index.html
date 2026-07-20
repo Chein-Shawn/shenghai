@@ -3,106 +3,108 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" data-zh="VocalDive 聲潛：把樂譜、聲部與練習回饋放進同一個合唱訓練工作區。" data-en="VocalDive: one rehearsal workspace for scores, voice parts, and useful singing feedback." content="">
-  <meta name="theme-color" content="#07121b">
+  <meta name="description" data-zh="VocalDive 聲潛：把樂譜、聲部與練習回饋帶進同一個有節奏的合唱工作區。" data-en="VocalDive brings scores, voice parts, and rehearsal feedback into one cinematic choir workspace." content="">
+  <meta name="theme-color" content="#000000">
   <title>VocalDive 聲潛</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="site.css">
+  <link rel="stylesheet" href="landing.css">
 </head>
-<body>
-  <div class="site-progress" aria-hidden="true"><span></span></div>
-  <nav class="site-nav" aria-label="Primary navigation">
-    <a class="brand-lockup" href="index.html" aria-label="VocalDive home">
-      <span class="brand-mark">VD</span>
-      <span><b class="brand-name">VocalDive 聲潛</b><small class="brand-sub" data-zh="為聲樂與合唱練習打造" data-en="Built for singing and choir practice">為聲樂與合唱練習打造</small></span>
-    </a>
-    <button class="nav-menu" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
-    <div class="nav-actions">
-      <div class="nav-links">
-        <a href="#features" data-zh="功能" data-en="Explore">功能</a>
-        <a href="#practice-loop" data-zh="練習流程" data-en="Practice loop">練習流程</a>
-        <a href="#about" data-zh="關於我們" data-en="About">關於我們</a>
-        <a href="manual.html" data-zh="手冊" data-en="Manual">手冊</a>
-        <a href="changelog.html" data-zh="更新" data-en="Updates">更新</a>
-      </div>
-      <div class="language-switch" aria-label="Language">
+<body class="landing-page">
+  <div class="landing-progress" aria-hidden="true"><span></span></div>
+
+  <nav class="landing-nav" aria-label="Primary navigation">
+    <a class="landing-mark liquid-glass" href="index.html" aria-label="VocalDive home">v</a>
+    <div class="landing-nav-center liquid-glass" aria-label="Site links">
+      <a href="#capabilities" data-zh="能力" data-en="Capabilities">能力</a>
+      <a href="demo.html#try" data-zh="體驗" data-en="Experience">體驗</a>
+      <a href="manual.html" data-zh="手冊" data-en="Manual">手冊</a>
+      <a href="changelog.html" data-zh="更新" data-en="Updates">更新</a>
+      <a href="mailto:support@vocaldive.com" data-zh="聯絡" data-en="Contact">聯絡</a>
+      <a class="nav-project" href="demo.html#try"><span data-zh="開始練習" data-en="Start Rehearsing">開始練習</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+    </div>
+    <div class="landing-nav-tools">
+      <div class="landing-language liquid-glass" aria-label="Language">
         <button type="button" data-lang-button="zh-Hant">中</button>
         <button type="button" data-lang-button="en">EN</button>
       </div>
+      <button class="landing-menu liquid-glass" type="button" aria-expanded="false" aria-label="Open navigation"><span></span><span></span></button>
     </div>
   </nav>
-  <div class="site-telemetry" aria-label="VocalDive system status"><span><i class="telemetry-dot"></i> VOCALDIVE / REHEARSAL OS</span><span class="telemetry-status" data-zh="聲部訊號穩定" data-en="VOICE SIGNAL STABLE">聲部訊號穩定</span><span class="telemetry-clock" data-live-clock>--:--:--</span></div>
 
-  <header class="site-header">
-    <div class="hero-grid">
-      <div class="hero-copy reveal">
-        <div class="eyebrow" data-zh="給歌者的合唱練習工作區" data-en="A rehearsal workspace for singers">給歌者的合唱練習工作區</div>
-        <h1><span data-zh="聽見譜。" data-en="Hear the score.">聽見譜。</span> <span data-zh="找到你的聲部。" data-en="Find your voice.">找到你的聲部。</span></h1>
-        <p class="lead" data-zh="從 PDF 或 MusicXML 開始，整理你的樂譜、練習自己的聲部，並用清楚的回饋一次次唱得更穩。" data-en="Start with a PDF or MusicXML score, shape your part, and use clear feedback to sing with more confidence each time.">從 PDF 或 MusicXML 開始，整理你的樂譜、練習自己的聲部，並用清楚的回饋一次次唱得更穩。</p>
-        <div class="actions">
-          <a class="button primary" href="demo.html#try" data-zh="開始體驗唱歌示範" data-en="Try the singing demo">開始體驗唱歌示範</a>
-          <a class="button" href="manual.html" data-zh="閱讀入門手冊" data-en="Read the guide">閱讀入門手冊</a>
-          <button class="button" type="button" data-tone="261.63" data-playing-label="播放中..." data-zh="播放暖身音" data-en="Play a warm-up tone">播放暖身音</button>
+  <main>
+    <section class="landing-section landing-hero" id="top">
+      <div class="landing-video-shell" aria-hidden="true">
+        <video class="fading-video hero-video" data-fading-video src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260619_191346_9d19d66e-86a4-47f7-8dc6-712c1788c3b2.mp4" autoplay muted playsinline preload="auto"></video>
+      </div>
+      <div class="landing-vignette" aria-hidden="true"></div>
+      <div class="landing-noise" aria-hidden="true"></div>
+
+      <div class="hero-content">
+        <div class="hero-status" data-motion data-delay="0.2">
+          <span class="liquid-glass hero-badge"><b data-zh="新" data-en="New">新</b><span data-zh="把排練變成一段可回到的旅程" data-en="Turn rehearsal into a place you can return to">把排練變成一段可回到的旅程</span></span>
+          <span class="hero-signal"><i></i><span data-zh="聲部訊號已連線" data-en="VOICE SIGNAL CONNECTED">聲部訊號已連線</span></span>
         </div>
-        <div class="micro-stats" aria-label="VocalDive at a glance">
-          <div><strong>S / A / T / B</strong><span data-zh="看見每一個聲部" data-en="See every voice part">看見每一個聲部</span></div>
-          <div><strong>PDF → XML</strong><span data-zh="從樂譜到可編修結構" data-en="From score to editable structure">從樂譜到可編修結構</span></div>
-          <div><strong>耳朵 + 眼睛</strong><span data-zh="用回饋校準練習" data-en="Practice with useful feedback">用回饋校準練習</span></div>
+
+        <h1 class="hero-title" data-motion data-delay="0.35" data-blur-text data-zh="讓每一個聲部，找到回到合唱的路。" data-en="Let every voice find its way back into the choir.">讓每一個聲部，找到回到合唱的路。</h1>
+
+        <p class="hero-lead" data-motion data-delay="0.65" data-zh="VocalDive 是為歌者與合唱團打造的排練工作區。把手上的樂譜、你的聲部與一次次演唱，放進同一個更專注的練習循環。" data-en="VocalDive is a rehearsal workspace for singers and choirs. Bring your score, your part, and every attempt into one more focused practice loop.">VocalDive 是為歌者與合唱團打造的排練工作區。把手上的樂譜、你的聲部與一次次演唱，放進同一個更專注的練習循環。</p>
+
+        <div class="hero-actions" data-motion data-delay="0.85">
+          <a class="liquid-glass-strong hero-primary" href="demo.html#try"><span data-zh="開始唱歌示範" data-en="Enter the singing demo">開始唱歌示範</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+          <a class="hero-secondary" href="manual.html"><svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 4 14 8-14 8z"/></svg><span data-zh="看看如何開始" data-en="See how it works">看看如何開始</span></a>
+          <button class="hero-tone" type="button" data-landing-tone="523.25" data-zh="聽參考音" data-en="Hear a reference tone"><span class="tone-ring"></span><span data-zh="聽參考音" data-en="Hear a reference tone">聽參考音</span></button>
+        </div>
+
+        <div class="hero-stats" data-motion data-delay="1.05">
+          <article class="liquid-glass stat-card"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><strong>One score</strong><span data-zh="把原稿、結構與註記放在一起" data-en="Source pages, structure, and notes in one place">把原稿、結構與註記放在一起</span></article>
+          <article class="liquid-glass stat-card"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 2.4 4.5 5.4 4.5 9S15 18.6 12 21M12 3C9 5.4 7.5 8.4 7.5 12S9 18.6 12 21"/></svg><strong>S · A · T · B</strong><span data-zh="聽見自己的線，也聽見整體" data-en="Hear your line and the whole choir">聽見自己的線，也聽見整體</span></article>
         </div>
       </div>
 
-      <div class="hero-stage reveal" aria-label="Interactive choir practice visual">
-        <div class="stage-top"><span data-zh="聲部排練 / 即時視圖" data-en="CHOIR PRACTICE / LIVE VIEW">聲部排練 / 即時視圖</span><span class="stage-live">● <span data-zh="排練中" data-en="REHEARSING">排練中</span></span></div>
-        <div class="stage-hud"><span>LIVE / 04 VOICES</span><span data-live-clock>--:--:--</span></div>
-        <canvas class="stage-canvas" data-choir-canvas aria-label="Animated soprano alto tenor bass practice lines"></canvas>
-        <div class="voice-legend">
-          <button class="voice-chip active" type="button" data-voice="0" data-voice-label-zh="女高音" data-voice-label-en="Soprano" style="--voice-color:#9af3d0"><b>S</b><small data-zh="女高音" data-en="Soprano">女高音</small></button>
-          <button class="voice-chip" type="button" data-voice="1" data-voice-label-zh="女低音" data-voice-label-en="Alto" style="--voice-color:#70d7f3"><b>A</b><small data-zh="女低音" data-en="Alto">女低音</small></button>
-          <button class="voice-chip" type="button" data-voice="2" data-voice-label-zh="男高音" data-voice-label-en="Tenor" style="--voice-color:#ff9b7d"><b>T</b><small data-zh="男高音" data-en="Tenor">男高音</small></button>
-          <button class="voice-chip" type="button" data-voice="3" data-voice-label-zh="男低音" data-voice-label-en="Bass" style="--voice-color:#f3ca75"><b>B</b><small data-zh="男低音" data-en="Bass">男低音</small></button>
-        </div>
-        <div class="stage-metrics"><span>INPUT <b>PDF / XML</b></span><span>PARTS <b>S · A · T · B</b></span><span>MODE <b>REHEARSE</b></span></div>
-        <div class="stage-top"><span data-zh="選擇聲部以聚焦練習" data-en="Select a voice to focus practice">選擇聲部以聚焦練習</span><span data-voice-status data-zh="全部聲部對齊" data-en="All voices aligned">全部聲部對齊</span></div>
+      <div class="hero-trust" data-motion data-delay="1.2">
+        <span class="liquid-glass trust-caption" data-zh="由合唱團排練的真實需要出發" data-en="Built from the real needs of choir rehearsal">由合唱團排練的真實需要出發</span>
+        <div class="trust-voices" aria-label="Voice parts"><span>Soprano</span><span>Alto</span><span>Tenor</span><span>Bass</span></div>
+        <span class="trust-maker" data-zh="Chien, Chien-Hsiang · NTU Chorus" data-en="Chien, Chien-Hsiang · NTU Chorus">Chien, Chien-Hsiang · NTU Chorus</span>
       </div>
-    </div>
-  </header>
-
-  <main class="site-main">
-    <section class="section reveal" id="features">
-      <div class="section-heading">
-        <div><div class="kicker" data-zh="一個工作區，從讀譜到演唱" data-en="One workspace, from score to singing">一個工作區，從讀譜到演唱</div><h2 data-zh="樂譜是起點，不是排練的終點。" data-en="A score is a starting point, not the rehearsal.">樂譜是起點，不是排練的終點。</h2></div>
-        <p data-zh="VocalDive 把看譜、修譜、分部與回饋串起來，讓你把時間留給真正的音樂。" data-en="VocalDive connects reading, editing, part work, and feedback so more of your time goes into the music.">VocalDive 把看譜、修譜、分部與回饋串起來，讓你把時間留給真正的音樂。</p>
-      </div>
-      <div class="feature-grid">
-        <article class="feature"><div class="feature-index">01 / SCORE IN</div><h3 data-zh="匯入樂譜" data-en="Bring in a score">匯入樂譜</h3><p data-zh="使用 PDF、圖片或 MusicXML，讓練習從你手上的版本開始。" data-en="Use a PDF, image, or MusicXML score and start from the version you already have.">使用 PDF、圖片或 MusicXML，讓練習從你手上的版本開始。</p></article>
-        <article class="feature"><div class="feature-index">02 / SHAPE</div><h3 data-zh="編修 MusicXML" data-en="Shape the score">編修 MusicXML</h3><p data-zh="在視覺化樂譜中整理音符、聲部與結構，讓資料真的適合你的排練。" data-en="Edit notes, parts, and structure in a visual score so the data fits your rehearsal.">在視覺化樂譜中整理音符、聲部與結構，讓資料真的適合你的排練。</p></article>
-        <article class="feature"><div class="feature-index">03 / PART WORK</div><h3 data-zh="練習自己的聲部" data-en="Rehearse your part">練習自己的聲部</h3><p data-zh="聚焦 S、A、T 或 B，聽見旋律在合唱裡的位置。" data-en="Focus on S, A, T, or B and hear where your line lives inside the choir.">聚焦 S、A、T 或 B，聽見旋律在合唱裡的位置。</p></article>
-        <article class="feature"><div class="feature-index">04 / PITCH</div><h3 data-zh="看見音準" data-en="See your pitch">看見音準</h3><p data-zh="用視覺回饋觀察演唱與樂譜的關係，知道下一次要怎麼調整。" data-en="Use visual feedback to connect your singing with the score and know what to adjust next.">用視覺回饋觀察演唱與樂譜的關係，知道下一次要怎麼調整。</p></article>
-        <article class="feature"><div class="feature-index">05 / MARK</div><h3 data-zh="保留你的註記" data-en="Keep your notes">保留你的註記</h3><p data-zh="手寫提示、換氣和排練想法仍留在原始頁面旁，不會被排版樂譜取代。" data-en="Keep handwritten cues, breaths, and rehearsal ideas beside the engraved score.">手寫提示、換氣和排練想法仍留在原始頁面旁，不會被排版樂譜取代。</p></article>
-        <article class="feature"><div class="feature-index">06 / RETURN</div><h3 data-zh="回到你的進度" data-en="Return to your progress">回到你的進度</h3><p data-zh="記住上次工作的樂譜與流程，讓每一次練習都接得上。" data-en="Pick up the score and workflow you were using so every rehearsal can continue naturally.">記住上次工作的樂譜與流程，讓每一次練習都接得上。</p></article>
-      </div>
+      <a class="hero-scroll" href="#capabilities" aria-label="Scroll to capabilities"><span></span></a>
     </section>
 
-    <section class="section reveal" id="practice-loop">
-      <div class="section-heading"><div><div class="kicker" data-zh="你的排練循環" data-en="Your rehearsal loop">你的排練循環</div><h2 data-zh="每一步都更接近合在一起。" data-en="Every step brings the choir closer together.">每一步都更接近合在一起。</h2></div><p data-zh="點選左側步驟，看看 VocalDive 如何陪你從一份樂譜走到一次更有把握的演唱。" data-en="Select a step to see how VocalDive takes you from a score to a more confident performance.">點選左側步驟，看看 VocalDive 如何陪你從一份樂譜走到一次更有把握的演唱。</p></div>
-      <div class="practice-loop">
-        <div class="loop-nav">
-          <button class="loop-step active" type="button" data-loop-step data-loop-title-zh="帶入樂譜" data-loop-title-en="Bring in the score" data-loop-body-zh="匯入你正在排練的樂譜，並保留原始頁面作為對照。" data-loop-body-en="Import the score you are rehearsing and keep the original page available for reference."><span class="loop-number">01</span><span><strong data-zh="帶入樂譜" data-en="Bring in the score">帶入樂譜</strong><span data-zh="從你熟悉的版本開始" data-en="Start from your version">從你熟悉的版本開始</span></span></button>
-          <button class="loop-step" type="button" data-loop-step data-loop-title-zh="整理結構" data-loop-title-en="Tune the structure" data-loop-body-zh="在可編修的視覺樂譜中確認聲部、小節與音符。" data-loop-body-en="Check the parts, measures, and notes in an editable visual score."><span class="loop-number">02</span><span><strong data-zh="整理結構" data-en="Tune the structure">整理結構</strong><span data-zh="讓樂譜適合排練" data-en="Make it rehearsal-ready">讓樂譜適合排練</span></span></button>
-          <button class="loop-step" type="button" data-loop-step data-loop-title-zh="練習聲部" data-loop-title-en="Rehearse your part" data-loop-body-zh="選擇聲部、聆聽、演唱，看著旋律線和你一起前進。" data-loop-body-en="Choose your voice part, listen, sing, and watch the line move with you."><span class="loop-number">03</span><span><strong data-zh="練習聲部" data-en="Rehearse your part">練習聲部</strong><span data-zh="聽見自己在合唱裡" data-en="Hear your place in the choir">聽見自己在合唱裡</span></span></button>
-          <button class="loop-step" type="button" data-loop-step data-loop-title-zh="回看進步" data-loop-title-en="Look back" data-loop-body-zh="回看需要再唱一次的片段，帶著清楚的下一步回到排練。" data-loop-body-en="Review the moments that need another pass and return with a clear next step."><span class="loop-number">04</span><span><strong data-zh="回看進步" data-en="Look back">回看進步</strong><span data-zh="下一次知道從哪裡開始" data-en="Know where to begin next">下一次知道從哪裡開始</span></span></button>
-        </div>
-        <div class="loop-display"><div class="kicker">VOCALDIVE / PRACTICE SIGNAL</div><h3 data-loop-title>Bring in the score</h3><p data-loop-body>Import the score you are rehearsing and keep the original page available for reference.</p><div class="signal-bars" data-signal-bars aria-label="Animated practice signal"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    <section class="landing-section landing-capabilities" id="capabilities">
+      <div class="landing-video-shell" aria-hidden="true">
+        <video class="fading-video capability-video" data-fading-video src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260622_093722_ccfc7ebf-182f-419f-8a62-2dc02db7dd9d.mp4" autoplay muted playsinline preload="auto"></video>
       </div>
-    </section>
+      <div class="capability-wash" aria-hidden="true"></div>
+      <div class="capability-content">
+        <header class="capability-header" data-motion>
+          <div class="capability-kicker" data-zh="// VocalDive capabilities" data-en="// VocalDive capabilities">// VocalDive capabilities</div>
+          <h2 data-blur-text data-zh="從一頁樂譜，走到一次更靠近彼此的演唱。" data-en="From one score to a choir that listens closer.">從一頁樂譜，走到一次更靠近彼此的演唱。</h2>
+          <p data-zh="不是取代指揮、老師或團員的耳朵；而是讓每一次回到樂譜時，都知道下一步要聽什麼、唱什麼。" data-en="Not a replacement for conductors, teachers, or each other’s ears. A way to return to the score knowing what to hear and what to sing next.">不是取代指揮、老師或團員的耳朵；而是讓每一次回到樂譜時，都知道下一步要聽什麼、唱什麼。</p>
+        </header>
 
-    <section class="section reveal" id="about">
-      <div class="quote-band"><div><div class="kicker" data-zh="關於 VocalDive" data-en="About VocalDive">關於 VocalDive</div><h2 data-zh="讓科技退到後面，讓歌聲站到前面。" data-en="Let the technology step back so the singing can step forward.">讓科技退到後面，讓歌聲站到前面。</h2><p data-zh="VocalDive 由 Chien, Chien-Hsiang 開發。他是臺大合唱團成員，也是一位喜歡合唱音樂的歌者。" data-en="VocalDive is developed by Chien, Chien-Hsiang, an NTU Chorus member who loves choral music.">VocalDive 由 Chien, Chien-Hsiang 開發。他是臺大合唱團成員，也是一位喜歡合唱音樂的歌者。</p></div><a class="button" href="mailto:support@vocaldive.com" data-zh="聯絡我們" data-en="Contact us">聯絡我們</a></div>
-      <div class="about-grid" style="margin-top:12px"><div class="about-card"><div class="kicker">THE MAKER</div><h3>Chien, Chien-Hsiang</h3><p data-zh="從合唱團排練的真實需要出發，打造一個能看見聲部、聽見進步的練習空間。" data-en="Built from the real needs of choir rehearsal: a practice space where you can see your part and hear your progress.">從合唱團排練的真實需要出發，打造一個能看見聲部、聽見進步的練習空間。</p></div><div class="contact-card"><div class="kicker">STAY IN TUNE</div><div class="contact-list"><div class="contact-item"><small>WEB</small><br><a href="https://www.vocaldive.com/">www.vocaldive.com</a></div><div class="contact-item"><small>SUPPORT</small><br><a href="mailto:support@vocaldive.com">support@vocaldive.com</a></div></div></div></div>
+        <div class="capability-grid">
+          <article class="liquid-glass capability-card" data-motion data-delay="0.12">
+            <div class="capability-top"><span class="liquid-glass icon-tile"><svg class="filled-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5zM6 17h12l-3.7-4.8-2.7 3.4-1.8-2.2zM9 10.3A1.8 1.8 0 1 0 9 6.7a1.8 1.8 0 0 0 0 3.6z"/></svg></span><div class="capability-tags"><span class="liquid-glass">PDF</span><span class="liquid-glass">MusicXML</span><span class="liquid-glass" data-zh="註記" data-en="Notes">註記</span></div></div>
+            <div class="capability-bottom"><h3 data-zh="看見樂譜的下一層。" data-en="See beyond the page.">看見樂譜的下一層。</h3><p data-zh="保留熟悉的原始頁面，同時把可編修的結構帶進排練。你的手寫記號不會被科技抹掉。" data-en="Keep the source page you know while bringing editable structure into rehearsal. Your handwritten thinking stays in the room.">保留熟悉的原始頁面，同時把可編修的結構帶進排練。你的手寫記號不會被科技抹掉。</p></div>
+          </article>
+          <article class="liquid-glass capability-card" data-motion data-delay="0.24">
+            <div class="capability-top"><span class="liquid-glass icon-tile"><svg class="filled-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5h15A1.5 1.5 0 0 1 21 6.5v11a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5zM5 7v2h2V7zm4 0v2h6V7zm8 0v2h2V7zM5 11v2h4v-2zm6 0v2h8v-2zM5 15v2h2v-2zm4 0v2h6v-2zm8 0v2h2v-2z"/></svg></span><div class="capability-tags"><span class="liquid-glass">S / A / T / B</span><span class="liquid-glass" data-zh="聲部" data-en="Parts">聲部</span><span class="liquid-glass" data-zh="節拍" data-en="Pulse">節拍</span></div></div>
+            <div class="capability-bottom"><h3 data-zh="讓你的聲部被聽見。" data-en="Give your line a place.">讓你的聲部被聽見。</h3><p data-zh="聚焦自己的線，理解它如何穿過和聲、呼吸與其他聲部。練習不再只是跟著一串音高跑。" data-en="Focus on your line and understand how it moves through harmony, breath, and the other voices. Practice becomes more than following pitches.">聚焦自己的線，理解它如何穿過和聲、呼吸與其他聲部。練習不再只是跟著一串音高跑。</p></div>
+          </article>
+          <article class="liquid-glass capability-card" data-motion data-delay="0.36">
+            <div class="capability-top"><span class="liquid-glass icon-tile"><svg class="filled-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9.3 21h5.4v-1.6H9.3zM8 17.8h8v-2.1a6.7 6.7 0 1 0-8 0zM12 4.5a4.4 4.4 0 0 1 2.6 7.9l-.8.6v.5h-3.6V13l-.8-.6A4.4 4.4 0 0 1 12 4.5z"/></svg></span><div class="capability-tags"><span class="liquid-glass" data-zh="音準" data-en="Pitch">音準</span><span class="liquid-glass" data-zh="回饋" data-en="Feedback">回饋</span><span class="liquid-glass" data-zh="進度" data-en="Progress">進度</span></div></div>
+            <div class="capability-bottom"><h3 data-zh="把進步變得可感覺。" data-en="Make progress audible.">把進步變得可感覺。</h3><p data-zh="看見音準與旋律的關係，留下值得再唱一次的片段。下一次回來，你會知道該從哪裡開始。" data-en="See the relationship between pitch and melody, then keep the moments worth another pass. Next time, you know exactly where to begin.">看見音準與旋律的關係，留下值得再唱一次的片段。下一次回來，你會知道該從哪裡開始。</p></div>
+          </article>
+        </div>
+
+        <footer class="capability-footer" data-motion data-delay="0.45"><span data-zh="VocalDive 聲潛 · 為歌者與合唱團打造" data-en="VocalDive · Built for singers and choirs">VocalDive 聲潛 · 為歌者與合唱團打造</span><a href="mailto:support@vocaldive.com">support@vocaldive.com <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a></footer>
+      </div>
     </section>
   </main>
 
-  <footer class="site-footer"><span>© 2026 VocalDive 聲潛</span> · <a href="manual.html" data-zh="使用手冊" data-en="Manual">使用手冊</a> · <a href="changelog.html" data-zh="更新日誌" data-en="Changelog">更新日誌</a> · <a href="mailto:support@vocaldive.com">support@vocaldive.com</a></footer>
   <script src="i18n.js"></script>
-  <script src="site.js"></script>
+  <script src="landing.js"></script>
 </body>
 </html>

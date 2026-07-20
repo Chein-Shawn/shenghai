@@ -817,3 +817,9 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Replaced the prior hash split with a deterministic score-level balanced split: 31 train scores / 281 systems, 6 validation scores / 61 systems, and 6 test scores / 61 systems. Jordan remains outside all CPDL splits as the blind SATB holdout.
 - Added non-destructive prediction-preview tooling. DeepScores predictions can appear beside the CPDL reviewer as visual suggestions only; manual boxes remain the sole CPDL ground truth. The reviewer does not write prediction boxes back into any manifest.
 - C4 and localization impact checked: this change is external research tooling and dataset preparation only. It does not change an app screen, app data flow, or user-facing localized copy.
+
+# 2026-07-20: Cinematic VocalDive landing page
+
+- Rebuilt the public homepage as a focused two-scene experience: a VocalDive rehearsal introduction followed by the product capabilities. The layout uses full-screen choir imagery, liquid-glass controls, blur/reveal motion, and a user-triggered reference tone without autoplaying audio.
+- Kept the deployment intentionally lightweight: the GitHub Pages site remains static HTML, CSS, and JavaScript rather than gaining a separate React/Vite build pipeline. The page has equivalent reusable fading-video and word-reveal behavior while staying simple to publish and maintain.
+- Retained the existing bilingual website contract for `zh-Hant` and English, support links, the Chien/NTU Chorus attribution, and the choir-specific product narrative. C4 impact checked: no app container, data flow, or service changed.
