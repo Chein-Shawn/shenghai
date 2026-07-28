@@ -279,6 +279,92 @@ private final class PendingRemoteOMRJobStore {
     }
 }
 
+/// On iOS this uses a background URLSession so an upload can continue while
+/// VocalDive is suspended. The persisted job remains the recovery source when
+/// the system terminates the app before the response is delivered.
+private final class RemoteOMRUploadCoordinator: NSObject, URLSessionDataDelegate, URLSessionTaskDelegate, @unchecked Sendable {
+    static let shared = RemoteOMRUploadCoordinator()
+    static let sessionIdentifier = "com.vocaldive.private-omr-upload"
+
+    private let lock = NSLock()
+    private var responseData: [Int: Data] = [:]
+    private var completions: [Int: (Result<(Data, URLResponse), Error>) -> Void] = [:]
+    private var backgroundCompletionHandler: (() -> Void)?
+
+    private lazy var session: URLSession = {
+        let configuration: URLSessionConfiguration
+        #if os(iOS)
+        configuration = URLSessionConfiguration.background(withIdentifier: Self.sessionIdentifier)
+        configuration.sessionSendsLaunchEvents = true
+        configuration.isDiscretionary = false
+        #else
+        configuration = URLSessionConfiguration.default
+        #endif
+        configuration.waitsForConnectivity = true
+        configuration.timeoutIntervalForRequest = 60
+        configuration.timeoutIntervalForResource = 60 * 60
+        return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+    }()
+
+    func upload(request: URLRequest, bodyFile: URL) async throws -> (Data, URLResponse) {
+        let task = session.uploadTask(with: request, fromFile: bodyFile)
+        return try await withCheckedThrowingContinuation { continuation in
+            lock.lock()
+            completions[task.taskIdentifier] = { result in
+                continuation.resume(with: result)
+            }
+            lock.unlock()
+            task.resume()
+        }
+    }
+
+    func registerBackgroundCompletionHandler(_ handler: @escaping () -> Void) {
+        lock.lock()
+        backgroundCompletionHandler = handler
+        lock.unlock()
+    }
+
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        lock.lock()
+        responseData[dataTask.taskIdentifier, default: Data()].append(data)
+        lock.unlock()
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        lock.lock()
+        let data = responseData.removeValue(forKey: task.taskIdentifier) ?? Data()
+        let completion = completions.removeValue(forKey: task.taskIdentifier)
+        lock.unlock()
+
+        guard let completion else { return }
+        if let error {
+            completion(.failure(error))
+        } else if let response = task.response {
+            completion(.success((data, response)))
+        } else {
+            completion(.failure(RemoteOMRServiceError.invalidResponse))
+        }
+    }
+
+    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
+        lock.lock()
+        let handler = backgroundCompletionHandler
+        backgroundCompletionHandler = nil
+        lock.unlock()
+        handler?()
+    }
+}
+
+enum RemoteOMRBackgroundTransfer {
+    static func handleEvents(identifier: String, completionHandler: @escaping () -> Void) {
+        guard identifier == RemoteOMRUploadCoordinator.sessionIdentifier else {
+            completionHandler()
+            return
+        }
+        RemoteOMRUploadCoordinator.shared.registerBackgroundCompletionHandler(completionHandler)
+    }
+}
+
 @MainActor
 final class RemoteOMRService {
     typealias ProgressHandler = (NativeOMRScanProgress, String) -> Void
@@ -288,6 +374,7 @@ final class RemoteOMRService {
     private let session: URLSession
     private let fileManager: FileManager
     private let pendingJobs: PendingRemoteOMRJobStore
+    private let uploader: RemoteOMRUploadCoordinator
 
     init(
         configurationStore: RemoteOMRConfigurationStore = .shared,
@@ -308,6 +395,7 @@ final class RemoteOMRService {
         }
         self.fileManager = fileManager
         self.pendingJobs = PendingRemoteOMRJobStore(fileManager: fileManager)
+        self.uploader = .shared
     }
 
     func makeSession(from sourceURLs: [URL], progress: ProgressHandler? = nil) async throws -> RemoteOMRCompletedSession {
@@ -353,8 +441,10 @@ final class RemoteOMRService {
         } else {
             progress?(.make(.connectingToServer, fraction: 0.03), "")
             let request = try makeUploadRequest(configuration: configuration, sourceURLs: sourceURLs, clientJobID: job.clientJobID)
+            let bodyFile = try multipartBodyFile(sourceURLs: sourceURLs, clientJobID: job.clientJobID)
+            defer { try? fileManager.removeItem(at: bodyFile) }
             progress?(.make(.uploadingToServer, fraction: 0.15, totalPages: renderedPages.count), "")
-            let (data, response) = try await session.data(for: request)
+            let (data, response) = try await uploader.upload(request: request, bodyFile: bodyFile)
             try validate(response: response, data: data)
             let created = try JSONDecoder().decode(RemoteOMRCreateJobResponse.self, from: data)
             serverJobID = created.jobID
@@ -418,14 +508,22 @@ final class RemoteOMRService {
         sourceURLs: [URL],
         clientJobID: String
     ) throws -> URLRequest {
-        let boundary = "VocalDive-\(UUID().uuidString)"
+        let boundary = "VocalDive-\(clientJobID)"
         var request = URLRequest(url: configuration.endpoint.appending(path: "v1/jobs"))
         request.httpMethod = "POST"
         request.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
         request.setValue(clientJobID, forHTTPHeaderField: "Idempotency-Key")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try multipartBody(sourceURLs: sourceURLs, boundary: boundary)
         return request
+    }
+
+    private func multipartBodyFile(sourceURLs: [URL], clientJobID: String) throws -> URL {
+        let directory = sourceURLs[0].deletingLastPathComponent()
+        let boundary = "VocalDive-\(clientJobID)"
+        let data = try multipartBody(sourceURLs: sourceURLs, boundary: boundary)
+        let file = directory.appending(path: "upload-\(clientJobID).multipart")
+        try data.write(to: file, options: .atomic)
+        return file
     }
 
     private func multipartBody(sourceURLs: [URL], boundary: String) throws -> Data {

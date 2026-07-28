@@ -429,7 +429,9 @@ PDF of at most 30 pages, or a batch of at most 30 images before upload; the
 714 API repeats these checks. The app copies selected sources into its private
 application-support queue before network work begins. A finished result clears
 that local copy; interrupted work is retried on the next app launch using the
-same idempotency key.
+same idempotency key. iPhone and iPad uploads use a background `URLSession`
+with an App Delegate handoff for system-delivered completion events; macOS
+uses the same staged retry contract while the app is active.
 
 714 binds its FastAPI process only to loopback. Tailscale Serve supplies the
 tailnet-only HTTPS endpoint. The service stores the original upload, rendered

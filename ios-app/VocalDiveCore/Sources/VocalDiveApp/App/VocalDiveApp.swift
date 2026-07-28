@@ -1,9 +1,25 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+
+final class VocalDiveAppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        RemoteOMRBackgroundTransfer.handleEvents(identifier: identifier, completionHandler: completionHandler)
+    }
+}
+#endif
 
 @main
 struct VocalDiveApp: App {
     @StateObject private var workspace = VocalDiveWorkspace()
     @StateObject private var appSettings = AppSettingsStore.shared
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(VocalDiveAppDelegate.self) private var appDelegate
+    #endif
 
     var body: some Scene {
         WindowGroup {

@@ -119,7 +119,9 @@ VocalDive PDF or images
 Each beta scan is limited to 50 MiB total and either one PDF of up to 30 pages
 or up to 30 images. The app retains a private local retry copy while the job is
 pending; 714 stores each source and result by date until the host owner removes
-that date folder manually. See [the 714 worker guide](tools/remote_omr_714/README.md).
+that date folder manually. On iPhone and iPad, the upload uses an Apple
+background URLSession; any unfinished result is also recoverable from the
+staged source at the next launch. See [the 714 worker guide](tools/remote_omr_714/README.md).
 
 The Apple-native Core ML research path remains separate and is not yet the
 shipping scanner.
