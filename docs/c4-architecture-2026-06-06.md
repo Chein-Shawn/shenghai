@@ -179,7 +179,7 @@ Pasted or imported MusicXML
 ```text
 PDF/image import
   -> VocalDiveWorkspace + RemoteOMRService
-  -> durable local staged source copy + Tailscale HTTPS
+  -> durable local staged source copy + Cloudflare Tunnel HTTPS
   -> 714 FastAPI + SQLite queue + single oemer GPU worker
   -> page images + page-aware geometry metadata + MusicXML candidate
   -> MusicXMLImporter
@@ -414,7 +414,7 @@ the Apple-native OMR research path:
 VocalDive app
   -> RemoteOMRService
   -> private staged source copy + retry identity
-  -> Tailscale HTTPS
+  -> Cloudflare Tunnel HTTPS at omr.vocaldive.com
   -> 714 FastAPI boundary
   -> SQLite durable queue
   -> one RTX 3090 oemer worker
@@ -433,8 +433,9 @@ same idempotency key. iPhone and iPad uploads use a background `URLSession`
 with an App Delegate handoff for system-delivered completion events; macOS
 uses the same staged retry contract while the app is active.
 
-714 binds its FastAPI process only to loopback. Tailscale Serve supplies the
-tailnet-only HTTPS endpoint. The service stores the original upload, rendered
+714 binds its FastAPI process only to loopback. A Cloudflare Tunnel provides
+the HTTPS endpoint at `omr.vocaldive.com` without exposing a router port or
+requiring beta users to install a VPN client. The service stores the original upload, rendered
 pages, oemer logs, diagnostics, candidate MusicXML, and job metadata under a
 date/job folder. It never automatically deletes those folders; the host owner
 removes completed date folders manually. `Available`, `Quiet`, and `Paused`

@@ -110,7 +110,7 @@ The user-facing beta route is private and server-backed:
 
 ```text
 VocalDive PDF or images
-  -> Tailscale HTTPS
+  -> Cloudflare Tunnel HTTPS
   -> 714 Windows RTX 3090 single-worker oemer service
   -> MusicXML candidate
   -> VocalDive review editor

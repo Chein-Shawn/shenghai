@@ -478,7 +478,7 @@
 "score.scan.progress.waitingForServer" = "Menunggu server";
 "score.scan.progress.downloadingResult" = "Mengunduh MusicXML";
 "settings.private_omr.section" = "Server OMR pribadi";
-"settings.private_omr.description" = "Hubungkan beta ini ke server OMR VocalDive pribadi Anda melalui Tailscale.";
+"settings.private_omr.description" = "Hubungkan beta ini ke server beta OMR VocalDive dengan token akses Anda.";
 "settings.private_omr.server" = "Alamat server";
 "settings.private_omr.token" = "Token akses beta";
 "settings.private_omr.save" = "Simpan server";

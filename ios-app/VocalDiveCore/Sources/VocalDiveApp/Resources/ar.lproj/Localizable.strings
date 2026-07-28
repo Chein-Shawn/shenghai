@@ -471,7 +471,7 @@
 "score.scan.progress.waitingForServer" = "بانتظار الخادم";
 "score.scan.progress.downloadingResult" = "جارٍ تنزيل MusicXML";
 "settings.private_omr.section" = "خادم OMR خاص";
-"settings.private_omr.description" = "اربط هذا الإصدار التجريبي بخادم VocalDive OMR الخاص بك عبر Tailscale.";
+"settings.private_omr.description" = "اربط هذا الإصدار التجريبي بخادم VocalDive OMR التجريبي باستخدام رمز الوصول الخاص بك.";
 "settings.private_omr.server" = "عنوان الخادم";
 "settings.private_omr.token" = "رمز وصول تجريبي";
 "settings.private_omr.save" = "حفظ الخادم";

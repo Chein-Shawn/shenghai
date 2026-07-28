@@ -478,7 +478,7 @@
 "score.scan.progress.waitingForServer" = "กำลังรอเซิร์ฟเวอร์";
 "score.scan.progress.downloadingResult" = "กำลังดาวน์โหลด MusicXML";
 "settings.private_omr.section" = "เซิร์ฟเวอร์ OMR ส่วนตัว";
-"settings.private_omr.description" = "เชื่อมต่อเบต้านี้กับเซิร์ฟเวอร์ VocalDive OMR ส่วนตัวผ่าน Tailscale";
+"settings.private_omr.description" = "เชื่อมต่อเบต้านี้กับเซิร์ฟเวอร์ VocalDive OMR เบต้าด้วยโทเคนการเข้าถึงของคุณ";
 "settings.private_omr.server" = "ที่อยู่เซิร์ฟเวอร์";
 "settings.private_omr.token" = "โทเคนเข้าถึงเบต้า";
 "settings.private_omr.save" = "บันทึกเซิร์ฟเวอร์";

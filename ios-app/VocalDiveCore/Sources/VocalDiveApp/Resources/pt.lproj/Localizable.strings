@@ -478,7 +478,7 @@
 "score.scan.progress.waitingForServer" = "A aguardar servidor";
 "score.scan.progress.downloadingResult" = "A transferir MusicXML";
 "settings.private_omr.section" = "Servidor OMR privado";
-"settings.private_omr.description" = "Ligue esta beta ao seu servidor VocalDive OMR privado através do Tailscale.";
+"settings.private_omr.description" = "Ligue esta beta ao servidor beta VocalDive OMR com o seu token de acesso.";
 "settings.private_omr.server" = "Endereço do servidor";
 "settings.private_omr.token" = "Token de acesso beta";
 "settings.private_omr.save" = "Guardar servidor";

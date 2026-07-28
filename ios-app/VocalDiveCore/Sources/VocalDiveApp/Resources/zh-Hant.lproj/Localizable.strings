@@ -475,7 +475,7 @@
 "score.scan.progress.waitingForServer" = "正在等待伺服器";
 "score.scan.progress.downloadingResult" = "正在下載 MusicXML";
 "settings.private_omr.section" = "私人 OMR 伺服器";
-"settings.private_omr.description" = "透過 Tailscale 將這個 beta 版本連線至你的私人 VocalDive OMR 伺服器。";
+"settings.private_omr.description" = "使用存取權杖，將這個 beta 版本連線至 VocalDive OMR beta 伺服器。";
 "settings.private_omr.server" = "伺服器位址";
 "settings.private_omr.token" = "Beta 存取權杖";
 "settings.private_omr.save" = "儲存伺服器";

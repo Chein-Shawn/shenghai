@@ -826,11 +826,11 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 
 # 2026-07-28: Private 714 GPU OMR beta
 
-- Replaced the public Scan to MusicXML entry's unavailable local-Core-ML dependency with a private beta route: VocalDive -> Tailscale HTTPS -> 714 Windows GPU worker -> oemer -> MusicXML editor/review.
+- Replaced the public Scan to MusicXML entry's unavailable local-Core-ML dependency with a private beta route: VocalDive -> secure HTTPS endpoint -> 714 Windows GPU worker -> oemer -> MusicXML editor/review.
 - Added `tools/remote_omr_714/`: a Windows-native FastAPI service with a SQLite queue, a single oemer worker, 714 GPU-aware `Available` / `Quiet` / `Paused` modes, date/job storage, diagnostic logs, manual-retention dashboard endpoint, installation scripts, and a host smoke-check script.
 - Enforced the same beta input contract on app and server: at most 50 MiB total, either one PDF of at most 30 pages or up to 30 images. Server status includes a queue position while a job waits.
 - Added `RemoteOMRService` and `RemoteOMRConfigurationStore`. The app stores the endpoint in preferences and the beta token in Keychain, stages source files in private app storage before networking, uses an idempotency key, resumes pending work after app relaunch, and opens a completed candidate in the existing source-reference/editor workflow.
 - Added an iPhone/iPad background `URLSession` upload coordinator with the SwiftUI App Delegate handoff. This lets the operating system finish an in-flight upload while the app is suspended; the staged source and idempotency key still provide the fallback when an app process is killed before a result is received.
 - Added all scan/server/queue and settings copy to the 14 shipped app languages. The Score importer now accepts a multi-image batch only for scan flow and keeps direct MusicXML import unchanged.
 - Kept original uploads, oemer checkpoint/runtime assets, server tokens, and all generated recognition artifacts out of Git. The 714 host owner manually removes complete date folders when ready.
-- Verification: `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`, `python3 -m py_compile tools/remote_omr_714/server.py`, localization coverage, and patch whitespace checks passed locally. Actual RTX 3090 recognition and Tailscale reachability still require deployment on 714.
+- Verification: `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`, `python3 -m py_compile tools/remote_omr_714/server.py`, localization coverage, and patch whitespace checks passed locally. Actual RTX 3090 recognition and secure public-endpoint reachability still require deployment on 714.

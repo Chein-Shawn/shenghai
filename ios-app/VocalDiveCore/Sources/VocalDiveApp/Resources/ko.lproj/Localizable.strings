@@ -478,7 +478,7 @@
 "score.scan.progress.waitingForServer" = "서버 대기 중";
 "score.scan.progress.downloadingResult" = "MusicXML 다운로드 중";
 "settings.private_omr.section" = "개인 OMR 서버";
-"settings.private_omr.description" = "Tailscale을 통해 이 베타를 개인 VocalDive OMR 서버에 연결합니다.";
+"settings.private_omr.description" = "액세스 토큰으로 이 베타를 VocalDive OMR 베타 서버에 연결합니다.";
 "settings.private_omr.server" = "서버 주소";
 "settings.private_omr.token" = "베타 액세스 토큰";
 "settings.private_omr.save" = "서버 저장";
