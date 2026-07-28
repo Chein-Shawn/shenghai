@@ -18,10 +18,14 @@ struct NativeOMRPrototypeSessionResult {
 
 enum NativeOMRScanProgressPhase: String {
     case preparing
+    case connectingToServer
+    case uploadingToServer
+    case waitingForServer
     case rasterizingPages
     case runningModel
     case reconstructingScore
     case generatingMusicXML
+    case downloadingResult
     case openingEditor
     case finished
 
@@ -144,6 +148,24 @@ final class NativeOMRPrototypeService {
         )
         progress?(.make(.finished, fraction: 1, completedPages: pageImages.count, totalPages: pageImages.count))
         return result
+    }
+
+    /// Retains the app's existing page renderer for remote OMR so the review editor
+    /// always keeps the original local source beside the returned MusicXML.
+    func renderedPages(from sourceURL: URL) throws -> [NativeOMRRenderedPage] {
+        let inputKind = Self.inputKind(for: sourceURL)
+        let pages = try loadPages(from: sourceURL, inputKind: inputKind)
+        return try pages.map(makeRenderedPage)
+    }
+
+    func pageCount(for sourceURL: URL) -> Int {
+        guard Self.inputKind(for: sourceURL) == .pdf,
+              let provider = CGDataProvider(url: sourceURL as CFURL),
+              let document = CGPDFDocument(provider)
+        else {
+            return 1
+        }
+        return document.numberOfPages
     }
 
     private func loadPages(from sourceURL: URL, inputKind: OMRInputKind) throws -> [PreparedPageImage] {

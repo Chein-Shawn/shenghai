@@ -13,6 +13,10 @@ struct SupportView: View {
     @State private var replyEmail = ""
     @State private var feedbackStatus: FeedbackSubmissionStatus = .idle
     @State private var isSubmitting = false
+    @ObservedObject private var remoteOMR = RemoteOMRConfigurationStore.shared
+    @State private var remoteOMREndpoint = ""
+    @State private var remoteOMRToken = ""
+    @State private var remoteOMRStatus = ""
 
     private let manualURL = URL(string: "https://chein-shawn.github.io/vocaldive/manual.html")
     private let changelogURL = URL(string: "https://chein-shawn.github.io/vocaldive/changelog.html")
@@ -29,6 +33,7 @@ struct SupportView: View {
 
                 languageSettings
                 syncSettings
+                privateOMRSettings
                 usageSection
                 quickLinks
                 contactSection
@@ -36,6 +41,61 @@ struct SupportView: View {
             }
             .padding()
             .frame(maxWidth: 980, alignment: .leading)
+        }
+        .onAppear {
+            remoteOMREndpoint = remoteOMR.endpointString
+        }
+    }
+
+    private var privateOMRSettings: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionTitle(L10n.tr("settings.private_omr.section"))
+
+            Text(L10n.tr("settings.private_omr.description"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            TextField(L10n.tr("settings.private_omr.server"), text: $remoteOMREndpoint)
+                .textFieldStyle(.roundedBorder)
+                .autocorrectionDisabled()
+
+            SecureField(L10n.tr("settings.private_omr.token"), text: $remoteOMRToken)
+                .textFieldStyle(.roundedBorder)
+
+            HStack(spacing: 10) {
+                Button(L10n.tr("settings.private_omr.save")) {
+                    do {
+                        try remoteOMR.save(endpointString: remoteOMREndpoint, token: remoteOMRToken)
+                        remoteOMRToken = ""
+                        remoteOMRStatus = L10n.tr("settings.private_omr.saved")
+                    } catch {
+                        remoteOMRStatus = L10n.tr("settings.private_omr.failed", error.localizedDescription)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+
+                if remoteOMR.isConfigured {
+                    Button(L10n.tr("settings.private_omr.remove"), role: .destructive) {
+                        remoteOMR.clear()
+                        remoteOMREndpoint = ""
+                        remoteOMRToken = ""
+                        remoteOMRStatus = ""
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+
+            if remoteOMRStatus.isEmpty == false {
+                Text(remoteOMRStatus)
+                    .font(.caption)
+                    .foregroundStyle(remoteOMR.isConfigured ? Color.secondary : Color.red)
+            }
+        }
+        .padding(12)
+        .background(.background, in: RoundedRectangle(cornerRadius: 8))
+        .overlay {
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(.quaternary, lineWidth: 1)
         }
     }
 

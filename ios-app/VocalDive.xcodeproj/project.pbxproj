@@ -49,6 +49,7 @@
 		101000000000000000000024 /* NativeOMRPrototypeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000025 /* NativeOMRPrototypeService.swift */; };
 		101000000000000000000025 /* NativeOMRPrototype.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000026 /* NativeOMRPrototype.swift */; };
 		101000000000000000000026 /* ScoreReviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 102000000000000000000027 /* ScoreReviewSession.swift */; };
+		10100000000000000000002C /* RemoteOMRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10200000000000000000003D /* RemoteOMRService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -110,6 +111,7 @@
 		102000000000000000000025 /* NativeOMRPrototypeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOMRPrototypeService.swift; sourceTree = "<group>"; };
 		102000000000000000000026 /* NativeOMRPrototype.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeOMRPrototype.swift; sourceTree = "<group>"; };
 		102000000000000000000027 /* ScoreReviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreReviewSession.swift; sourceTree = "<group>"; };
+		10200000000000000000003D /* RemoteOMRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteOMRService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXVariantGroup section */
@@ -197,6 +199,7 @@
 				102000000000000000000023 /* ImportedAssetStore.swift */,
 				102000000000000000000024 /* PersistenceCoordinator.swift */,
 				102000000000000000000025 /* NativeOMRPrototypeService.swift */,
+				10200000000000000000003D /* RemoteOMRService.swift */,
 				102000000000000000000015 /* LivePitchCaptureService.swift */,
 				102000000000000000000016 /* UsageTrackingStore.swift */,
 			);
@@ -426,6 +429,7 @@
 				101000000000000000000014 /* LivePitchCaptureService.swift in Sources */,
 				101000000000000000000015 /* UsageTrackingStore.swift in Sources */,
 				101000000000000000000016 /* SupportView.swift in Sources */,
+				10100000000000000000002C /* RemoteOMRService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

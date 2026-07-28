@@ -159,12 +159,12 @@ struct ScoreWorkspaceView: View {
         .fileImporter(
             isPresented: $workspace.isImportingScore,
             allowedContentTypes: importableScoreTypes,
-            allowsMultipleSelection: false
+            allowsMultipleSelection: workspace.pendingScoreImportFlow == .scan
         ) { result in
-            guard case .success(let urls) = result, let url = urls.first else {
+            guard case let .success(urls) = result, urls.isEmpty == false else {
                 return
             }
-            workspace.importScoreFile(url: url)
+            workspace.importScoreFiles(urls: urls)
         }
     }
 }

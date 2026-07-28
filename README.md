@@ -4,10 +4,10 @@ VocalDive is an Apple-platform music practice project focused on turning sheet m
 
 ## Current Phase
 
-Phase 1 focuses on OMR research and proof-of-concept playback:
+Phase 1 focuses on editable MusicXML, rehearsal playback, and a private OMR beta:
 
 1. PDF/image score input
-2. OMR baseline using Audiveris
+2. private 714 GPU OMR beta using oemer
 3. MusicXML as the primary interchange format
 4. VocalDive ScoreDocument as the internal project wrapper
 5. MIDI/audio playback prototype
@@ -106,11 +106,23 @@ MusicXML -> ScoreDocument JSON -> MIDI
 
 ## Current OMR Status
 
-Audiveris remains the preferred OMR baseline, but the local source build currently needs either a stable Audiveris release or JDK 25. Until that is installed, VocalDive supports this fallback MVP path:
+The user-facing beta route is private and server-backed:
 
 ```text
-Manual MusicXML import from MuseScore / Audiveris / other OMR tool -> ScoreDocument -> MIDI playback
+VocalDive PDF or images
+  -> Tailscale HTTPS
+  -> 714 Windows RTX 3090 single-worker oemer service
+  -> MusicXML candidate
+  -> VocalDive review editor
 ```
+
+Each beta scan is limited to 50 MiB total and either one PDF of up to 30 pages
+or up to 30 images. The app retains a private local retry copy while the job is
+pending; 714 stores each source and result by date until the host owner removes
+that date folder manually. See [the 714 worker guide](tools/remote_omr_714/README.md).
+
+The Apple-native Core ML research path remains separate and is not yet the
+shipping scanner.
 
 ## Support Site
 
@@ -122,16 +134,16 @@ docs/manual.html
 docs/changelog.html
 ```
 
-They are intended for GitHub Pages, with no custom domain required:
+They are published through GitHub Pages at:
 
 ```text
-https://chein-shawn.github.io/vocaldive/
+https://www.vocaldive.com/
 ```
 
 Current app links point to:
 
-- `https://chein-shawn.github.io/vocaldive/manual.html`
-- `https://chein-shawn.github.io/vocaldive/changelog.html`
+- `https://www.vocaldive.com/manual.html`
+- `https://www.vocaldive.com/changelog.html`
 - in-app feedback submission to a Google Apps Script / Google Sheet backend once configured
 
 ## Planning And Review Docs

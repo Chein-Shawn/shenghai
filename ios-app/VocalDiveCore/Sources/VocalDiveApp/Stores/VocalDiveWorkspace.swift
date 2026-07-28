@@ -59,6 +59,7 @@ final class VocalDiveWorkspace: ObservableObject {
 
     private let importer = MusicXMLImporter()
     private let nativeOMRPrototypeService = NativeOMRPrototypeService()
+    private let remoteOMRService = RemoteOMRService()
     private let playbackService = MIDIPlaybackService()
     private let persistence: PersistenceCoordinator
     private var annotationPersistenceEnabled = true
@@ -135,7 +136,7 @@ final class VocalDiveWorkspace: ObservableObject {
     func runSampleIntactOMR() {
         do {
             let pack = try SampleScoreLibrary.bundledTwinklePack()
-            try runNativeOMRImport(url: pack.intactPDFURL, sourceKind: .sampleIntact)
+            runRemoteOMRImport(urls: [pack.intactPDFURL], sourceKind: .sampleIntact)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -144,7 +145,7 @@ final class VocalDiveWorkspace: ObservableObject {
     func runSampleScannedOMR() {
         do {
             let pack = try SampleScoreLibrary.bundledTwinklePack()
-            try runNativeOMRImport(url: pack.scannedPDFURL, sourceKind: .sampleScanned)
+            runRemoteOMRImport(urls: [pack.scannedPDFURL], sourceKind: .sampleScanned)
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -221,6 +222,18 @@ final class VocalDiveWorkspace: ObservableObject {
     }
 
     func importScoreFile(url: URL) {
+        importScoreFiles(urls: [url])
+    }
+
+    func importScoreFiles(urls: [URL]) {
+        guard let firstURL = urls.first else {
+            return
+        }
+        if urls.count > 1 {
+            runRemoteOMRImport(urls: urls, sourceKind: .scanCandidate)
+            return
+        }
+        let url = firstURL
         let lowercasedExtension = url.pathExtension.lowercased()
 
         if ["xml", "musicxml", "mxl"].contains(lowercasedExtension) {
@@ -229,13 +242,13 @@ final class VocalDiveWorkspace: ObservableObject {
         }
 
         if lowercasedExtension == "pdf" {
-            runNativeOMRImport(url: url)
+            runRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
             return
         }
 
         if let type = UTType(filenameExtension: lowercasedExtension),
            type.conforms(to: .image) {
-            runNativeOMRImport(url: url)
+            runRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
             return
         }
 
@@ -392,6 +405,86 @@ final class VocalDiveWorkspace: ObservableObject {
     }
 
     func runNativeOMRImport(url: URL) {
+        runRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
+    }
+
+    private func runRemoteOMRImport(urls: [URL], sourceKind: MusicXMLEditorSourceKind) {
+        guard urls.isEmpty == false else {
+            return
+        }
+        let sourceName = urls.count == 1 ? urls[0].lastPathComponent : L10n.tr("score.scan.image_batch", urls.count)
+        statusMessage = L10n.tr("score.scan.connecting", sourceName)
+        errorMessage = nil
+        scanProgress = .make(.connectingToServer, fraction: 0.01)
+
+        Task { [weak self] in
+            let accessedURLs = urls.filter { $0.startAccessingSecurityScopedResource() }
+            defer {
+                accessedURLs.forEach { $0.stopAccessingSecurityScopedResource() }
+            }
+            do {
+                guard let self else { return }
+                let session = try await remoteOMRService.makeSession(from: urls) { [weak self] progress, detail in
+                    self?.scanProgress = progress
+                    self?.statusMessage = self?.localizedRemoteScanProgress(
+                        progress,
+                        sourceName: sourceName,
+                        detail: detail
+                    ) ?? ""
+                }
+                try self.finishRemoteOMRImport(session: session, sourceKind: sourceKind)
+            } catch {
+                self?.scanProgress = nil
+                self?.latestNativeOMRSession = nil
+                self?.scannedMusicXMLCandidate = nil
+                self?.errorMessage = L10n.tr("score.scan.remote_failed", error.localizedDescription)
+            }
+        }
+    }
+
+    private func finishRemoteOMRImport(
+        session: RemoteOMRCompletedSession,
+        sourceKind: MusicXMLEditorSourceKind
+    ) throws {
+        let musicXMLData = Data(session.generatedMusicXML.utf8)
+        let importedScore = try importer.importDocument(data: musicXMLData)
+        let scoreItemID = try persistence.persistScoreDocument(
+            score: importedScore,
+            data: musicXMLData,
+            sourceType: .musicXML,
+            preferredFileName: session.sourceName
+        )
+        setScore(importedScore, scoreItemID: scoreItemID)
+        let reviewPages = session.renderedPages.map {
+            ScoreReviewPage(
+                pageIndex: $0.pageIndex,
+                pixelWidth: $0.pixelWidth,
+                pixelHeight: $0.pixelHeight,
+                imageData: $0.imageData,
+                status: .recognized
+            )
+        }
+        refreshReviewArtifacts(
+            sourceName: session.sourceName,
+            inputKind: session.inputKind,
+            pages: reviewPages,
+            provider: .oemer
+        )
+        refreshEditorSession(
+            sourceKind: sourceKind,
+            sourceName: session.sourceName,
+            musicXMLString: session.generatedMusicXML
+        )
+        currentSampleBenchmarkResult = nil
+        scanProgress = .make(.finished, fraction: 1, completedPages: reviewPages.count, totalPages: reviewPages.count)
+        statusMessage = L10n.tr("score.scan.remote_completed", reviewPages.count)
+        errorMessage = nil
+        compactScoreMode = .editor
+        scoreLandingMode = .scan
+        selectedSection = .scoreWorkspace
+    }
+
+    private func runLegacyNativeOMRImport(url: URL) {
         do {
             try runNativeOMRImport(url: url, sourceKind: .scanCandidate)
         } catch {
@@ -505,6 +598,15 @@ final class VocalDiveWorkspace: ObservableObject {
         return L10n.tr("score.scan.progress.simple", percent, phase, sourceName)
     }
 
+    private func localizedRemoteScanProgress(
+        _ progress: NativeOMRScanProgress,
+        sourceName: String,
+        detail: String
+    ) -> String {
+        let base = localizedScanProgress(progress, sourceName: sourceName)
+        return detail.isEmpty ? base : "\(base) - \(detail)"
+    }
+
     func bootstrapIfNeeded() {
         guard !hasBootstrapped else {
             return
@@ -521,6 +623,18 @@ final class VocalDiveWorkspace: ObservableObject {
             setScore(restored.score, scoreItemID: restored.scoreItemID, annotationStrokes: restored.annotationStrokes)
             statusMessage = L10n.tr("score.restore_previous_session")
             errorMessage = nil
+        }
+
+        Task { [weak self] in
+            guard let self else { return }
+            let recovered = await remoteOMRService.resumePending { [weak self] progress, detail in
+                guard let self else { return }
+                self.scanProgress = progress
+                self.statusMessage = self.localizedRemoteScanProgress(progress, sourceName: "", detail: detail)
+            }
+            for result in recovered {
+                try? self.finishRemoteOMRImport(session: result, sourceKind: .scanCandidate)
+            }
         }
     }
 
@@ -758,7 +872,8 @@ final class VocalDiveWorkspace: ObservableObject {
         sourceName: String? = nil,
         inputKind: OMRInputKind? = nil,
         pages: [ScoreReviewPage]? = nil,
-        scoreNotation: NativeOMRScoreNotation? = nil
+        scoreNotation: NativeOMRScoreNotation? = nil,
+        provider: OMRProvider = .nativePrototype
     ) {
         guard let score else {
             scoreReviewSession = nil
@@ -788,7 +903,7 @@ final class VocalDiveWorkspace: ObservableObject {
         scannedMusicXMLCandidate = OMRMusicXMLCandidateBuilder.makeCandidate(
             sourceName: resolvedSourceName,
             inputKind: resolvedInputKind,
-            provider: .nativePrototype,
+            provider: provider,
             score: score
         )
 

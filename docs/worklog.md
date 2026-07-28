@@ -823,3 +823,13 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Rebuilt the public homepage as a focused two-scene experience: a VocalDive rehearsal introduction followed by the product capabilities. The layout uses full-screen choir imagery, liquid-glass controls, blur/reveal motion, and a user-triggered reference tone without autoplaying audio.
 - Kept the deployment intentionally lightweight: the GitHub Pages site remains static HTML, CSS, and JavaScript rather than gaining a separate React/Vite build pipeline. The page has equivalent reusable fading-video and word-reveal behavior while staying simple to publish and maintain.
 - Retained the existing bilingual website contract for `zh-Hant` and English, support links, the Chien/NTU Chorus attribution, and the choir-specific product narrative. C4 impact checked: no app container, data flow, or service changed.
+
+# 2026-07-28: Private 714 GPU OMR beta
+
+- Replaced the public Scan to MusicXML entry's unavailable local-Core-ML dependency with a private beta route: VocalDive -> Tailscale HTTPS -> 714 Windows GPU worker -> oemer -> MusicXML editor/review.
+- Added `tools/remote_omr_714/`: a Windows-native FastAPI service with a SQLite queue, a single oemer worker, 714 GPU-aware `Available` / `Quiet` / `Paused` modes, date/job storage, diagnostic logs, manual-retention dashboard endpoint, installation scripts, and a host smoke-check script.
+- Enforced the same beta input contract on app and server: at most 50 MiB total, either one PDF of at most 30 pages or up to 30 images. Server status includes a queue position while a job waits.
+- Added `RemoteOMRService` and `RemoteOMRConfigurationStore`. The app stores the endpoint in preferences and the beta token in Keychain, stages source files in private app storage before networking, uses an idempotency key, resumes pending work after app relaunch, and opens a completed candidate in the existing source-reference/editor workflow.
+- Added all scan/server/queue and settings copy to the 14 shipped app languages. The Score importer now accepts a multi-image batch only for scan flow and keeps direct MusicXML import unchanged.
+- Kept original uploads, oemer checkpoint/runtime assets, server tokens, and all generated recognition artifacts out of Git. The 714 host owner manually removes complete date folders when ready.
+- Verification: `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`, `python3 -m py_compile tools/remote_omr_714/server.py`, localization coverage, and patch whitespace checks passed locally. Actual RTX 3090 recognition and Tailscale reachability still require deployment on 714.

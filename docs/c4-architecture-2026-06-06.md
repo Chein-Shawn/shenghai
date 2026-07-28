@@ -178,9 +178,10 @@ Pasted or imported MusicXML
 
 ```text
 PDF/image import
-  -> NativeOMRPrototypeService
-  -> page images + page-aware geometry metadata
-  -> prototype MusicXML candidate
+  -> VocalDiveWorkspace + RemoteOMRService
+  -> durable local staged source copy + Tailscale HTTPS
+  -> 714 FastAPI + SQLite queue + single oemer GPU worker
+  -> page images + page-aware geometry metadata + MusicXML candidate
   -> MusicXMLImporter
   -> ScoreDocument
   -> MusicXMLEditorSession
@@ -403,3 +404,41 @@ overfits: training loss reached 2.55, while best held-out test token accuracy
 was only 4.06% and exact sequence accuracy was 0%. The checkpoint is therefore
 research-only. Core ML conversion and app bundling remain blocked until the
 model architecture, dataset size, and held-out quality improve.
+
+### 2026-07-28 update - private 714 GPU OMR beta
+
+The deployable beta path now deliberately separates the product scanner from
+the Apple-native OMR research path:
+
+```text
+VocalDive app
+  -> RemoteOMRService
+  -> private staged source copy + retry identity
+  -> Tailscale HTTPS
+  -> 714 FastAPI boundary
+  -> SQLite durable queue
+  -> one RTX 3090 oemer worker
+  -> per-page diagnostics and candidate MusicXML
+  -> MusicXMLImporter + ScoreReviewSession
+  -> original pages at left / OSMD editor at right
+```
+
+`RemoteOMRConfigurationStore` saves only the private HTTPS endpoint in user
+defaults and the beta token in Keychain. It validates a 50 MiB total job, one
+PDF of at most 30 pages, or a batch of at most 30 images before upload; the
+714 API repeats these checks. The app copies selected sources into its private
+application-support queue before network work begins. A finished result clears
+that local copy; interrupted work is retried on the next app launch using the
+same idempotency key.
+
+714 binds its FastAPI process only to loopback. Tailscale Serve supplies the
+tailnet-only HTTPS endpoint. The service stores the original upload, rendered
+pages, oemer logs, diagnostics, candidate MusicXML, and job metadata under a
+date/job folder. It never automatically deletes those folders; the host owner
+removes completed date folders manually. `Available`, `Quiet`, and `Paused`
+are persisted worker modes. Quiet inspects NVIDIA utilization and VRAM before
+starting the next queued job; one GPU recognition job runs at a time.
+
+This is the only product-visible OMR route for the private beta. The Core ML,
+DeepScores, CPDL, and Swift reconstruction work remains a separate future
+on-device path and is not presented to a beta user as a working scanner.

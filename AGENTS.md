@@ -107,6 +107,7 @@ Before closing a task or PR, confirm:
 - `Backup status checked and reported`
 - `Sample verification run for score-editor / scan changes`
 - `Screenshot or UI copy QA completed where needed`
+- `Remote OMR contract checked for scan changes: 50 MiB total, one PDF up to 30 pages or up to 30 images, retry/recovery, and editor handoff`
 
 ## Public Brand Note
 

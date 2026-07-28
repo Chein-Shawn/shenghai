@@ -38,3 +38,7 @@ oemer-main/oemer/checkpoints/*.h5
 ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OMRModels/*.mlpackage
 ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OMRModels/*.mlmodelc
 ios-app/VocalDiveCore/Sources/VocalDiveApp/Resources/OMRModels/*.onnx
+
+# Private 714 OMR host secrets and local deployment output
+tools/remote_omr_714/.env
+tools/remote_omr_714/*.local.*
