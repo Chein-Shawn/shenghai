@@ -170,6 +170,9 @@ important decisions live. The former free-form log is preserved unchanged in
   regression test confirming that logs never contain the recipient or verification URL.
   C4 and localization impact were reviewed: this is host-only diagnostics with no
   change to the product flow or visible copy.
+- Corrected Resend error `1010` by identifying the worker's direct HTTP request
+  with `User-Agent: VocalDiveOMR/1.0`; command-line tests had hidden that missing
+  header because their clients add one automatically.
 - Replaced the unapproved restrictive email-link limit with a configurable public-beta policy:
   ten accepted requests per email and forty per IP in fifteen minutes. Rate-limit responses now
   report a retry duration, while failed Resend deliveries do not consume a request.

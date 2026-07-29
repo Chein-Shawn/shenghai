@@ -145,6 +145,7 @@ class EmailLinkDeliveryDiagnosticsTests(unittest.TestCase):
     def test_resend_rejection_logs_sanitized_provider_reason(self) -> None:
         previous_key = server.RESEND_API_KEY
         server.RESEND_API_KEY = "test-key"
+        captured_request = []
         rejection = server.urllib.error.HTTPError(
             url="https://api.resend.com/emails",
             code=403,
@@ -153,7 +154,11 @@ class EmailLinkDeliveryDiagnosticsTests(unittest.TestCase):
             fp=io.BytesIO(b'{"message":"Sender domain is not authorized"}'),
         )
         try:
-            with patch("server.urllib.request.urlopen", side_effect=rejection):
+            def reject(request, **_kwargs):
+                captured_request.append(request)
+                raise rejection
+
+            with patch("server.urllib.request.urlopen", side_effect=reject):
                 with self.assertLogs(server.LOGGER, level="WARNING") as captured:
                     with self.assertRaises(HTTPException) as raised:
                         server.send_verification_email(
@@ -164,6 +169,7 @@ class EmailLinkDeliveryDiagnosticsTests(unittest.TestCase):
             server.RESEND_API_KEY = previous_key
 
         self.assertEqual(raised.exception.status_code, 503)
+        self.assertEqual(captured_request[0].get_header("User-agent"), "VocalDiveOMR/1.0")
         joined_logs = "\n".join(captured.output)
         self.assertIn("Sender domain is not authorized", joined_logs)
         self.assertNotIn("singer@example.com", joined_logs)

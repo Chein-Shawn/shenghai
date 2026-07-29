@@ -151,6 +151,8 @@ It includes the provider's sanitized rejection reason and the configured sender,
 recipient address, verification URL, or API key. A `403` normally means that the Resend API key is
 not authorized to send as `access@auth.vocaldive.com`, or that the sender domain is not yet verified
 for that key. Correct the Resend key/domain configuration in `.env`, then restart the worker.
+The direct Python request must also send `User-Agent: VocalDiveOMR/1.0`; Resend rejects a missing
+header with error code `1010`, even when the API key and domain are correct.
 
 The worker stores filenames, logs, diagnostics, and results locally. Never put the data root,
 the generated `.env`, or `tokens.json` in Git.
