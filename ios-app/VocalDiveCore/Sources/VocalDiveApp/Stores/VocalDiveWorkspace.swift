@@ -51,6 +51,7 @@ final class VocalDiveWorkspace: ObservableObject {
     @Published var currentSampleBenchmarkResult: SampleBenchmarkResult?
     @Published private(set) var remoteOMRCorrectionContext: RemoteOMRCorrectionContext?
     @Published private(set) var isCompletingRemoteOMRCorrection = false
+    @Published private(set) var remoteOMRConnectionRequired = false
     @Published var annotationStrokes: [ScoreAnnotationStrokePayload] = [] {
         didSet {
             guard annotationPersistenceEnabled, let currentScoreItemID else {
@@ -470,6 +471,14 @@ final class VocalDiveWorkspace: ObservableObject {
         guard urls.isEmpty == false else {
             return
         }
+        guard RemoteOMRConfigurationStore.shared.isConfigured else {
+            scanProgress = nil
+            statusMessage = ""
+            errorMessage = L10n.tr("score.scan.remote_connection_required")
+            remoteOMRConnectionRequired = true
+            return
+        }
+        remoteOMRConnectionRequired = false
         let sourceName = urls.count == 1 ? urls[0].lastPathComponent : L10n.tr("score.scan.image_batch", urls.count)
         statusMessage = L10n.tr("score.scan.remote_connecting", sourceName)
         errorMessage = nil
@@ -497,9 +506,17 @@ final class VocalDiveWorkspace: ObservableObject {
                 self?.scanProgress = nil
                 self?.latestNativeOMRSession = nil
                 self?.scannedMusicXMLCandidate = nil
+                self?.remoteOMRConnectionRequired = false
                 self?.errorMessage = L10n.tr("score.scan.remote_failed_vocaldive", error.localizedDescription)
             }
         }
+    }
+
+    func openRemoteOMRSettings() {
+        selectedSection = .settings
+        remoteOMRConnectionRequired = false
+        errorMessage = nil
+        statusMessage = ""
     }
 
     private func finishRemoteOMRImport(

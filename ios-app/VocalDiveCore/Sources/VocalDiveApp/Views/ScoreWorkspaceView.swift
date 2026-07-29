@@ -51,7 +51,9 @@ struct ScoreWorkspaceView: View {
                 ScoreStatusStack(
                     statusMessage: workspace.statusMessage,
                     errorMessage: workspace.errorMessage,
-                    scanProgress: workspace.scanProgress
+                    scanProgress: workspace.scanProgress,
+                    showRemoteOMRSettingsAction: workspace.remoteOMRConnectionRequired,
+                    openRemoteOMRSettings: workspace.openRemoteOMRSettings
                 )
                     .padding(.horizontal, 12)
                     .padding(.top, 12)
@@ -296,6 +298,8 @@ private struct ScoreStatusStack: View {
     var statusMessage: String
     var errorMessage: String?
     var scanProgress: NativeOMRScanProgress?
+    var showRemoteOMRSettingsAction: Bool
+    var openRemoteOMRSettings: () -> Void
 
     var body: some View {
         VStack(spacing: 8) {
@@ -306,6 +310,10 @@ private struct ScoreStatusStack: View {
             }
             if let errorMessage {
                 StatusBanner(text: errorMessage, tint: .orange, systemImage: "exclamationmark.triangle.fill")
+            }
+            if showRemoteOMRSettingsAction {
+                Button(L10n.tr("score.scan.remote_connection_action"), action: openRemoteOMRSettings)
+                    .buttonStyle(.borderedProminent)
             }
         }
     }

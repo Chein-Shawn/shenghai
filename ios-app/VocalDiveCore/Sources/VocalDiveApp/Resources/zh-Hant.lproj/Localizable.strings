@@ -498,6 +498,8 @@
 "settings.vocaldive_omr.rate_limited" = "驗證連結要求過於頻繁，請在 %@ 後再試。";
 "score.scan.remote_connecting" = "正在將 %@ 連線至 VocalDive 樂譜辨識。";
 "score.scan.remote_failed_vocaldive" = "VocalDive 樂譜辨識掃描失敗：%@";
+"score.scan.remote_connection_required" = "請先在「設定」中連線至 VocalDive 樂譜辨識，再開始掃描。";
+"score.scan.remote_connection_action" = "開啟設定";
 "score.scan.upload_disclosure.title" = "要上傳樂譜至 VocalDive 樂譜辨識嗎？";
 "score.scan.upload_disclosure.message" = "選取的樂譜會上傳到 VocalDive 雲端伺服器，並保留在日期資料夾中，直到手動刪除。";
 "score.scan.upload_disclosure.confirm" = "上傳並掃描";

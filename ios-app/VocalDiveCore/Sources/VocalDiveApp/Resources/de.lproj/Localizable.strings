@@ -501,6 +501,8 @@
 "settings.vocaldive_omr.rate_limited" = "Zu viele Anfragen nach einem Bestätigungslink. Versuche es in %@ erneut.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.remote_connection_required" = "Verbinde VocalDive OMR vor dem Scannen in den Einstellungen.";
+"score.scan.remote_connection_action" = "Einstellungen öffnen";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
 "score.scan.upload_disclosure.message" = "Ausgewählte Partituren werden auf den Cloud-Server von VocalDive hochgeladen und in datierten Ordnern gespeichert, bis sie manuell gelöscht werden.";
 "score.scan.upload_disclosure.confirm" = "Upload and scan";

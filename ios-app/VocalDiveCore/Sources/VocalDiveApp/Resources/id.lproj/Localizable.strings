@@ -501,6 +501,8 @@
 "settings.vocaldive_omr.rate_limited" = "Terlalu banyak permintaan tautan verifikasi. Coba lagi dalam %@.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.remote_connection_required" = "Hubungkan VocalDive OMR di Pengaturan sebelum memindai.";
+"score.scan.remote_connection_action" = "Buka Pengaturan";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
 "score.scan.upload_disclosure.message" = "Partitur yang dipilih diunggah ke server cloud VocalDive dan disimpan dalam folder bertanggal hingga dihapus secara manual.";
 "score.scan.upload_disclosure.confirm" = "Upload and scan";

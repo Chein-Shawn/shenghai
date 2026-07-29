@@ -501,6 +501,8 @@
 "settings.vocaldive_omr.rate_limited" = "Too many verification-link requests. Try again in %@.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.remote_connection_required" = "Connect VocalDive OMR in Settings before scanning.";
+"score.scan.remote_connection_action" = "Open Settings";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
 "score.scan.upload_disclosure.message" = "Selected scores are uploaded to VocalDive's cloud server and retained in dated folders until manually deleted.";
 "score.scan.upload_disclosure.confirm" = "Upload and scan";

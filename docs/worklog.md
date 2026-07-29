@@ -173,6 +173,9 @@ important decisions live. The former free-form log is preserved unchanged in
 - Corrected Resend error `1010` by identifying the worker's direct HTTP request
   with `User-Agent: VocalDiveOMR/1.0`; command-line tests had hidden that missing
   header because their clients add one automatically.
+- Separated a local disconnected-device state from an OMR scan failure. The scan
+  screen now blocks before upload and opens Settings to connect, with localized
+  guidance in every shipped language.
 - Replaced the unapproved restrictive email-link limit with a configurable public-beta policy:
   ten accepted requests per email and forty per IP in fifteen minutes. Rate-limit responses now
   report a retry duration, while failed Resend deliveries do not consume a request.

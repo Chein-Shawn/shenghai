@@ -435,6 +435,10 @@ same idempotency key. iPhone and iPad uploads use a background `URLSession`
 with an App Delegate handoff for system-delivered completion events; macOS
 uses the same staged retry contract while the app is active.
 
+Before staging or uploading a scan, the app checks for the Keychain-held device
+credential. A disconnected installation stays local, explains that connection is
+required, and navigates to Settings instead of presenting this as a failed OMR job.
+
 714 binds its FastAPI process only to loopback. A Cloudflare Tunnel provides
 the HTTPS endpoint at `omr.vocaldive.com` without exposing a router port or
 requiring beta users to install a VPN client. The service stores the original upload, rendered
