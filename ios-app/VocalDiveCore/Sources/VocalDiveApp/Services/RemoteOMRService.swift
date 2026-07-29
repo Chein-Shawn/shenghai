@@ -123,6 +123,7 @@ enum RemoteOMRServiceError: LocalizedError {
     case server(String)
     case missingResult
     case emailConnectionExpired
+    case emailLinkRateLimited(Int)
 
     var errorDescription: String? {
         switch self {
@@ -146,6 +147,8 @@ enum RemoteOMRServiceError: LocalizedError {
             return "VocalDive OMR no longer has this result. Scan the source again."
         case .emailConnectionExpired:
             return "This email connection link expired. Request a new link and try again."
+        case .emailLinkRateLimited:
+            return "Too many verification-link requests."
         }
     }
 }
@@ -311,6 +314,14 @@ final class RemoteOMRConfigurationStore: ObservableObject {
         }
         guard (200...299).contains(http.statusCode) else {
             let detail = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            if http.statusCode == 429,
+               let rateLimit = detail?["detail"] as? [String: Any],
+               rateLimit["code"] as? String == "email_link_rate_limited" {
+                let retryAfter = (rateLimit["retry_after_seconds"] as? Int)
+                    ?? Int(http.value(forHTTPHeaderField: "Retry-After") ?? "")
+                    ?? 0
+                throw RemoteOMRServiceError.emailLinkRateLimited(max(retryAfter, 1))
+            }
             throw RemoteOMRServiceError.server(detail?["detail"] as? String ?? "VocalDive OMR could not complete that request.")
         }
     }

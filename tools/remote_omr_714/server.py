@@ -44,6 +44,13 @@ def _path_env(name: str, fallback: str) -> Path:
     return Path(os.environ.get(name, fallback)).expanduser()
 
 
+def _positive_int_env(name: str, fallback: int) -> int:
+    try:
+        return max(1, int(os.environ.get(name, fallback)))
+    except ValueError:
+        return fallback
+
+
 DATA_ROOT = _path_env("VOCALDIVE_OMR_DATA_ROOT", r"D:\VocalDiveOMR\data")
 STATE_ROOT = _path_env("VOCALDIVE_OMR_STATE_ROOT", r"D:\VocalDiveOMR\state")
 TOKENS_FILE = _path_env("VOCALDIVE_OMR_TOKENS_FILE", str(STATE_ROOT / "tokens.json"))
@@ -56,12 +63,13 @@ RESEND_API_KEY = os.environ.get("VOCALDIVE_OMR_RESEND_API_KEY", "")
 AUTH_FROM = os.environ.get("VOCALDIVE_OMR_AUTH_FROM", "VocalDive <access@auth.vocaldive.com>")
 AUTH_REPLY_TO = os.environ.get("VOCALDIVE_OMR_AUTH_REPLY_TO", "support@vocaldive.com")
 AUTH_LINK_TTL_MINUTES = 15
-EMAIL_REQUEST_WINDOW_SECONDS = 15 * 60
-EMAIL_REQUEST_LIMIT = 3
-IP_REQUEST_LIMIT = 10
+EMAIL_REQUEST_WINDOW_SECONDS = _positive_int_env("VOCALDIVE_OMR_EMAIL_REQUEST_WINDOW_SECONDS", 15 * 60)
+EMAIL_REQUEST_LIMIT = _positive_int_env("VOCALDIVE_OMR_EMAIL_REQUEST_LIMIT", 10)
+IP_REQUEST_LIMIT = _positive_int_env("VOCALDIVE_OMR_IP_REQUEST_LIMIT", 40)
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 LOGGER = logging.getLogger("vocaldive.omr")
 RESEND_TLS_CONTEXT = ssl.create_default_context(cafile=certifi.where())
+AUTH_DELIVERY_LOCK = threading.Lock()
 
 
 class CreateJobResponse(BaseModel):
@@ -109,6 +117,15 @@ class AuthPollResponse(BaseModel):
     state: Literal["pending", "connected", "expired"]
     email: str | None = None
     device_token: str | None = None
+
+
+@dataclass(frozen=True)
+class RateLimitDecision:
+    retry_after_seconds: int | None = None
+
+    @property
+    def is_limited(self) -> bool:
+        return self.retry_after_seconds is not None
 
 
 @dataclass(frozen=True)
@@ -305,6 +322,10 @@ class JobStore:
                 (login_id, email_hash, email_address, device_label, magic_hash, poll_hash, utc_now(), expires_at),
             )
 
+    def delete_auth_session(self, login_id: str) -> None:
+        with self._connect() as connection:
+            connection.execute("DELETE FROM auth_sessions WHERE login_id = ?", (login_id,))
+
     def auth_session_for_magic(self, magic_hash: str) -> sqlite3.Row | None:
         with self._connect() as connection:
             return connection.execute(
@@ -360,22 +381,27 @@ class JobStore:
                 connection.execute("UPDATE devices SET last_used_at = ? WHERE device_id = ?", (utc_now(), row["device_id"]))
             return row
 
-    def is_rate_limited(self, bucket: str, subject: str, limit: int) -> bool:
+    def rate_limit_decision(self, bucket: str, subject: str, limit: int) -> RateLimitDecision:
         now = int(time.time())
         earliest = now - EMAIL_REQUEST_WINDOW_SECONDS
         with self._connect() as connection:
-            connection.execute("DELETE FROM auth_rate_limit_hits WHERE created_at < ?", (earliest,))
-            count = connection.execute(
-                "SELECT COUNT(*) FROM auth_rate_limit_hits WHERE bucket = ? AND subject = ? AND created_at >= ?",
+            connection.execute("DELETE FROM auth_rate_limit_hits WHERE created_at <= ?", (earliest,))
+            hits = connection.execute(
+                "SELECT created_at FROM auth_rate_limit_hits WHERE bucket = ? AND subject = ? AND created_at > ? ORDER BY created_at",
                 (bucket, subject, earliest),
-            ).fetchone()[0]
-            if count >= limit:
-                return True
+            ).fetchall()
+            if len(hits) >= limit:
+                retry_after = max(1, int(hits[0]["created_at"]) + EMAIL_REQUEST_WINDOW_SECONDS - now)
+                return RateLimitDecision(retry_after)
+
+        return RateLimitDecision()
+
+    def record_rate_limit_hit(self, bucket: str, subject: str) -> None:
+        with self._connect() as connection:
             connection.execute(
                 "INSERT INTO auth_rate_limit_hits(bucket, subject, created_at) VALUES (?, ?, ?)",
-                (bucket, subject, now),
+                (bucket, subject, int(time.time())),
             )
-        return False
 
     def cancel(self, job_id: str) -> bool:
         with self._connect() as connection:
@@ -741,25 +767,39 @@ def request_auth_link(payload: AuthLinkRequest, request: Request) -> AuthLinkRes
     email = normalize_email(payload.email)
     email_hash = hash_secret(email)
     client_ip = request.client.host if request.client else "unknown"
-    rate_limited = (
-        store.is_rate_limited("email", email_hash, EMAIL_REQUEST_LIMIT)
-        or store.is_rate_limited("ip", client_ip, IP_REQUEST_LIMIT)
-    )
-    login_id = uuid.uuid4().hex
-    poll_secret = secrets.token_urlsafe(32)
-    magic_secret = secrets.token_urlsafe(32)
-    expires_at = utc_after(AUTH_LINK_TTL_MINUTES)
-    store.create_auth_session(
-        login_id=login_id,
-        email_hash=email_hash,
-        email_address=email,
-        device_label=payload.device_label.strip() or "VocalDive device",
-        magic_hash=hash_secret(magic_secret),
-        poll_hash=hash_secret(poll_secret),
-        expires_at=expires_at,
-    )
-    if not rate_limited:
-        send_verification_email(email, f"{PUBLIC_BASE_URL}/v1/auth/verify?token={magic_secret}")
+    with AUTH_DELIVERY_LOCK:
+        decisions = (
+            store.rate_limit_decision("email", email_hash, EMAIL_REQUEST_LIMIT),
+            store.rate_limit_decision("ip", client_ip, IP_REQUEST_LIMIT),
+        )
+        retry_after = max((decision.retry_after_seconds or 0 for decision in decisions), default=0)
+        if retry_after:
+            raise HTTPException(
+                status_code=429,
+                detail={"code": "email_link_rate_limited", "retry_after_seconds": retry_after},
+                headers={"Retry-After": str(retry_after)},
+            )
+
+        login_id = uuid.uuid4().hex
+        poll_secret = secrets.token_urlsafe(32)
+        magic_secret = secrets.token_urlsafe(32)
+        expires_at = utc_after(AUTH_LINK_TTL_MINUTES)
+        store.create_auth_session(
+            login_id=login_id,
+            email_hash=email_hash,
+            email_address=email,
+            device_label=payload.device_label.strip() or "VocalDive device",
+            magic_hash=hash_secret(magic_secret),
+            poll_hash=hash_secret(poll_secret),
+            expires_at=expires_at,
+        )
+        try:
+            send_verification_email(email, f"{PUBLIC_BASE_URL}/v1/auth/verify?token={magic_secret}")
+        except HTTPException:
+            store.delete_auth_session(login_id)
+            raise
+        store.record_rate_limit_hit("email", email_hash)
+        store.record_rate_limit_hit("ip", client_ip)
     return AuthLinkResponse(login_id=login_id, poll_secret=poll_secret, expires_at=expires_at)
 
 

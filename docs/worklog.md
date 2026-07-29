@@ -166,5 +166,8 @@ important decisions live. The former free-form log is preserved unchanged in
 - Hardened the 714 worker's Resend HTTPS transport with an explicit `certifi`
   CA bundle and safe status-only failure logging after Windows PowerShell proved
   the Resend account and sender path were healthy.
-- C4 and localization impact checked: the 714 reliability adjustment changes
-  only outbound worker transport and no user-visible copy.
+- Replaced the unapproved restrictive email-link limit with a configurable public-beta policy:
+  ten accepted requests per email and forty per IP in fifteen minutes. Rate-limit responses now
+  report a retry duration, while failed Resend deliveries do not consume a request.
+- C4 and localization impact checked: app settings now localize the retry duration in every
+  shipped language.

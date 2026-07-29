@@ -498,6 +498,7 @@
 "settings.vocaldive_omr.save_server" = "サーバーアドレスを保存";
 "settings.vocaldive_omr.updated" = "サーバーアドレスを更新しました。再接続してください。";
 "settings.vocaldive_omr.failed" = "VocalDive 楽譜認識に接続できません: %@";
+"settings.vocaldive_omr.rate_limited" = "確認リンクのリクエストが多すぎます。%@ 後にもう一度お試しください。";
 "score.scan.remote_connecting" = "%@ を VocalDive 楽譜認識に接続しています。";
 "score.scan.remote_failed_vocaldive" = "VocalDive 楽譜認識のスキャンに失敗しました: %@";
 "score.scan.upload_disclosure.title" = "楽譜を VocalDive 楽譜認識にアップロードしますか？";

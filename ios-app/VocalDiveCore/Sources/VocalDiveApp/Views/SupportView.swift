@@ -130,10 +130,18 @@ struct SupportView: View {
                 try await remoteOMR.waitForEmailConnection(session)
                 remoteOMRStatus = L10n.tr("settings.vocaldive_omr.connected", email)
             } catch {
-                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+                remoteOMRStatus = remoteOMRErrorMessage(error)
             }
             isConnectingRemoteOMR = false
         }
+    }
+
+    private func remoteOMRErrorMessage(_ error: Error) -> String {
+        guard case let .emailLinkRateLimited(seconds) = error as? RemoteOMRServiceError else {
+            return L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+        }
+        let duration = String(format: "%02d:%02d", seconds / 60, seconds % 60)
+        return L10n.tr("settings.vocaldive_omr.rate_limited", duration)
     }
 
     private var quickLinks: some View {

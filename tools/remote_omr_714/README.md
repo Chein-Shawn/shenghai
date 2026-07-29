@@ -55,6 +55,11 @@ host owner manually removes completed date folders.
 The App pre-fills `https://omr.vocaldive.com`. A user enters an email address and opens the
 one-time link sent as `VocalDive <access@auth.vocaldive.com>` with reply-to
 `support@vocaldive.com`. The link expires after fifteen minutes and can only be used once.
+The public beta permits ten accepted requests per email and forty per IP address in each
+fifteen-minute window. Set `VOCALDIVE_OMR_EMAIL_REQUEST_WINDOW_SECONDS`,
+`VOCALDIVE_OMR_EMAIL_REQUEST_LIMIT`, and `VOCALDIVE_OMR_IP_REQUEST_LIMIT` in `.env` to
+adjust that policy. A limit response is HTTP `429` with `Retry-After`; a Resend delivery failure
+is HTTP `503` and does not consume a request.
 The server keeps one account per email hash and creates a different revocable device credential
 for each app connection. Device credentials and account ownership limit each account to one queued
 or running job and prevent another account from reading its job or MusicXML result.

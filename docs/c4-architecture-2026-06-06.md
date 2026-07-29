@@ -463,6 +463,11 @@ VocalDive App email entry
 `tokens.json` remains strictly operator-only for worker mode and storage dashboard
 endpoints. It is not entered into VocalDive and cannot access ordinary user jobs.
 
+Email-link delivery limits are configurable in the 714 `.env`. The public beta defaults to
+ten accepted link requests per email and forty per source IP in a fifteen-minute window.
+The service returns HTTP `429` with a retry duration before creating a login session; a Resend
+failure removes the pending session and does not consume either allowance.
+
 This is the only product-visible OMR route for the private beta. The Core ML,
 DeepScores, CPDL, and Swift reconstruction work remains a separate future
 on-device path and is not presented to a beta user as a working scanner.

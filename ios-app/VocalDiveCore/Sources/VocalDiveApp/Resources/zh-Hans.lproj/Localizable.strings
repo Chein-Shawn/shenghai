@@ -497,6 +497,7 @@
 "settings.vocaldive_omr.save_server" = "保存服务器地址";
 "settings.vocaldive_omr.updated" = "服务器地址已更新，请重新连接。";
 "settings.vocaldive_omr.failed" = "无法连接 VocalDive 乐谱识别：%@";
+"settings.vocaldive_omr.rate_limited" = "验证链接请求过于频繁，请在 %@ 后重试。";
 "score.scan.remote_connecting" = "正在将 %@ 连接到 VocalDive 乐谱识别。";
 "score.scan.remote_failed_vocaldive" = "VocalDive 乐谱识别扫描失败：%@";
 "score.scan.upload_disclosure.title" = "上传乐谱到 VocalDive 乐谱识别？";

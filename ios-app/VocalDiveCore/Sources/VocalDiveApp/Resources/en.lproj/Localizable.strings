@@ -498,6 +498,7 @@
 "settings.vocaldive_omr.save_server" = "Save server address";
 "settings.vocaldive_omr.updated" = "Server address updated. Connect again to continue.";
 "settings.vocaldive_omr.failed" = "Could not connect VocalDive OMR: %@";
+"settings.vocaldive_omr.rate_limited" = "Too many verification-link requests. Try again in %@.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
