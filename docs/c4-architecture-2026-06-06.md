@@ -471,3 +471,46 @@ failure removes the pending session and does not consume either allowance.
 This is the only product-visible OMR route for the private beta. The Core ML,
 DeepScores, CPDL, and Swift reconstruction work remains a separate future
 on-device path and is not presented to a beta user as a working scanner.
+
+### 2026-07-29 update - 714 CRM, consent, and correction stewardship
+
+The beta server now separates durable OMR work from personal account data:
+
+```text
+Apple app installation UUID in Keychain
+  -> email link and accepted data-notice version
+  -> 714 crm.sqlite3 under D:\VocalDiveOMR\state
+  -> account + installation-scoped hashed device credential
+  -> account-owned OMR job in jobs.sqlite3
+  -> dated source/result folder under D:\VocalDiveOMR\data
+  -> optional completed-correction training record
+```
+
+`crm.sqlite3` contains account email, optional birthday, optional singing goals,
+consent acceptance, device rows, email-link sessions, delivery-limit events, and
+training-record metadata. Email, birthday, and goals remain normal SQLite fields;
+disk-at-rest protection is BitLocker plus a `SYSTEM`/Administrators-only state
+directory ACL. Device credentials and magic-link secrets are SHA-256 hashes only,
+so the server cannot recover their raw values from the database.
+
+There is exactly one current credential per `(account_id, installation_id)` pair:
+reconnecting the same installation rotates and revokes its prior credential,
+while a second device receives an independent credential. The magic link remains
+single-use and 15-minute-lived; it authorizes the pending login created by the
+originating app even when the email is opened on another device. Deleting an
+account revokes every credential and removes profile data; completed correction
+records remain without profile data so already-consented training material has
+an audit trail.
+
+The review editor has deliberately distinct actions. `暫存進度` writes an edited
+MusicXML score to the local Apple persistence layer and sends nothing to 714.
+`完成校正` creates one idempotent record linking the retained source job, candidate
+MusicXML, corrected MusicXML, checksums, correction metadata, account, and consent
+version. If manual date-folder cleanup removed the original source, the server
+returns an explicit re-upload requirement rather than storing an incomplete record.
+
+CRM backup is intentionally narrow: a daily SQLite snapshot, schema version, and
+checksum manifest can be copied to Google Drive through rclone. Raw scores and
+OMR job folders are excluded and remain manually managed by date. Cloudflare
+Tunnel remains only the protected public route; a managed database such as
+Cloudflare D1 is a future scaling migration target, not the current source of truth.

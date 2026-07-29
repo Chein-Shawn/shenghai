@@ -721,6 +721,33 @@ private struct ScoreInspectorPanel: View {
                 }
             }
 
+            if let correction = workspace.remoteOMRCorrectionContext {
+                StudioPanel(title: L10n.tr("score.review.correction_submission"), systemImage: "checkmark.seal") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(
+                            correction.trainingRecordID == nil
+                                ? L10n.tr("score.review.correction_submission_description")
+                                : L10n.tr("score.review.correction_submitted")
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                        HStack(spacing: 10) {
+                            Button(L10n.tr("score.review.save_progress")) {
+                                workspace.saveCorrectionProgress()
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button(L10n.tr("score.review.complete_correction")) {
+                                workspace.completeRemoteOMRCorrection()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(correction.trainingRecordID != nil || workspace.isCompletingRemoteOMRCorrection)
+                        }
+                    }
+                }
+            }
+
             StudioPanel(title: L10n.tr("Practice Display"), systemImage: "slider.horizontal.3") {
                 VStack(alignment: .leading, spacing: 12) {
                     Toggle(L10n.tr("Pitch overlay"), isOn: $showPitchOverlay)

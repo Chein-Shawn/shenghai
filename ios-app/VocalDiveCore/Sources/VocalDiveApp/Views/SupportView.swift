@@ -18,6 +18,11 @@ struct SupportView: View {
     @State private var remoteOMREmail = ""
     @State private var remoteOMRStatus = ""
     @State private var isConnectingRemoteOMR = false
+    @State private var remoteOMRBirthday = ""
+    @State private var remoteOMRGoals = ""
+    @State private var isSavingRemoteOMRProfile = false
+    @State private var showRemoteOMRConsent = false
+    @State private var showRemoteOMRDeleteConfirmation = false
 
     private let manualURL = URL(string: "https://chein-shawn.github.io/vocaldive/manual.html")
     private let changelogURL = URL(string: "https://chein-shawn.github.io/vocaldive/changelog.html")
@@ -45,6 +50,26 @@ struct SupportView: View {
         }
         .onAppear {
             remoteOMREndpoint = remoteOMR.endpointString
+            loadRemoteOMRProfile()
+        }
+        .alert(L10n.tr("settings.vocaldive_omr.consent_title"), isPresented: $showRemoteOMRConsent) {
+            Button(L10n.tr("settings.vocaldive_omr.consent_cancel"), role: .cancel) {}
+            Button(L10n.tr("settings.vocaldive_omr.consent_continue")) {
+                connectRemoteOMRWithEmail()
+            }
+        } message: {
+            Text(L10n.tr("settings.vocaldive_omr.consent_message"))
+        }
+        .confirmationDialog(
+            L10n.tr("settings.vocaldive_omr.delete_account_title"),
+            isPresented: $showRemoteOMRDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button(L10n.tr("settings.vocaldive_omr.delete_account_confirm"), role: .destructive) {
+                deleteRemoteOMRAccount()
+            }
+        } message: {
+            Text(L10n.tr("settings.vocaldive_omr.delete_account_message"))
         }
     }
 
@@ -72,6 +97,37 @@ struct SupportView: View {
                         remoteOMRStatus = ""
                     }
                     .buttonStyle(.bordered)
+                }
+
+                Divider()
+
+                TextField(L10n.tr("settings.vocaldive_omr.birth_date"), text: $remoteOMRBirthday)
+                    .textFieldStyle(.roundedBorder)
+
+                TextEditor(text: $remoteOMRGoals)
+                    .frame(minHeight: 72)
+                    .overlay(alignment: .topLeading) {
+                        if remoteOMRGoals.isEmpty {
+                            Text(L10n.tr("settings.vocaldive_omr.goals"))
+                                .foregroundStyle(.tertiary)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 8)
+                                .allowsHitTesting(false)
+                        }
+                    }
+
+                HStack(spacing: 10) {
+                    Button(L10n.tr("settings.vocaldive_omr.save_profile")) {
+                        saveRemoteOMRProfile()
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isSavingRemoteOMRProfile)
+
+                    Button(L10n.tr("settings.vocaldive_omr.delete_account"), role: .destructive) {
+                        showRemoteOMRDeleteConfirmation = true
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(isSavingRemoteOMRProfile)
                 }
             } else {
                 TextField(L10n.tr("settings.vocaldive_omr.email"), text: $remoteOMREmail)
@@ -120,6 +176,10 @@ struct SupportView: View {
     }
 
     private func beginRemoteOMREmailConnection() {
+        showRemoteOMRConsent = true
+    }
+
+    private func connectRemoteOMRWithEmail() {
         let email = remoteOMREmail.trimmingCharacters(in: .whitespacesAndNewlines)
         isConnectingRemoteOMR = true
         remoteOMRStatus = ""
@@ -129,10 +189,54 @@ struct SupportView: View {
                 remoteOMRStatus = L10n.tr("settings.vocaldive_omr.waiting", email)
                 try await remoteOMR.waitForEmailConnection(session)
                 remoteOMRStatus = L10n.tr("settings.vocaldive_omr.connected", email)
+                loadRemoteOMRProfile()
             } catch {
                 remoteOMRStatus = remoteOMRErrorMessage(error)
             }
             isConnectingRemoteOMR = false
+        }
+    }
+
+    private func loadRemoteOMRProfile() {
+        guard remoteOMR.isConfigured else { return }
+        Task {
+            guard let profile = try? await remoteOMR.fetchProfile() else { return }
+            remoteOMRBirthday = profile.birthDate ?? ""
+            remoteOMRGoals = profile.goals.joined(separator: "\n")
+        }
+    }
+
+    private func saveRemoteOMRProfile() {
+        isSavingRemoteOMRProfile = true
+        Task {
+            do {
+                let birthday = remoteOMRBirthday.trimmingCharacters(in: .whitespacesAndNewlines)
+                let profile = try await remoteOMR.updateProfile(
+                    birthDate: birthday.isEmpty ? nil : birthday,
+                    goals: remoteOMRGoals.split(separator: "\n").map(String.init)
+                )
+                remoteOMRBirthday = profile.birthDate ?? ""
+                remoteOMRGoals = profile.goals.joined(separator: "\n")
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.profile_saved")
+            } catch {
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+            }
+            isSavingRemoteOMRProfile = false
+        }
+    }
+
+    private func deleteRemoteOMRAccount() {
+        isSavingRemoteOMRProfile = true
+        Task {
+            do {
+                try await remoteOMR.deleteRemoteAccount()
+                remoteOMRBirthday = ""
+                remoteOMRGoals = ""
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.account_deleted")
+            } catch {
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+            }
+            isSavingRemoteOMRProfile = false
         }
     }
 

@@ -49,6 +49,8 @@ final class VocalDiveWorkspace: ObservableObject {
     @Published var scoreLandingMode: ScoreLandingMode = .editor
     @Published var pendingScoreImportFlow: ScoreImportFlow = .musicXML
     @Published var currentSampleBenchmarkResult: SampleBenchmarkResult?
+    @Published private(set) var remoteOMRCorrectionContext: RemoteOMRCorrectionContext?
+    @Published private(set) var isCompletingRemoteOMRCorrection = false
     @Published var annotationStrokes: [ScoreAnnotationStrokePayload] = [] {
         didSet {
             guard annotationPersistenceEnabled, let currentScoreItemID else {
@@ -73,6 +75,7 @@ final class VocalDiveWorkspace: ObservableObject {
     private let persistence: PersistenceCoordinator
     private var annotationPersistenceEnabled = true
     private var hasBootstrapped = false
+    private static let remoteOMRCorrectionContextKey = "vocaldive.remoteOMR.correction-context"
 
     init(persistence: PersistenceCoordinator = .shared) {
         self.persistence = persistence
@@ -80,6 +83,11 @@ final class VocalDiveWorkspace: ObservableObject {
         let settings = persistence.settingsSnapshot()
         self.syncStatus = persistence.syncStatusSnapshot()
         self.isSyncEnabled = settings.syncEnabled
+        if let data = UserDefaults.standard.data(forKey: Self.remoteOMRCorrectionContextKey) {
+            remoteOMRCorrectionContext = try? JSONDecoder().decode(RemoteOMRCorrectionContext.self, from: data)
+        } else {
+            remoteOMRCorrectionContext = nil
+        }
     }
 
     var selectedPartIndex: Int {
@@ -507,6 +515,15 @@ final class VocalDiveWorkspace: ObservableObject {
             preferredFileName: session.sourceName
         )
         setScore(importedScore, scoreItemID: scoreItemID)
+        setRemoteOMRCorrectionContext(
+            RemoteOMRCorrectionContext(
+                serverJobID: session.serverJobID,
+                sourceName: session.sourceName,
+                candidateMusicXML: session.generatedMusicXML,
+                localScoreItemID: scoreItemID,
+                trainingRecordID: nil
+            )
+        )
         let reviewPages = session.renderedPages.map {
             ScoreReviewPage(
                 pageIndex: $0.pageIndex,
@@ -908,6 +925,9 @@ final class VocalDiveWorkspace: ObservableObject {
         selectedReviewSymbolID = nil
         selectedReviewPageIndex = 0
         currentScoreItemID = scoreItemID
+        if remoteOMRCorrectionContext?.localScoreItemID != scoreItemID {
+            setRemoteOMRCorrectionContext(nil)
+        }
         persistence.setSelectedScoreItemID(scoreItemID)
         annotationPersistenceEnabled = false
         if let restoredAnnotationStrokes {
@@ -991,6 +1011,11 @@ final class VocalDiveWorkspace: ObservableObject {
                 preferredFileName: score.metadata.title ?? scoreReviewSession?.sourceName ?? "reviewed-score"
             )
             currentScoreItemID = scoreItemID
+            if var context = remoteOMRCorrectionContext,
+               context.localScoreItemID != scoreItemID {
+                context.localScoreItemID = scoreItemID
+                setRemoteOMRCorrectionContext(context)
+            }
             refreshReviewArtifacts()
             refreshEditorSession(
                 sourceKind: musicXMLEditorSession?.sourceKind ?? .directMusicXML,
@@ -1001,6 +1026,64 @@ final class VocalDiveWorkspace: ObservableObject {
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    func saveCorrectionProgress() {
+        persistReviewedScore(statusKey: "score.review.progress_saved")
+    }
+
+    func completeRemoteOMRCorrection() {
+        guard let context = remoteOMRCorrectionContext,
+              context.trainingRecordID == nil,
+              context.localScoreItemID == currentScoreItemID,
+              let score else {
+            errorMessage = L10n.tr("score.review.complete_correction_unavailable")
+            return
+        }
+
+        let correctedMusicXML = MusicXMLComposer.makeMusicXML(from: score)
+        let correctionMetadata = [
+            "source_name": context.sourceName,
+            "correction_count": String(score.corrections.count),
+            "score_title": score.metadata.title ?? ""
+        ]
+        isCompletingRemoteOMRCorrection = true
+        statusMessage = L10n.tr("score.review.completing_correction")
+        errorMessage = nil
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let recordID = try await self.remoteOMRService.submitCorrection(
+                    jobID: context.serverJobID,
+                    correctedMusicXML: correctedMusicXML,
+                    correctionMetadata: correctionMetadata
+                )
+                var completed = context
+                completed.trainingRecordID = recordID
+                self.setRemoteOMRCorrectionContext(completed)
+                self.statusMessage = L10n.tr("score.review.correction_completed")
+            } catch let error as RemoteOMRServiceError {
+                switch error {
+                case .sourceNoLongerRetained:
+                    self.errorMessage = L10n.tr("score.review.complete_correction_unavailable")
+                default:
+                    self.errorMessage = L10n.tr("score.review.complete_correction_failed", error.localizedDescription)
+                }
+            } catch {
+                self.errorMessage = L10n.tr("score.review.complete_correction_failed", error.localizedDescription)
+            }
+            self.isCompletingRemoteOMRCorrection = false
+        }
+    }
+
+    private func setRemoteOMRCorrectionContext(_ context: RemoteOMRCorrectionContext?) {
+        remoteOMRCorrectionContext = context
+        if let context, let data = try? JSONEncoder().encode(context) {
+            UserDefaults.standard.set(data, forKey: Self.remoteOMRCorrectionContextKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: Self.remoteOMRCorrectionContextKey)
         }
     }
 

@@ -1,5 +1,9 @@
 import Foundation
 import Security
+import CryptoKit
+#if os(iOS)
+import UIKit
+#endif
 #if canImport(VocalDiveCore)
 import VocalDiveCore
 #endif
@@ -52,10 +56,14 @@ private struct RemoteOMRCreateJobResponse: Decodable {
 private struct RemoteOMRAuthLinkRequest: Encodable {
     var email: String
     var deviceLabel: String
+    var installationID: String
+    var consentVersion: String
 
     private enum CodingKeys: String, CodingKey {
         case email
         case deviceLabel = "device_label"
+        case installationID = "installation_id"
+        case consentVersion = "consent_version"
     }
 }
 
@@ -112,6 +120,54 @@ struct RemoteOMRCompletedSession {
     var serverJobID: String
 }
 
+struct RemoteOMRCorrectionContext: Codable, Equatable {
+    var serverJobID: String
+    var sourceName: String
+    var candidateMusicXML: String
+    var localScoreItemID: String?
+    var trainingRecordID: String?
+}
+
+struct RemoteOMRAccountProfile: Codable, Equatable {
+    var email: String?
+    var birthDate: String?
+    var goals: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case email
+        case birthDate = "birth_date"
+        case goals
+    }
+}
+
+private struct RemoteOMRAccountProfileRequest: Encodable {
+    var birthDate: String?
+    var goals: [String]
+
+    private enum CodingKeys: String, CodingKey {
+        case birthDate = "birth_date"
+        case goals
+    }
+}
+
+private struct RemoteOMRCorrectionSubmissionRequest: Encodable {
+    var correctedMusicXML: String
+    var correctionMetadata: [String: String]
+
+    private enum CodingKeys: String, CodingKey {
+        case correctedMusicXML = "corrected_musicxml"
+        case correctionMetadata = "correction_metadata"
+    }
+}
+
+private struct RemoteOMRCorrectionSubmissionResponse: Decodable {
+    var trainingRecordID: String
+
+    private enum CodingKeys: String, CodingKey {
+        case trainingRecordID = "training_record_id"
+    }
+}
+
 enum RemoteOMRServiceError: LocalizedError {
     case notConfigured
     case invalidServerURL
@@ -124,6 +180,7 @@ enum RemoteOMRServiceError: LocalizedError {
     case missingResult
     case emailConnectionExpired
     case emailLinkRateLimited(Int)
+    case sourceNoLongerRetained
 
     var errorDescription: String? {
         switch self {
@@ -149,6 +206,8 @@ enum RemoteOMRServiceError: LocalizedError {
             return "This email connection link expired. Request a new link and try again."
         case .emailLinkRateLimited:
             return "Too many verification-link requests."
+        case .sourceNoLongerRetained:
+            return "The original score is no longer retained on VocalDive OMR. Upload it again before completing correction."
         }
     }
 }
@@ -167,6 +226,8 @@ final class RemoteOMRConfigurationStore: ObservableObject {
     private static let connectedEmailKey = "vocaldive.privateOMR.connected-email"
     private static let keychainService = "com.vocaldive.private-omr"
     private static let keychainAccount = "device-token"
+    private static let installationKeychainAccount = "installation-id"
+    static let consentVersion = "714-beta-data-v1"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -216,7 +277,12 @@ final class RemoteOMRConfigurationStore: ObservableObject {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(
-            RemoteOMRAuthLinkRequest(email: email.trimmingCharacters(in: .whitespacesAndNewlines), deviceLabel: "VocalDive device")
+            RemoteOMRAuthLinkRequest(
+                email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                deviceLabel: Self.defaultDeviceLabel,
+                installationID: try Self.installationID(),
+                consentVersion: Self.consentVersion
+            )
         )
         let (data, response) = try await URLSession.shared.data(for: request)
         try Self.validate(response: response, data: data)
@@ -266,11 +332,48 @@ final class RemoteOMRConfigurationStore: ObservableObject {
         throw RemoteOMRServiceError.emailConnectionExpired
     }
 
+    func fetchProfile() async throws -> RemoteOMRAccountProfile {
+        let configuration = try currentConfiguration()
+        var request = URLRequest(url: configuration.endpoint.appending(path: "v1/account"))
+        request.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try Self.validate(response: response, data: data)
+        return try JSONDecoder().decode(RemoteOMRAccountProfile.self, from: data)
+    }
+
+    func updateProfile(birthDate: String?, goals: [String]) async throws -> RemoteOMRAccountProfile {
+        let configuration = try currentConfiguration()
+        var request = URLRequest(url: configuration.endpoint.appending(path: "v1/account"))
+        request.httpMethod = "PUT"
+        request.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            RemoteOMRAccountProfileRequest(birthDate: birthDate, goals: goals)
+        )
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try Self.validate(response: response, data: data)
+        return try JSONDecoder().decode(RemoteOMRAccountProfile.self, from: data)
+    }
+
+    func deleteRemoteAccount() async throws {
+        let configuration = try currentConfiguration()
+        var request = URLRequest(url: configuration.endpoint.appending(path: "v1/account"))
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
+        let (_, response) = try await URLSession.shared.data(for: request)
+        try Self.validate(response: response, data: Data())
+        disconnect()
+    }
+
     private static func readToken() throws -> String {
+        try readKeychainValue(account: keychainAccount)
+    }
+
+    private static func readKeychainValue(account: String) throws -> String {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: keychainService,
-            kSecAttrAccount: keychainAccount,
+            kSecAttrAccount: account,
             kSecReturnData: true,
             kSecMatchLimit: kSecMatchLimitOne
         ]
@@ -286,12 +389,16 @@ final class RemoteOMRConfigurationStore: ObservableObject {
     }
 
     private static func storeToken(_ token: String) throws {
-        deleteToken()
+        try storeKeychainValue(token, account: keychainAccount)
+    }
+
+    private static func storeKeychainValue(_ value: String, account: String) throws {
+        deleteKeychainValue(account: account)
         let attributes: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: keychainService,
-            kSecAttrAccount: keychainAccount,
-            kSecValueData: Data(token.utf8),
+            kSecAttrAccount: account,
+            kSecValueData: Data(value.utf8),
             kSecAttrAccessible: kSecAttrAccessibleAfterFirstUnlock
         ]
         guard SecItemAdd(attributes as CFDictionary, nil) == errSecSuccess else {
@@ -300,12 +407,36 @@ final class RemoteOMRConfigurationStore: ObservableObject {
     }
 
     private static func deleteToken() {
+        deleteKeychainValue(account: keychainAccount)
+    }
+
+    private static func deleteKeychainValue(account: String) {
         let query: [CFString: Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: keychainService,
-            kSecAttrAccount: keychainAccount
+            kSecAttrAccount: account
         ]
         SecItemDelete(query as CFDictionary)
+    }
+
+    private static func installationID() throws -> String {
+        let existing = try readKeychainValue(account: installationKeychainAccount)
+        if existing.isEmpty == false {
+            return existing
+        }
+        let created = UUID().uuidString.lowercased()
+        try storeKeychainValue(created, account: installationKeychainAccount)
+        return created
+    }
+
+    private static var defaultDeviceLabel: String {
+        #if os(macOS)
+        return "VocalDive Mac"
+        #elseif os(iOS)
+        return UIDevice.current.userInterfaceIdiom == .pad ? "VocalDive iPad" : "VocalDive iPhone"
+        #else
+        return "VocalDive device"
+        #endif
     }
 
     private static func validate(response: URLResponse, data: Data) throws {
@@ -558,6 +689,32 @@ final class RemoteOMRService {
         return completed
     }
 
+    func submitCorrection(
+        jobID: String,
+        correctedMusicXML: String,
+        correctionMetadata: [String: String]
+    ) async throws -> String {
+        let configuration = try configurationStore.currentConfiguration()
+        let checksum = Self.sha256Hex("\(jobID):\(correctedMusicXML)")
+        var request = URLRequest(url: configuration.endpoint.appending(path: "v1/jobs/\(jobID)/corrections"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(configuration.token)", forHTTPHeaderField: "Authorization")
+        request.setValue(checksum, forHTTPHeaderField: "Idempotency-Key")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            RemoteOMRCorrectionSubmissionRequest(
+                correctedMusicXML: correctedMusicXML,
+                correctionMetadata: correctionMetadata
+            )
+        )
+        let (data, response) = try await session.data(for: request)
+        if let http = response as? HTTPURLResponse, http.statusCode == 410 {
+            throw RemoteOMRServiceError.sourceNoLongerRetained
+        }
+        try validate(response: response, data: data)
+        return try JSONDecoder().decode(RemoteOMRCorrectionSubmissionResponse.self, from: data).trainingRecordID
+    }
+
     private func complete(_ initialJob: PendingRemoteOMRJob, progress: ProgressHandler?) async throws -> RemoteOMRCompletedSession {
         let configuration = try configurationStore.currentConfiguration()
         guard let inputKind = initialJob.inputKind else { throw RemoteOMRServiceError.mixedInputTypes }
@@ -707,6 +864,10 @@ final class RemoteOMRService {
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
             throw RemoteOMRServiceError.server(message ?? "VocalDive OMR returned HTTP \(http.statusCode).")
         }
+    }
+
+    private static func sha256Hex(_ value: String) -> String {
+        SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
     private func progressValue(for status: RemoteOMRJobStatus) -> NativeOMRScanProgress {

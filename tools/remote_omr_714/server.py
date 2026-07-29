@@ -21,7 +21,7 @@ import uuid
 import xml.etree.ElementTree as ET
 from contextlib import contextmanager
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterator, Literal
 
@@ -58,6 +58,8 @@ OEMER_EXECUTABLE = os.environ.get("VOCALDIVE_OMR_EXECUTABLE", "oemer")
 GPU_BUSY_PERCENT = int(os.environ.get("VOCALDIVE_OMR_GPU_BUSY_PERCENT", "35"))
 GPU_BUSY_VRAM_PERCENT = int(os.environ.get("VOCALDIVE_OMR_GPU_BUSY_VRAM_PERCENT", "30"))
 DATABASE_PATH = STATE_ROOT / "jobs.sqlite3"
+CRM_DATABASE_PATH = _path_env("VOCALDIVE_OMR_CRM_DATABASE", str(STATE_ROOT / "crm.sqlite3"))
+CRM_SCHEMA_VERSION = 1
 PUBLIC_BASE_URL = os.environ.get("VOCALDIVE_OMR_PUBLIC_BASE_URL", "https://omr.vocaldive.com").rstrip("/")
 RESEND_API_KEY = os.environ.get("VOCALDIVE_OMR_RESEND_API_KEY", "")
 AUTH_FROM = os.environ.get("VOCALDIVE_OMR_AUTH_FROM", "VocalDive <access@auth.vocaldive.com>")
@@ -100,6 +102,8 @@ class ModeResponse(BaseModel):
 class AuthLinkRequest(BaseModel):
     email: str = Field(min_length=3, max_length=320)
     device_label: str = Field(default="VocalDive device", min_length=1, max_length=120)
+    installation_id: str = Field(min_length=16, max_length=128)
+    consent_version: str = Field(min_length=1, max_length=64)
 
 
 class AuthLinkResponse(BaseModel):
@@ -117,6 +121,29 @@ class AuthPollResponse(BaseModel):
     state: Literal["pending", "connected", "expired"]
     email: str | None = None
     device_token: str | None = None
+
+
+class AccountProfileRequest(BaseModel):
+    birth_date: str | None = Field(default=None, max_length=10)
+    goals: list[str] = Field(default_factory=list, max_length=24)
+
+
+class AccountProfileResponse(BaseModel):
+    email: str | None = None
+    birth_date: str | None = None
+    goals: list[str] = Field(default_factory=list)
+    consent_version: str | None = None
+    consent_accepted_at: str | None = None
+
+
+class CorrectionSubmissionRequest(BaseModel):
+    corrected_musicxml: str = Field(min_length=1, max_length=10 * 1024 * 1024)
+    correction_metadata: dict[str, object] = Field(default_factory=dict)
+
+
+class CorrectionSubmissionResponse(BaseModel):
+    training_record_id: str
+    state: Literal["recorded"]
 
 
 @dataclass(frozen=True)
@@ -421,6 +448,314 @@ class JobStore:
             connection.execute("UPDATE worker_settings SET value = ? WHERE key = 'mode'", (mode,))
 
 
+class CRMStore:
+    """Personal-account data kept apart from the durable OMR job queue."""
+
+    def __init__(self, path: Path, legacy_jobs_path: Path | None = None) -> None:
+        self.path = path
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self._connect() as connection:
+            connection.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS schema_metadata (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS accounts (
+                    account_id TEXT PRIMARY KEY,
+                    email_hash TEXT NOT NULL UNIQUE,
+                    email_address TEXT,
+                    birth_date TEXT,
+                    goals_json TEXT NOT NULL DEFAULT '[]',
+                    consent_version TEXT,
+                    consent_accepted_at TEXT,
+                    created_at TEXT NOT NULL,
+                    last_verified_at TEXT NOT NULL,
+                    deleted_at TEXT
+                );
+                CREATE TABLE IF NOT EXISTS devices (
+                    device_id TEXT PRIMARY KEY,
+                    account_id TEXT NOT NULL,
+                    installation_id TEXT NOT NULL,
+                    token_hash TEXT NOT NULL UNIQUE,
+                    device_label TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    last_used_at TEXT NOT NULL,
+                    revoked_at TEXT,
+                    UNIQUE(account_id, installation_id)
+                );
+                CREATE TABLE IF NOT EXISTS auth_sessions (
+                    login_id TEXT PRIMARY KEY,
+                    email_hash TEXT NOT NULL,
+                    email_address TEXT NOT NULL,
+                    device_label TEXT NOT NULL,
+                    installation_id TEXT NOT NULL,
+                    consent_version TEXT NOT NULL,
+                    magic_hash TEXT NOT NULL UNIQUE,
+                    poll_hash TEXT NOT NULL UNIQUE,
+                    created_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL,
+                    verified_at TEXT,
+                    consumed_at TEXT,
+                    account_id TEXT
+                );
+                CREATE TABLE IF NOT EXISTS auth_rate_limit_hits (
+                    bucket TEXT NOT NULL,
+                    subject TEXT NOT NULL,
+                    created_at INTEGER NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS auth_rate_limit_lookup
+                    ON auth_rate_limit_hits(bucket, subject, created_at);
+                CREATE TABLE IF NOT EXISTS training_records (
+                    training_record_id TEXT PRIMARY KEY,
+                    job_id TEXT NOT NULL UNIQUE,
+                    account_id TEXT,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    consent_version TEXT NOT NULL,
+                    consent_accepted_at TEXT NOT NULL,
+                    source_checksums_json TEXT NOT NULL,
+                    candidate_checksum TEXT NOT NULL,
+                    corrected_checksum TEXT NOT NULL,
+                    correction_metadata_json TEXT NOT NULL,
+                    corrected_musicxml_path TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                );
+                """
+            )
+            connection.execute(
+                "INSERT OR REPLACE INTO schema_metadata(key, value) VALUES ('schema_version', ?)",
+                (str(CRM_SCHEMA_VERSION),),
+            )
+        if legacy_jobs_path and legacy_jobs_path.exists():
+            self._migrate_legacy_identities(legacy_jobs_path)
+
+    @contextmanager
+    def _connect(self) -> Iterator[sqlite3.Connection]:
+        connection = sqlite3.connect(self.path)
+        connection.row_factory = sqlite3.Row
+        try:
+            yield connection
+            connection.commit()
+        finally:
+            connection.close()
+
+    def _migrate_legacy_identities(self, legacy_jobs_path: Path) -> None:
+        """Preserve already-issued beta credentials during the split to crm.sqlite3."""
+        legacy = sqlite3.connect(legacy_jobs_path)
+        legacy.row_factory = sqlite3.Row
+        try:
+            tables = {row["name"] for row in legacy.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+            if not {"accounts", "devices"}.issubset(tables):
+                return
+            accounts = legacy.execute("SELECT account_id, email_hash, created_at, last_verified_at FROM accounts").fetchall()
+            devices = legacy.execute(
+                "SELECT device_id, account_id, token_hash, device_label, created_at, last_used_at, revoked_at FROM devices"
+            ).fetchall()
+            with self._connect() as connection:
+                for row in accounts:
+                    connection.execute(
+                        """INSERT OR IGNORE INTO accounts(account_id, email_hash, goals_json, created_at, last_verified_at)
+                           VALUES (?, ?, '[]', ?, ?)""",
+                        (row["account_id"], row["email_hash"], row["created_at"], row["last_verified_at"]),
+                    )
+                for row in devices:
+                    connection.execute(
+                        """INSERT OR IGNORE INTO devices(
+                               device_id, account_id, installation_id, token_hash, device_label,
+                               created_at, last_used_at, revoked_at
+                           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            row["device_id"], row["account_id"], f"legacy-{row['device_id']}", row["token_hash"],
+                            row["device_label"], row["created_at"], row["last_used_at"], row["revoked_at"],
+                        ),
+                    )
+        finally:
+            legacy.close()
+
+    def create_auth_session(
+        self,
+        *,
+        login_id: str,
+        email_hash: str,
+        email_address: str,
+        device_label: str,
+        installation_id: str,
+        consent_version: str,
+        magic_hash: str,
+        poll_hash: str,
+        expires_at: str,
+    ) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                """INSERT INTO auth_sessions(
+                       login_id, email_hash, email_address, device_label, installation_id, consent_version,
+                       magic_hash, poll_hash, created_at, expires_at
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    login_id, email_hash, email_address, device_label, installation_id, consent_version,
+                    magic_hash, poll_hash, utc_now(), expires_at,
+                ),
+            )
+
+    def delete_auth_session(self, login_id: str) -> None:
+        with self._connect() as connection:
+            connection.execute("DELETE FROM auth_sessions WHERE login_id = ?", (login_id,))
+
+    def auth_session_for_magic(self, magic_hash: str) -> sqlite3.Row | None:
+        with self._connect() as connection:
+            return connection.execute("SELECT * FROM auth_sessions WHERE magic_hash = ?", (magic_hash,)).fetchone()
+
+    def auth_session_for_poll(self, login_id: str, poll_hash: str) -> sqlite3.Row | None:
+        with self._connect() as connection:
+            return connection.execute(
+                "SELECT * FROM auth_sessions WHERE login_id = ? AND poll_hash = ?", (login_id, poll_hash)
+            ).fetchone()
+
+    def find_or_create_account(self, email: str, email_hash: str, consent_version: str) -> str:
+        now = utc_now()
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT account_id, deleted_at FROM accounts WHERE email_hash = ?", (email_hash,)
+            ).fetchone()
+            if row:
+                account_id = str(row["account_id"])
+                connection.execute(
+                    """UPDATE accounts SET email_address = ?, last_verified_at = ?, consent_version = ?,
+                       consent_accepted_at = ?, deleted_at = NULL WHERE account_id = ?""",
+                    (email, now, consent_version, now, account_id),
+                )
+                return account_id
+            account_id = uuid.uuid4().hex
+            connection.execute(
+                """INSERT INTO accounts(
+                       account_id, email_hash, email_address, goals_json, consent_version, consent_accepted_at,
+                       created_at, last_verified_at
+                   ) VALUES (?, ?, ?, '[]', ?, ?, ?, ?)""",
+                (account_id, email_hash, email, consent_version, now, now, now),
+            )
+            return account_id
+
+    def verify_auth_session(self, login_id: str, account_id: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE auth_sessions SET verified_at = ?, consumed_at = ?, account_id = ? WHERE login_id = ?",
+                (utc_now(), utc_now(), account_id, login_id),
+            )
+
+    def rotate_device(
+        self, account_id: str, installation_id: str, token_hash: str, device_label: str
+    ) -> None:
+        now = utc_now()
+        with self._connect() as connection:
+            existing = connection.execute(
+                "SELECT device_id FROM devices WHERE account_id = ? AND installation_id = ?",
+                (account_id, installation_id),
+            ).fetchone()
+            if existing:
+                # Replacing the stored hash invalidates the former raw token immediately.
+                connection.execute(
+                    """UPDATE devices SET token_hash = ?, device_label = ?, last_used_at = ?, revoked_at = NULL
+                       WHERE device_id = ?""",
+                    (token_hash, device_label, now, existing["device_id"]),
+                )
+            else:
+                connection.execute(
+                    """INSERT INTO devices(device_id, account_id, installation_id, token_hash, device_label, created_at, last_used_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    (uuid.uuid4().hex, account_id, installation_id, token_hash, device_label, now, now),
+                )
+
+    def device_for_token(self, token_hash: str) -> sqlite3.Row | None:
+        with self._connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM devices WHERE token_hash = ? AND revoked_at IS NULL", (token_hash,)
+            ).fetchone()
+            if row:
+                connection.execute("UPDATE devices SET last_used_at = ? WHERE device_id = ?", (utc_now(), row["device_id"]))
+            return row
+
+    def account_profile(self, account_id: str) -> sqlite3.Row | None:
+        with self._connect() as connection:
+            return connection.execute(
+                "SELECT * FROM accounts WHERE account_id = ? AND deleted_at IS NULL", (account_id,)
+            ).fetchone()
+
+    def update_profile(self, account_id: str, birth_date: str | None, goals: list[str]) -> sqlite3.Row:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE accounts SET birth_date = ?, goals_json = ? WHERE account_id = ? AND deleted_at IS NULL",
+                (birth_date, json.dumps(goals), account_id),
+            )
+            row = connection.execute("SELECT * FROM accounts WHERE account_id = ?", (account_id,)).fetchone()
+            if not row:
+                raise HTTPException(status_code=404, detail="Account not found")
+            return row
+
+    def delete_account(self, account_id: str) -> None:
+        now = utc_now()
+        with self._connect() as connection:
+            row = connection.execute("SELECT email_hash FROM accounts WHERE account_id = ?", (account_id,)).fetchone()
+            connection.execute("UPDATE devices SET revoked_at = ? WHERE account_id = ? AND revoked_at IS NULL", (now, account_id))
+            if row:
+                connection.execute(
+                    "DELETE FROM auth_sessions WHERE account_id = ? OR email_hash = ?",
+                    (account_id, row["email_hash"]),
+                )
+            connection.execute(
+                """UPDATE accounts SET email_address = NULL, birth_date = NULL, goals_json = '[]',
+                   consent_version = NULL, consent_accepted_at = NULL, deleted_at = ? WHERE account_id = ?""",
+                (now, account_id),
+            )
+            connection.execute("UPDATE training_records SET account_id = NULL WHERE account_id = ?", (account_id,))
+
+    def rate_limit_decision(self, bucket: str, subject: str, limit: int) -> RateLimitDecision:
+        now = int(time.time())
+        earliest = now - EMAIL_REQUEST_WINDOW_SECONDS
+        with self._connect() as connection:
+            connection.execute("DELETE FROM auth_rate_limit_hits WHERE created_at <= ?", (earliest,))
+            hits = connection.execute(
+                "SELECT created_at FROM auth_rate_limit_hits WHERE bucket = ? AND subject = ? AND created_at > ? ORDER BY created_at",
+                (bucket, subject, earliest),
+            ).fetchall()
+            if len(hits) >= limit:
+                return RateLimitDecision(max(1, int(hits[0]["created_at"]) + EMAIL_REQUEST_WINDOW_SECONDS - now))
+        return RateLimitDecision()
+
+    def record_rate_limit_hit(self, bucket: str, subject: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "INSERT INTO auth_rate_limit_hits(bucket, subject, created_at) VALUES (?, ?, ?)",
+                (bucket, subject, int(time.time())),
+            )
+
+    def training_record_for_job(self, job_id: str) -> sqlite3.Row | None:
+        with self._connect() as connection:
+            return connection.execute("SELECT * FROM training_records WHERE job_id = ?", (job_id,)).fetchone()
+
+    def create_training_record(
+        self, *, training_record_id: str, job_id: str, account_id: str, idempotency_key: str,
+        consent_version: str, consent_accepted_at: str, source_checksums: dict[str, str],
+        candidate_checksum: str, corrected_checksum: str, correction_metadata: dict[str, object],
+        corrected_musicxml_path: Path,
+    ) -> sqlite3.Row:
+        with self._connect() as connection:
+            connection.execute(
+                """INSERT INTO training_records(
+                       training_record_id, job_id, account_id, idempotency_key, consent_version, consent_accepted_at,
+                       source_checksums_json, candidate_checksum, corrected_checksum, correction_metadata_json,
+                       corrected_musicxml_path, created_at
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    training_record_id, job_id, account_id, idempotency_key, consent_version, consent_accepted_at,
+                    json.dumps(source_checksums, sort_keys=True), candidate_checksum, corrected_checksum,
+                    json.dumps(correction_metadata, sort_keys=True), str(corrected_musicxml_path), utc_now(),
+                ),
+            )
+            return connection.execute(
+                "SELECT * FROM training_records WHERE training_record_id = ?", (training_record_id,)
+            ).fetchone()
+
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -477,7 +812,7 @@ def bearer_token(authorization: str | None) -> str:
 
 def require_device(authorization: str | None = Header(default=None)) -> DeviceIdentity:
     token = bearer_token(authorization)
-    if device := store.device_for_token(hash_secret(token)):
+    if device := crm_store.device_for_token(hash_secret(token)):
         return DeviceIdentity(account_id=str(device["account_id"]), device_id=str(device["device_id"]))
     raise HTTPException(status_code=401, detail="Invalid device access")
 
@@ -529,6 +864,44 @@ def auth_html(title: str, message: str) -> HTMLResponse:
         <title>{html.escape(title)}</title><style>body{{background:#101413;color:#f5f7f5;font:18px -apple-system,BlinkMacSystemFont,sans-serif;display:grid;min-height:100vh;place-items:center;margin:0}}main{{max-width:28rem;padding:2rem;line-height:1.5}}h1{{margin-top:0}}</style></head>
         <body><main><h1>{html.escape(title)}</h1><p>{html.escape(message)}</p></main></body></html>"""
     )
+
+
+def normalized_birth_date(value: str | None) -> str | None:
+    if value is None or not value.strip():
+        return None
+    try:
+        return date.fromisoformat(value.strip()).isoformat()
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail="Birth date must use YYYY-MM-DD") from error
+
+
+def normalized_goals(values: list[str]) -> list[str]:
+    goals = [value.strip() for value in values if value.strip()]
+    if any(len(value) > 240 for value in goals):
+        raise HTTPException(status_code=422, detail="Each goal must be 240 characters or fewer")
+    return goals
+
+
+def account_profile_response(row: sqlite3.Row) -> AccountProfileResponse:
+    try:
+        goals = json.loads(row["goals_json"])
+    except (KeyError, TypeError, json.JSONDecodeError):
+        goals = []
+    return AccountProfileResponse(
+        email=row["email_address"],
+        birth_date=row["birth_date"],
+        goals=goals if isinstance(goals, list) else [],
+        consent_version=row["consent_version"],
+        consent_accepted_at=row["consent_accepted_at"],
+    )
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def safe_name(name: str) -> str:
@@ -739,6 +1112,7 @@ class JobWorker:
 
 
 store = JobStore(DATABASE_PATH)
+crm_store = CRMStore(CRM_DATABASE_PATH, legacy_jobs_path=DATABASE_PATH)
 worker = JobWorker(store)
 app = FastAPI(title="VocalDive 714 OMR", version="0.1.0")
 
@@ -769,8 +1143,8 @@ def request_auth_link(payload: AuthLinkRequest, request: Request) -> AuthLinkRes
     client_ip = request.client.host if request.client else "unknown"
     with AUTH_DELIVERY_LOCK:
         decisions = (
-            store.rate_limit_decision("email", email_hash, EMAIL_REQUEST_LIMIT),
-            store.rate_limit_decision("ip", client_ip, IP_REQUEST_LIMIT),
+            crm_store.rate_limit_decision("email", email_hash, EMAIL_REQUEST_LIMIT),
+            crm_store.rate_limit_decision("ip", client_ip, IP_REQUEST_LIMIT),
         )
         retry_after = max((decision.retry_after_seconds or 0 for decision in decisions), default=0)
         if retry_after:
@@ -784,11 +1158,13 @@ def request_auth_link(payload: AuthLinkRequest, request: Request) -> AuthLinkRes
         poll_secret = secrets.token_urlsafe(32)
         magic_secret = secrets.token_urlsafe(32)
         expires_at = utc_after(AUTH_LINK_TTL_MINUTES)
-        store.create_auth_session(
+        crm_store.create_auth_session(
             login_id=login_id,
             email_hash=email_hash,
             email_address=email,
             device_label=payload.device_label.strip() or "VocalDive device",
+            installation_id=payload.installation_id.strip(),
+            consent_version=payload.consent_version.strip(),
             magic_hash=hash_secret(magic_secret),
             poll_hash=hash_secret(poll_secret),
             expires_at=expires_at,
@@ -796,32 +1172,62 @@ def request_auth_link(payload: AuthLinkRequest, request: Request) -> AuthLinkRes
         try:
             send_verification_email(email, f"{PUBLIC_BASE_URL}/v1/auth/verify?token={magic_secret}")
         except HTTPException:
-            store.delete_auth_session(login_id)
+            crm_store.delete_auth_session(login_id)
             raise
-        store.record_rate_limit_hit("email", email_hash)
-        store.record_rate_limit_hit("ip", client_ip)
+        crm_store.record_rate_limit_hit("email", email_hash)
+        crm_store.record_rate_limit_hit("ip", client_ip)
     return AuthLinkResponse(login_id=login_id, poll_secret=poll_secret, expires_at=expires_at)
 
 
 @app.get("/v1/auth/verify", response_class=HTMLResponse)
 def verify_auth_link(token: str) -> HTMLResponse:
-    session = store.auth_session_for_magic(hash_secret(token))
+    session = crm_store.auth_session_for_magic(hash_secret(token))
     if not session or session["consumed_at"] or is_expired(str(session["expires_at"])):
         return auth_html("Link unavailable", "This VocalDive verification link has expired or was already used.")
-    account_id = store.find_or_create_account(str(session["email_hash"]))
-    store.create_device(account_id, str(session["poll_hash"]), str(session["device_label"]))
-    store.verify_auth_session(str(session["login_id"]), account_id)
+    account_id = crm_store.find_or_create_account(
+        str(session["email_address"]), str(session["email_hash"]), str(session["consent_version"])
+    )
+    crm_store.rotate_device(
+        account_id,
+        str(session["installation_id"]),
+        str(session["poll_hash"]),
+        str(session["device_label"]),
+    )
+    crm_store.verify_auth_session(str(session["login_id"]), account_id)
     return auth_html("VocalDive connected", "Return to VocalDive. This device can now use Scan to MusicXML.")
 
 
 @app.post("/v1/auth/poll", response_model=AuthPollResponse)
 def poll_auth_link(payload: AuthPollRequest) -> AuthPollResponse:
-    session = store.auth_session_for_poll(payload.login_id, hash_secret(payload.poll_secret))
+    session = crm_store.auth_session_for_poll(payload.login_id, hash_secret(payload.poll_secret))
     if not session or is_expired(str(session["expires_at"])):
         return AuthPollResponse(state="expired")
     if not session["verified_at"]:
         return AuthPollResponse(state="pending")
     return AuthPollResponse(state="connected", device_token=payload.poll_secret)
+
+
+@app.get("/v1/account", response_model=AccountProfileResponse)
+def get_account(identity: DeviceIdentity = Depends(require_device)) -> AccountProfileResponse:
+    row = crm_store.account_profile(identity.account_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Account not found")
+    return account_profile_response(row)
+
+
+@app.put("/v1/account", response_model=AccountProfileResponse)
+def update_account(
+    payload: AccountProfileRequest, identity: DeviceIdentity = Depends(require_device)
+) -> AccountProfileResponse:
+    row = crm_store.update_profile(
+        identity.account_id, normalized_birth_date(payload.birth_date), normalized_goals(payload.goals)
+    )
+    return account_profile_response(row)
+
+
+@app.delete("/v1/account", status_code=204)
+def delete_account(identity: DeviceIdentity = Depends(require_device)) -> None:
+    crm_store.delete_account(identity.account_id)
 
 
 @app.get("/v1/mode", response_model=ModeResponse)
@@ -888,6 +1294,81 @@ def get_result(job_id: str, identity: DeviceIdentity = Depends(require_device)) 
     if row["state"] != "ready" or not result.exists():
         raise HTTPException(status_code=409, detail="MusicXML is not ready")
     return FileResponse(result, media_type="application/vnd.recordare.musicxml+xml", filename=f"{Path(row['source_name']).stem}.musicxml")
+
+
+@app.post("/v1/jobs/{job_id}/corrections", response_model=CorrectionSubmissionResponse, status_code=201)
+def submit_correction(
+    job_id: str,
+    payload: CorrectionSubmissionRequest,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+    identity: DeviceIdentity = Depends(require_device),
+) -> CorrectionSubmissionResponse:
+    job = store.get_for_account(job_id, identity.account_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Unknown OMR job")
+    account = crm_store.account_profile(identity.account_id)
+    if not account or not account["consent_version"] or not account["consent_accepted_at"]:
+        raise HTTPException(status_code=409, detail="Reconnect and accept the OMR data notice before completing a correction")
+
+    job_root = Path(job["job_root"])
+    source_root = job_root / "input"
+    candidate_path = job_root / "result" / "candidate.musicxml"
+    if not source_root.exists() or not candidate_path.exists():
+        raise HTTPException(
+            status_code=410,
+            detail="The source files are no longer retained on the OMR server. Upload the score again before completing correction.",
+        )
+    try:
+        ET.fromstring(payload.corrected_musicxml)
+    except ET.ParseError as error:
+        raise HTTPException(status_code=422, detail="Corrected MusicXML is not valid XML") from error
+
+    corrected_bytes = payload.corrected_musicxml.encode("utf-8")
+    corrected_checksum = hashlib.sha256(corrected_bytes).hexdigest()
+    submission_key = idempotency_key or hash_secret(f"{job_id}:{corrected_checksum}")
+    if existing := crm_store.training_record_for_job(job_id):
+        return CorrectionSubmissionResponse(training_record_id=str(existing["training_record_id"]), state="recorded")
+
+    training_root = job_root / "training"
+    training_root.mkdir(parents=True, exist_ok=True)
+    corrected_path = training_root / "corrected.musicxml"
+    corrected_path.write_bytes(corrected_bytes)
+    source_checksums = {
+        str(path.relative_to(source_root)): sha256_file(path)
+        for path in sorted(source_root.rglob("*")) if path.is_file()
+    }
+    try:
+        record = crm_store.create_training_record(
+            training_record_id=uuid.uuid4().hex,
+            job_id=job_id,
+            account_id=identity.account_id,
+            idempotency_key=submission_key,
+            consent_version=str(account["consent_version"]),
+            consent_accepted_at=str(account["consent_accepted_at"]),
+            source_checksums=source_checksums,
+            candidate_checksum=sha256_file(candidate_path),
+            corrected_checksum=corrected_checksum,
+            correction_metadata=payload.correction_metadata,
+            corrected_musicxml_path=corrected_path,
+        )
+    except sqlite3.IntegrityError:
+        existing = crm_store.training_record_for_job(job_id)
+        if existing:
+            return CorrectionSubmissionResponse(training_record_id=str(existing["training_record_id"]), state="recorded")
+        raise
+
+    training_manifest = {
+        "training_record_id": record["training_record_id"],
+        "job_id": job_id,
+        "consent_version": record["consent_version"],
+        "source_checksums": source_checksums,
+        "candidate_checksum": record["candidate_checksum"],
+        "corrected_checksum": corrected_checksum,
+        "correction_metadata": payload.correction_metadata,
+        "created_at": record["created_at"],
+    }
+    (training_root / "training-record.json").write_text(json.dumps(training_manifest, indent=2), encoding="utf-8")
+    return CorrectionSubmissionResponse(training_record_id=str(record["training_record_id"]), state="recorded")
 
 
 @app.delete("/v1/jobs/{job_id}", response_model=JobStatusResponse)

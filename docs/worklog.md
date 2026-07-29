@@ -171,3 +171,20 @@ important decisions live. The former free-form log is preserved unchanged in
   report a retry duration, while failed Resend deliveries do not consume a request.
 - C4 and localization impact checked: app settings now localize the retry duration in every
   shipped language.
+
+### 714 CRM protection and correction records
+
+- Split personal beta data into `crm.sqlite3` under the 714 state root while
+  retaining the durable worker queue and date-based score folders as separate
+  concerns. Device credentials and email-link secrets are now hash-only;
+  email, optional birthday, and goals remain normal SQLite fields protected by
+  BitLocker and state-directory ACL guidance rather than app-level encryption.
+- Added stable app-installation identities, same-installation credential rotation,
+  account profile/update/delete APIs, and account deletion that revokes every
+  device credential while retaining anonymized, consented correction records.
+- Added local-only `暫存進度` and explicit `完成校正` flows. Completed corrections
+  are idempotent records linking the retained job, candidate, corrected MusicXML,
+  checksums, metadata, and accepted consent version; missing manually deleted
+  sources require an intentional re-upload.
+- Added CRM-only Google Drive snapshot/restore tooling, BitLocker/ACL verification
+  scripts, 714 setup documentation, C4 coverage, and all shipped app localizations.
