@@ -12,7 +12,9 @@ host owner manually removes completed date folders.
 3. In PowerShell, run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, then run
    `powershell -ExecutionPolicy Bypass -File .\install.ps1` from this folder.
 4. Copy `.env.example` to `.env`; set the intended data drive, public address, and restricted
-   Resend sending API key. The key belongs only in this copied `.env` file.
+   Resend sending API key. The key belongs only in this copied `.env` file. The worker uses its
+   bundled `certifi` certificate store for the Resend HTTPS connection, so it does not depend on
+   the Windows PowerShell certificate configuration.
 5. Copy `tokens.example.json` to `D:\VocalDiveOMR\state\tokens.json` and replace the sample
    value with one long random **operator** token. It is only for the host's mode and storage-dashboard APIs.
 6. Run `powershell -ExecutionPolicy Bypass -File .\run.ps1` once. Open

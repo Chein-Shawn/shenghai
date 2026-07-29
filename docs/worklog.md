@@ -843,3 +843,9 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added a first-scan disclosure before any PDF/image reaches 714. It explains that the selected source is uploaded to the private service and retained in a date/job folder until the host owner manually deletes it.
 - Recorded job queue, phase timings, GPU snapshots, and storage metadata for a later quota decision; public beta intentionally has no daily OMR quota yet.
 - Updated the 714 deployment guide, C4 system boundary, and all 14 shipped localization files. No user source, Resend secret, SQLite database, or device credential is versioned in Git.
+
+# 2026-07-29: 714 Resend TLS reliability
+
+- Made the 714 worker use the direct `certifi` CA bundle for its outbound Resend HTTPS request. This prevents the worker's Python trust store from diverging from Windows PowerShell, which had already reached Resend successfully.
+- Kept the public email-link error generic, while the 714 worker now logs only safe HTTP status or TLS failure details for host diagnosis. No email address, API key, or Resend response body is logged.
+- C4 impact checked: the public app and API contract are unchanged; only the outbound worker-to-Resend transport dependency is made explicit. Localization impact checked: no user-facing copy changed.

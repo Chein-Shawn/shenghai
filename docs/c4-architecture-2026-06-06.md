@@ -444,6 +444,10 @@ removes completed date folders manually. `Available`, `Quiet`, and `Paused`
 are persisted worker modes. Quiet inspects NVIDIA utilization and VRAM before
 starting the next queued job; one GPU recognition job runs at a time.
 
+The worker sends verification links to Resend over an explicit `certifi` CA
+bundle. This keeps the Python worker's outbound TLS verification independent of
+the Windows/PowerShell certificate path used for host diagnostics.
+
 Email-link authentication separates public beta access from host operation:
 
 ```text

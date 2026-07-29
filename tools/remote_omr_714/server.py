@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import hashlib
 import html
@@ -10,6 +11,7 @@ import re
 import secrets
 import shutil
 import sqlite3
+import ssl
 import subprocess
 import threading
 import time
@@ -23,6 +25,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterator, Literal
 
+import certifi
 import fitz
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
@@ -57,6 +60,8 @@ EMAIL_REQUEST_WINDOW_SECONDS = 15 * 60
 EMAIL_REQUEST_LIMIT = 3
 IP_REQUEST_LIMIT = 10
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+LOGGER = logging.getLogger("vocaldive.omr")
+RESEND_TLS_CONTEXT = ssl.create_default_context(cafile=certifi.where())
 
 
 class CreateJobResponse(BaseModel):
@@ -481,10 +486,14 @@ def send_verification_email(email: str, verification_url: str) -> None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with urllib.request.urlopen(request, timeout=15, context=RESEND_TLS_CONTEXT) as response:
             if response.status not in range(200, 300):
                 raise RuntimeError(f"Resend returned HTTP {response.status}")
+    except urllib.error.HTTPError as error:
+        LOGGER.warning("Resend rejected a verification email with HTTP %s", error.code)
+        raise HTTPException(status_code=503, detail="Could not send the verification email") from error
     except urllib.error.URLError as error:
+        LOGGER.warning("Resend verification email request failed: %s", error.reason)
         raise HTTPException(status_code=503, detail="Could not send the verification email") from error
 
 
