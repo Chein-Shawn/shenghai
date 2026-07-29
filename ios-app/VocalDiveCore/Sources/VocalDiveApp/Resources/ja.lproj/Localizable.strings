@@ -502,7 +502,7 @@
 "score.scan.remote_connecting" = "%@ を VocalDive 楽譜認識に接続しています。";
 "score.scan.remote_failed_vocaldive" = "VocalDive 楽譜認識のスキャンに失敗しました: %@";
 "score.scan.upload_disclosure.title" = "楽譜を VocalDive 楽譜認識にアップロードしますか？";
-"score.scan.upload_disclosure.message" = "選択した楽譜はプライベート認識サービスに送信され、手動で削除されるまで 714 の日付フォルダに保存されます。";
+"score.scan.upload_disclosure.message" = "選択した楽譜は VocalDive のクラウドサーバーにアップロードされ、手動で削除されるまで日付別フォルダに保存されます。";
 "score.scan.upload_disclosure.confirm" = "アップロードしてスキャン";
 "score.scan.upload_disclosure.cancel" = "今はしない";
 "score.scan.model_description_vocaldive" = "楽譜を VocalDive 楽譜認識にアップロードし、MusicXML の結果を確認します。";

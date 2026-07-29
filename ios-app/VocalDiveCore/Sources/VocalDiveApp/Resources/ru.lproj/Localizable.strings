@@ -502,7 +502,7 @@
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
-"score.scan.upload_disclosure.message" = "Selected scores are uploaded to the private OMR service and retained on 714 in dated folders until manually deleted.";
+"score.scan.upload_disclosure.message" = "Выбранные партитуры загружаются на облачный сервер VocalDive и хранятся в папках по датам до ручного удаления.";
 "score.scan.upload_disclosure.confirm" = "Upload and scan";
 "score.scan.upload_disclosure.cancel" = "Not now";
 "score.scan.model_description_vocaldive" = "Upload a score to VocalDive OMR, then review the MusicXML result.";

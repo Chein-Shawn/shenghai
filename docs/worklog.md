@@ -188,3 +188,6 @@ important decisions live. The former free-form log is preserved unchanged in
   sources require an intentional re-upload.
 - Added CRM-only Google Drive snapshot/restore tooling, BitLocker/ACL verification
   scripts, 714 setup documentation, C4 coverage, and all shipped app localizations.
+- Kept deployment topology out of the product UI: the first-scan disclosure now
+  tells users that a selected score is uploaded to VocalDive's cloud server and
+  retained in date-based folders until manual deletion, in every shipped language.
