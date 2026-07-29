@@ -851,7 +851,19 @@ def send_verification_email(email: str, verification_url: str) -> None:
             if response.status not in range(200, 300):
                 raise RuntimeError(f"Resend returned HTTP {response.status}")
     except urllib.error.HTTPError as error:
-        LOGGER.warning("Resend rejected a verification email with HTTP %s", error.code)
+        # Resend's response explains sender/domain/key rejections. Keep it in the
+        # host-only log, without recording an email address, link, or API key.
+        try:
+            provider_detail = error.read().decode("utf-8", errors="replace")
+        except OSError:
+            provider_detail = "response body unavailable"
+        provider_detail = re.sub(r"\s+", " ", provider_detail).strip()[:500]
+        LOGGER.warning(
+            "Resend rejected a verification email with HTTP %s for sender %r: %s",
+            error.code,
+            AUTH_FROM,
+            provider_detail or "no provider detail",
+        )
         raise HTTPException(status_code=503, detail="Could not send the verification email") from error
     except urllib.error.URLError as error:
         LOGGER.warning("Resend verification email request failed: %s", error.reason)

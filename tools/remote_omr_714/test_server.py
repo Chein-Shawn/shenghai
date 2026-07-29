@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import io
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi import HTTPException
 from starlette.requests import Request
@@ -137,6 +139,35 @@ class EmailLinkRateLimitTests(unittest.TestCase):
         )
         self.assertEqual(reconnected_account_id, account_id)
         self.assertEqual(server.crm_store.account_profile(account_id)["email_address"], "singer@example.com")
+
+
+class EmailLinkDeliveryDiagnosticsTests(unittest.TestCase):
+    def test_resend_rejection_logs_sanitized_provider_reason(self) -> None:
+        previous_key = server.RESEND_API_KEY
+        server.RESEND_API_KEY = "test-key"
+        rejection = server.urllib.error.HTTPError(
+            url="https://api.resend.com/emails",
+            code=403,
+            msg="Forbidden",
+            hdrs=None,
+            fp=io.BytesIO(b'{"message":"Sender domain is not authorized"}'),
+        )
+        try:
+            with patch("server.urllib.request.urlopen", side_effect=rejection):
+                with self.assertLogs(server.LOGGER, level="WARNING") as captured:
+                    with self.assertRaises(HTTPException) as raised:
+                        server.send_verification_email(
+                            "singer@example.com",
+                            "https://omr.vocaldive.com/v1/auth/verify?token=secret",
+                        )
+        finally:
+            server.RESEND_API_KEY = previous_key
+
+        self.assertEqual(raised.exception.status_code, 503)
+        joined_logs = "\n".join(captured.output)
+        self.assertIn("Sender domain is not authorized", joined_logs)
+        self.assertNotIn("singer@example.com", joined_logs)
+        self.assertNotIn("token=secret", joined_logs)
 
 
 if __name__ == "__main__":

@@ -146,6 +146,12 @@ Resend is the current delivery provider behind a small server-side sending funct
 mailbox for `access@auth.vocaldive.com`; it is a verified sending identity, while support replies
 continue to arrive at `support@vocaldive.com`.
 
+If a link request returns HTTP `503`, keep `run.ps1` open and inspect the matching Resend warning.
+It includes the provider's sanitized rejection reason and the configured sender, but never the
+recipient address, verification URL, or API key. A `403` normally means that the Resend API key is
+not authorized to send as `access@auth.vocaldive.com`, or that the sender domain is not yet verified
+for that key. Correct the Resend key/domain configuration in `.env`, then restart the worker.
+
 The worker stores filenames, logs, diagnostics, and results locally. Never put the data root,
 the generated `.env`, or `tokens.json` in Git.
 
