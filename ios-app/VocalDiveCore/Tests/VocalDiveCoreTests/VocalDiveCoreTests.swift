@@ -3,6 +3,12 @@ import Testing
 @testable import VocalDiveCore
 
 struct VocalDiveCoreTests {
+    @Test func parsesRFC3339TimestampsWithAndWithoutFractionalSeconds() {
+        #expect(RFC3339TimestampParser.date(from: "2026-07-30T12:34:56Z") != nil)
+        #expect(RFC3339TimestampParser.date(from: "2026-07-30T12:34:56.123456+00:00") != nil)
+        #expect(RFC3339TimestampParser.date(from: "not-a-timestamp") == nil)
+    }
+
     @Test func composesMusicXMLAndImportsItBack() throws {
         let composed = ComposedScore(
             title: "VocalDive Draft",

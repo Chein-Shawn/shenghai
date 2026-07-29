@@ -7,6 +7,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 from fastapi import HTTPException
 from starlette.requests import Request
@@ -121,6 +122,33 @@ class EmailLinkRateLimitTests(unittest.TestCase):
         current = server.crm_store.device_for_token(second_hash)
         self.assertIsNotNone(current)
         self.assertEqual(current["account_id"], account_id)
+
+    def test_auth_lifecycle_issues_a_device_credential_for_the_verified_session(self) -> None:
+        captured_urls: list[str] = []
+        server.send_verification_email = lambda _email, url: captured_urls.append(url)
+
+        link = self.request_link("singer@example.com")
+        self.assertTrue(link.expires_at.endswith("Z"))
+        self.assertNotIn(".", link.expires_at)
+        magic_secret = parse_qs(urlparse(captured_urls[0]).query)["token"][0]
+
+        verified_page = server.verify_auth_link(magic_secret)
+        self.assertIn("requested this link", verified_page.body.decode("utf-8"))
+        completed = server.poll_auth_link(
+            server.AuthPollRequest(login_id=link.login_id, poll_secret=link.poll_secret)
+        )
+
+        self.assertEqual(completed.state, "connected")
+        self.assertEqual(completed.device_token, link.poll_secret)
+        identity = server.require_device(f"Bearer {link.poll_secret}")
+        self.assertTrue(identity.account_id)
+
+    def test_utc_values_are_rfc3339_utc_and_expiry_accepts_legacy_fractional_values(self) -> None:
+        future = server.utc_after(15)
+        self.assertTrue(future.endswith("Z"))
+        self.assertNotIn(".", future)
+        self.assertFalse(server.is_expired(future))
+        self.assertTrue(server.is_expired("2000-01-01T00:00:00.123456+00:00"))
 
     def test_profile_and_deletion_remove_personal_crm_fields(self) -> None:
         account_id = server.crm_store.find_or_create_account(

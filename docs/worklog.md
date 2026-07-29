@@ -203,3 +203,17 @@ important decisions live. The former free-form log is preserved unchanged in
   retained in date-based folders until manual deletion, in every shipped language.
 - Clarified the disclosure's cancel action as an explicit refusal to upload and
   leave the scan, rather than an ambiguous deferral.
+
+## 2026-07-30 — Durable email-link reconnection
+
+- Repaired the email-link handoff after the worker emitted fractional-second expiry timestamps
+  that the original iOS parser rejected before it could begin polling. The worker now emits
+  RFC 3339 UTC `Z` timestamps without microseconds, while the App accepts both representations
+  during independent server and mobile deployments.
+- Stored an unfinished email-link poll secret in Keychain and non-secret pending-session metadata
+  in app storage. Returning to the foreground or reopening Settings resumes the requesting
+  installation's connection without asking for another email link; success, expiry, disconnect,
+  and server-address changes clear the pending state.
+- Improved the lowercased email field, cross-device verification-page instruction, localized
+  connection states, and redacted stage/status diagnostics. C4, the 714 deployment guide,
+  regression tests, and all shipped localizations were updated in the same cycle.

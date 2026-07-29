@@ -1,6 +1,7 @@
 import Foundation
 import Security
 import CryptoKit
+import OSLog
 #if os(iOS)
 import UIKit
 #endif
@@ -112,6 +113,12 @@ struct RemoteOMREmailLoginSession: Equatable {
     var expiresAt: Date
 }
 
+private struct PendingRemoteOMREmailLoginMetadata: Codable, Equatable {
+    var loginID: String
+    var email: String
+    var expiresAt: Date
+}
+
 struct RemoteOMRCompletedSession {
     var sourceName: String
     var inputKind: OMRInputKind
@@ -176,6 +183,8 @@ enum RemoteOMRServiceError: LocalizedError {
     case fileTooLarge
     case mixedInputTypes
     case invalidResponse
+    case invalidEmailLinkResponse
+    case invalidEmailPollResponse
     case server(String)
     case missingResult
     case emailConnectionExpired
@@ -198,6 +207,10 @@ enum RemoteOMRServiceError: LocalizedError {
             return "Upload one PDF or a batch of images, not both together."
         case .invalidResponse:
             return "VocalDive OMR returned an invalid response."
+        case .invalidEmailLinkResponse:
+            return "VocalDive could not start email verification."
+        case .invalidEmailPollResponse:
+            return "VocalDive could not finish connecting this device."
         case .server(let message):
             return message
         case .missingResult:
@@ -227,6 +240,9 @@ final class RemoteOMRConfigurationStore: ObservableObject {
     private static let keychainService = "com.vocaldive.private-omr"
     private static let keychainAccount = "device-token"
     private static let installationKeychainAccount = "installation-id"
+    private static let pendingPollSecretKeychainAccount = "pending-email-poll-secret"
+    private static let pendingEmailLoginKey = "vocaldive.privateOMR.pending-email-login"
+    private static let authLogger = Logger(subsystem: "com.vocaldive.app", category: "RemoteOMRAuth")
     static let consentVersion = "714-beta-data-v1"
 
     init(defaults: UserDefaults = .standard) {
@@ -264,6 +280,7 @@ final class RemoteOMRConfigurationStore: ObservableObject {
 
     func disconnect() {
         Self.deleteToken()
+        clearPendingEmailLogin()
         defaults.removeObject(forKey: Self.connectedEmailKey)
         connectedEmail = nil
         isConfigured = false
@@ -276,26 +293,53 @@ final class RemoteOMRConfigurationStore: ObservableObject {
         var request = URLRequest(url: endpoint.appending(path: "v1/auth/request-link"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         request.httpBody = try JSONEncoder().encode(
             RemoteOMRAuthLinkRequest(
-                email: email.trimmingCharacters(in: .whitespacesAndNewlines),
+                email: normalizedEmail,
                 deviceLabel: Self.defaultDeviceLabel,
                 installationID: try Self.installationID(),
                 consentVersion: Self.consentVersion
             )
         )
         let (data, response) = try await URLSession.shared.data(for: request)
-        try Self.validate(response: response, data: data)
-        let result = try JSONDecoder().decode(RemoteOMRAuthLinkResponse.self, from: data)
-        let formatter = ISO8601DateFormatter()
-        guard let expiresAt = formatter.date(from: result.expiresAt) else {
-            throw RemoteOMRServiceError.invalidResponse
+        try Self.validate(response: response, data: data, operation: "auth_request")
+        let result: RemoteOMRAuthLinkResponse
+        do {
+            result = try JSONDecoder().decode(RemoteOMRAuthLinkResponse.self, from: data)
+        } catch {
+            Self.logAuthEvent("invalid_link_response")
+            throw RemoteOMRServiceError.invalidEmailLinkResponse
         }
-        return RemoteOMREmailLoginSession(
+        guard let expiresAt = RFC3339TimestampParser.date(from: result.expiresAt) else {
+            Self.logAuthEvent("invalid_link_expiry")
+            throw RemoteOMRServiceError.invalidEmailLinkResponse
+        }
+        let session = RemoteOMREmailLoginSession(
             loginID: result.loginID,
             pollSecret: result.pollSecret,
-            email: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            email: normalizedEmail,
             expiresAt: expiresAt
+        )
+        try persistPendingEmailLogin(session)
+        Self.logAuthEvent("link_requested")
+        return session
+    }
+
+    func pendingEmailLoginSession() -> RemoteOMREmailLoginSession? {
+        guard let data = defaults.data(forKey: Self.pendingEmailLoginKey),
+              let metadata = try? JSONDecoder().decode(PendingRemoteOMREmailLoginMetadata.self, from: data),
+              metadata.expiresAt > Date(),
+              let pollSecret = try? Self.readKeychainValue(account: Self.pendingPollSecretKeychainAccount),
+              pollSecret.isEmpty == false else {
+            clearPendingEmailLogin()
+            return nil
+        }
+        return RemoteOMREmailLoginSession(
+            loginID: metadata.loginID,
+            pollSecret: pollSecret,
+            email: metadata.email,
+            expiresAt: metadata.expiresAt
         )
     }
 
@@ -311,24 +355,35 @@ final class RemoteOMRConfigurationStore: ObservableObject {
                 RemoteOMRAuthPollRequest(loginID: session.loginID, pollSecret: session.pollSecret)
             )
             let (data, response) = try await URLSession.shared.data(for: request)
-            try Self.validate(response: response, data: data)
-            let result = try JSONDecoder().decode(RemoteOMRAuthPollResponse.self, from: data)
+            try Self.validate(response: response, data: data, operation: "auth_poll")
+            let result: RemoteOMRAuthPollResponse
+            do {
+                result = try JSONDecoder().decode(RemoteOMRAuthPollResponse.self, from: data)
+            } catch {
+                Self.logAuthEvent("invalid_poll_response")
+                throw RemoteOMRServiceError.invalidEmailPollResponse
+            }
             switch result.state {
             case .pending:
                 try await Task.sleep(for: .seconds(2))
             case .expired:
+                clearPendingEmailLogin()
                 throw RemoteOMRServiceError.emailConnectionExpired
             case .connected:
                 guard let token = result.deviceToken, token.isEmpty == false else {
-                    throw RemoteOMRServiceError.invalidResponse
+                    Self.logAuthEvent("missing_device_credential")
+                    throw RemoteOMRServiceError.invalidEmailPollResponse
                 }
                 try Self.storeToken(token)
                 defaults.set(session.email, forKey: Self.connectedEmailKey)
+                clearPendingEmailLogin()
                 connectedEmail = session.email
                 isConfigured = true
+                Self.logAuthEvent("device_connected")
                 return
             }
         }
+        clearPendingEmailLogin()
         throw RemoteOMRServiceError.emailConnectionExpired
     }
 
@@ -439,11 +494,37 @@ final class RemoteOMRConfigurationStore: ObservableObject {
         #endif
     }
 
-    private static func validate(response: URLResponse, data: Data) throws {
+    private func persistPendingEmailLogin(_ session: RemoteOMREmailLoginSession) throws {
+        try Self.storeKeychainValue(session.pollSecret, account: Self.pendingPollSecretKeychainAccount)
+        let metadata = PendingRemoteOMREmailLoginMetadata(
+            loginID: session.loginID,
+            email: session.email,
+            expiresAt: session.expiresAt
+        )
+        do {
+            defaults.set(try JSONEncoder().encode(metadata), forKey: Self.pendingEmailLoginKey)
+        } catch {
+            Self.deleteKeychainValue(account: Self.pendingPollSecretKeychainAccount)
+            throw error
+        }
+    }
+
+    private func clearPendingEmailLogin() {
+        Self.deleteKeychainValue(account: Self.pendingPollSecretKeychainAccount)
+        defaults.removeObject(forKey: Self.pendingEmailLoginKey)
+    }
+
+    private static func logAuthEvent(_ event: String, status: Int? = nil) {
+        authLogger.debug("event=\(event, privacy: .public) status=\(status ?? 0, privacy: .public)")
+    }
+
+    private static func validate(response: URLResponse, data: Data, operation: String = "request") throws {
         guard let http = response as? HTTPURLResponse else {
+            logAuthEvent("non_http_\(operation)")
             throw RemoteOMRServiceError.invalidResponse
         }
         guard (200...299).contains(http.statusCode) else {
+            logAuthEvent("http_\(operation)", status: http.statusCode)
             let detail = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
             if http.statusCode == 429,
                let rateLimit = detail?["detail"] as? [String: Any],

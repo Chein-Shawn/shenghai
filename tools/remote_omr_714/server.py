@@ -757,15 +757,20 @@ class CRMStore:
 
 
 def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def utc_after(minutes: int) -> str:
-    return (datetime.now(timezone.utc) + timedelta(minutes=minutes)).isoformat()
+    return (
+        (datetime.now(timezone.utc) + timedelta(minutes=minutes))
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def is_expired(value: str) -> bool:
-    return datetime.fromisoformat(value) <= datetime.now(timezone.utc)
+    return datetime.fromisoformat(value.replace("Z", "+00:00")) <= datetime.now(timezone.utc)
 
 
 def hash_secret(value: str) -> str:
@@ -1210,7 +1215,10 @@ def verify_auth_link(token: str) -> HTMLResponse:
         str(session["device_label"]),
     )
     crm_store.verify_auth_session(str(session["login_id"]), account_id)
-    return auth_html("VocalDive connected", "Return to VocalDive. This device can now use Scan to MusicXML.")
+    return auth_html(
+        "VocalDive connected",
+        "Return to the VocalDive device that requested this link. It will finish connecting shortly.",
+    )
 
 
 @app.post("/v1/auth/poll", response_model=AuthPollResponse)

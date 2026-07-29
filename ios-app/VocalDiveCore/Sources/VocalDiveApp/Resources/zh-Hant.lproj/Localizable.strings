@@ -486,7 +486,11 @@
 "settings.vocaldive_omr.description" = "使用電子郵件連線。VocalDive 會私密保存這部裝置的存取憑證。";
 "settings.vocaldive_omr.email" = "電子郵件地址";
 "settings.vocaldive_omr.send_link" = "傳送驗證連結";
-"settings.vocaldive_omr.waiting" = "請查看 %@，再開啟驗證連結。";
+"settings.vocaldive_omr.waiting" = "請開啟寄到 %@ 的驗證連結，再回到此裝置；VocalDive 會自動完成連線。";
+"settings.vocaldive_omr.link_response_invalid" = "VocalDive 無法開始電子郵件驗證，請索取新的連結。";
+"settings.vocaldive_omr.poll_response_invalid" = "VocalDive 無法完成此裝置的連線，請回到這裡再試一次。";
+"settings.vocaldive_omr.connection_expired" = "此驗證連結已過期，請索取新的連結。";
+"settings.vocaldive_omr.connection_failed" = "VocalDive 目前無法連線，請檢查網路後再試。";
 "settings.vocaldive_omr.connected" = "已以 %@ 連線";
 "settings.vocaldive_omr.reconnect" = "重新連線";
 "settings.vocaldive_omr.disconnect" = "中斷連線";

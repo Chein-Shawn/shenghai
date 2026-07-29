@@ -7,6 +7,7 @@ struct SupportView: View {
     @ObservedObject var workspace: VocalDiveWorkspace
     @EnvironmentObject private var appSettings: AppSettingsStore
     @Environment(\.openURL) private var openURL
+    @Environment(\.scenePhase) private var scenePhase
     @State private var category: FeedbackCategory = .bug
     @State private var summary = ""
     @State private var details = ""
@@ -51,6 +52,12 @@ struct SupportView: View {
         .onAppear {
             remoteOMREndpoint = remoteOMR.endpointString
             loadRemoteOMRProfile()
+            resumeRemoteOMREmailConnectionIfNeeded()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                resumeRemoteOMREmailConnectionIfNeeded()
+            }
         }
         .alert(L10n.tr("settings.vocaldive_omr.consent_title"), isPresented: $showRemoteOMRConsent) {
             Button(L10n.tr("settings.vocaldive_omr.consent_cancel"), role: .cancel) {}
@@ -133,6 +140,11 @@ struct SupportView: View {
                 TextField(L10n.tr("settings.vocaldive_omr.email"), text: $remoteOMREmail)
                     .textFieldStyle(.roundedBorder)
                     .autocorrectionDisabled()
+                    #if os(iOS)
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(.emailAddress)
+                    .textContentType(.emailAddress)
+                    #endif
 
                 Button(L10n.tr("settings.vocaldive_omr.send_link")) {
                     beginRemoteOMREmailConnection()
@@ -180,15 +192,40 @@ struct SupportView: View {
     }
 
     private func connectRemoteOMRWithEmail() {
-        let email = remoteOMREmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        let email = remoteOMREmail.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        remoteOMREmail = email
         isConnectingRemoteOMR = true
         remoteOMRStatus = ""
         Task {
             do {
                 let session = try await remoteOMR.requestEmailLink(email: email)
-                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.waiting", email)
+                isConnectingRemoteOMR = false
+                beginRemoteOMREmailPolling(session)
+            } catch {
+                remoteOMRStatus = remoteOMRErrorMessage(error)
+                isConnectingRemoteOMR = false
+            }
+        }
+    }
+
+    private func resumeRemoteOMREmailConnectionIfNeeded() {
+        guard remoteOMR.isConfigured == false,
+              isConnectingRemoteOMR == false,
+              let session = remoteOMR.pendingEmailLoginSession() else {
+            return
+        }
+        remoteOMREmail = session.email
+        beginRemoteOMREmailPolling(session)
+    }
+
+    private func beginRemoteOMREmailPolling(_ session: RemoteOMREmailLoginSession) {
+        guard isConnectingRemoteOMR == false else { return }
+        isConnectingRemoteOMR = true
+        remoteOMRStatus = L10n.tr("settings.vocaldive_omr.waiting", session.email)
+        Task {
+            do {
                 try await remoteOMR.waitForEmailConnection(session)
-                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.connected", email)
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.connected", session.email)
                 loadRemoteOMRProfile()
             } catch {
                 remoteOMRStatus = remoteOMRErrorMessage(error)
@@ -241,11 +278,22 @@ struct SupportView: View {
     }
 
     private func remoteOMRErrorMessage(_ error: Error) -> String {
-        guard case let .emailLinkRateLimited(seconds) = error as? RemoteOMRServiceError else {
-            return L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+        guard let remoteError = error as? RemoteOMRServiceError else {
+            return L10n.tr("settings.vocaldive_omr.connection_failed")
         }
-        let duration = String(format: "%02d:%02d", seconds / 60, seconds % 60)
-        return L10n.tr("settings.vocaldive_omr.rate_limited", duration)
+        switch remoteError {
+        case let .emailLinkRateLimited(seconds):
+            let duration = String(format: "%02d:%02d", seconds / 60, seconds % 60)
+            return L10n.tr("settings.vocaldive_omr.rate_limited", duration)
+        case .invalidEmailLinkResponse:
+            return L10n.tr("settings.vocaldive_omr.link_response_invalid")
+        case .invalidEmailPollResponse:
+            return L10n.tr("settings.vocaldive_omr.poll_response_invalid")
+        case .emailConnectionExpired:
+            return L10n.tr("settings.vocaldive_omr.connection_expired")
+        default:
+            return L10n.tr("settings.vocaldive_omr.connection_failed")
+        }
     }
 
     private var quickLinks: some View {

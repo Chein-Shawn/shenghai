@@ -457,8 +457,11 @@ Email-link authentication separates public beta access from host operation:
 ```text
 VocalDive App email entry
   -> POST /v1/auth/request-link
+  -> Keychain poll secret + app-storage non-secret pending-session metadata
   -> Resend from access@auth.vocaldive.com
   -> one-time verification link
+  -> verification page instructs the user to return to the requesting device
+  -> POST /v1/auth/poll resumes the pending installation session
   -> account hash + separate hashed device credential in 714 SQLite
   -> Keychain on the originating Apple device
   -> account-owned OMR jobs and results
@@ -466,6 +469,14 @@ VocalDive App email entry
 
 `tokens.json` remains strictly operator-only for worker mode and storage dashboard
 endpoints. It is not entered into VocalDive and cannot access ordinary user jobs.
+
+The authentication API emits expiry values as RFC 3339 UTC `Z` timestamps without fractional
+seconds. The App parser also accepts the prior fractional-second representation, allowing a
+mobile release and worker release to be deployed independently. It stores the pending poll secret
+in Keychain and only the login ID, normalized email, and expiry in app storage. Foregrounding the
+App or reopening Settings resumes polling until the link is consumed, expired, disconnected, or
+the server address changes. Development diagnostics record only the connection stage and HTTP
+status; they never record emails, device credentials, poll secrets, or verification URLs.
 
 Email-link delivery limits are configurable in the 714 `.env`. The public beta defaults to
 ten accepted link requests per email and forty per source IP in a fifteen-minute window.

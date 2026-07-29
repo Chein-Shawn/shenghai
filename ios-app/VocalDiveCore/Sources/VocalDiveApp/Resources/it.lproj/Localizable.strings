@@ -489,7 +489,11 @@
 "settings.vocaldive_omr.description" = "Connect with email. VocalDive keeps this device credential private.";
 "settings.vocaldive_omr.email" = "Email address";
 "settings.vocaldive_omr.send_link" = "Send verification link";
-"settings.vocaldive_omr.waiting" = "Check %@, then open the verification link.";
+"settings.vocaldive_omr.waiting" = "Apri il link di verifica inviato a %@ e torna a questo dispositivo. VocalDive completerà la connessione automaticamente.";
+"settings.vocaldive_omr.link_response_invalid" = "VocalDive non ha potuto avviare la verifica email. Richiedi un nuovo link.";
+"settings.vocaldive_omr.poll_response_invalid" = "VocalDive non ha potuto completare la connessione di questo dispositivo. Torna qui e riprova.";
+"settings.vocaldive_omr.connection_expired" = "Questo link di verifica è scaduto. Richiedi un nuovo link.";
+"settings.vocaldive_omr.connection_failed" = "VocalDive non riesce a connettersi ora. Controlla la connessione e riprova.";
 "settings.vocaldive_omr.connected" = "Connected as %@";
 "settings.vocaldive_omr.reconnect" = "Reconnect";
 "settings.vocaldive_omr.disconnect" = "Disconnect";

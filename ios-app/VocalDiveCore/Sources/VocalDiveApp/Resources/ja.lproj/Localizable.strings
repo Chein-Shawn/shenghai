@@ -489,7 +489,11 @@
 "settings.vocaldive_omr.description" = "メールで接続します。VocalDive はこの端末の認証情報を非公開で保存します。";
 "settings.vocaldive_omr.email" = "メールアドレス";
 "settings.vocaldive_omr.send_link" = "確認リンクを送信";
-"settings.vocaldive_omr.waiting" = "%@ を確認し、認証リンクを開いてください。";
+"settings.vocaldive_omr.waiting" = "%@ に送信した認証リンクを開き、このデバイスに戻ってください。VocalDive が自動的に接続を完了します。";
+"settings.vocaldive_omr.link_response_invalid" = "VocalDive はメール認証を開始できませんでした。新しいリンクをリクエストしてください。";
+"settings.vocaldive_omr.poll_response_invalid" = "VocalDive はこのデバイスの接続を完了できませんでした。ここに戻ってもう一度お試しください。";
+"settings.vocaldive_omr.connection_expired" = "この認証リンクの有効期限が切れました。新しいリンクをリクエストしてください。";
+"settings.vocaldive_omr.connection_failed" = "現在 VocalDive に接続できません。接続を確認してもう一度お試しください。";
 "settings.vocaldive_omr.connected" = "%@ として接続済み";
 "settings.vocaldive_omr.reconnect" = "再接続";
 "settings.vocaldive_omr.disconnect" = "接続を解除";

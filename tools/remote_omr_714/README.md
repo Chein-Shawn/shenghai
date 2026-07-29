@@ -133,6 +133,13 @@ restore remains straightforward.
 The App pre-fills `https://omr.vocaldive.com`. A user enters an email address and opens the
 one-time link sent as `VocalDive <access@auth.vocaldive.com>` with reply-to
 `support@vocaldive.com`. The link expires after fifteen minutes and can only be used once.
+`POST /v1/auth/request-link` returns its expiry as RFC 3339 UTC in the form
+`2026-07-30T12:34:56Z`; the App also accepts earlier fractional-second values while a server
+update is rolling out. The App saves the pending poll secret in Keychain and only its non-secret
+login metadata in app storage, so returning from the email or reopening VocalDive resumes the
+same pending connection. The verification page deliberately tells the user to return to the
+device that requested the link: it may be opened on another phone, iPad, Mac, or browser, so a
+deep link cannot safely identify the requesting installation.
 The public beta permits ten accepted requests per email and forty per IP address in each
 fifteen-minute window. Set `VOCALDIVE_OMR_EMAIL_REQUEST_WINDOW_SECONDS`,
 `VOCALDIVE_OMR_EMAIL_REQUEST_LIMIT`, and `VOCALDIVE_OMR_IP_REQUEST_LIMIT` in `.env` to

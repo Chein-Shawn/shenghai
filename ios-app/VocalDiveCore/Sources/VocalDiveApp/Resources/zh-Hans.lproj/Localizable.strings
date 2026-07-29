@@ -488,7 +488,11 @@
 "settings.vocaldive_omr.description" = "使用电子邮件连接。VocalDive 会私密保存此设备的访问凭证。";
 "settings.vocaldive_omr.email" = "电子邮件地址";
 "settings.vocaldive_omr.send_link" = "发送验证链接";
-"settings.vocaldive_omr.waiting" = "请查看 %@，然后打开验证链接。";
+"settings.vocaldive_omr.waiting" = "请打开寄到 %@ 的验证链接，然后返回此设备；VocalDive 会自动完成连接。";
+"settings.vocaldive_omr.link_response_invalid" = "VocalDive 无法开始电子邮件验证，请获取新的链接。";
+"settings.vocaldive_omr.poll_response_invalid" = "VocalDive 无法完成此设备的连接，请返回这里再试一次。";
+"settings.vocaldive_omr.connection_expired" = "此验证链接已过期，请获取新的链接。";
+"settings.vocaldive_omr.connection_failed" = "VocalDive 目前无法连接，请检查网络后重试。";
 "settings.vocaldive_omr.connected" = "已使用 %@ 连接";
 "settings.vocaldive_omr.reconnect" = "重新连接";
 "settings.vocaldive_omr.disconnect" = "断开连接";

@@ -489,7 +489,11 @@
 "settings.vocaldive_omr.description" = "Connect with email. VocalDive keeps this device credential private.";
 "settings.vocaldive_omr.email" = "Email address";
 "settings.vocaldive_omr.send_link" = "Send verification link";
-"settings.vocaldive_omr.waiting" = "Check %@, then open the verification link.";
+"settings.vocaldive_omr.waiting" = "%@로 보낸 인증 링크를 연 다음 이 기기로 돌아오세요. VocalDive가 자동으로 연결을 완료합니다.";
+"settings.vocaldive_omr.link_response_invalid" = "VocalDive에서 이메일 인증을 시작할 수 없습니다. 새 링크를 요청하세요.";
+"settings.vocaldive_omr.poll_response_invalid" = "VocalDive에서 이 기기의 연결을 완료할 수 없습니다. 여기로 돌아와 다시 시도하세요.";
+"settings.vocaldive_omr.connection_expired" = "이 인증 링크는 만료되었습니다. 새 링크를 요청하세요.";
+"settings.vocaldive_omr.connection_failed" = "지금은 VocalDive에 연결할 수 없습니다. 연결을 확인한 후 다시 시도하세요.";
 "settings.vocaldive_omr.connected" = "Connected as %@";
 "settings.vocaldive_omr.reconnect" = "Reconnect";
 "settings.vocaldive_omr.disconnect" = "Disconnect";

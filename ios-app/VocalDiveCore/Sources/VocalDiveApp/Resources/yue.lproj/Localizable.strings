@@ -489,7 +489,11 @@
 "settings.vocaldive_omr.description" = "Connect with email. VocalDive keeps this device credential private.";
 "settings.vocaldive_omr.email" = "Email address";
 "settings.vocaldive_omr.send_link" = "Send verification link";
-"settings.vocaldive_omr.waiting" = "Check %@, then open the verification link.";
+"settings.vocaldive_omr.waiting" = "請開啟寄去 %@ 嘅驗證連結，然後返嚟呢部裝置；VocalDive 會自動完成連線。";
+"settings.vocaldive_omr.link_response_invalid" = "VocalDive 未能開始電郵驗證，請索取新連結。";
+"settings.vocaldive_omr.poll_response_invalid" = "VocalDive 未能完成呢部裝置嘅連線，請返嚟再試。";
+"settings.vocaldive_omr.connection_expired" = "呢個驗證連結已過期，請索取新連結。";
+"settings.vocaldive_omr.connection_failed" = "VocalDive 而家未能連線，請檢查網絡後再試。";
 "settings.vocaldive_omr.connected" = "Connected as %@";
 "settings.vocaldive_omr.reconnect" = "Reconnect";
 "settings.vocaldive_omr.disconnect" = "Disconnect";
