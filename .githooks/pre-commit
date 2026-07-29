@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+set -eu
+
+python3 tools/check_worklog_coverage.py --require-current-day

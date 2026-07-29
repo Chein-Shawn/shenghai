@@ -74,6 +74,18 @@ Every time the program is modified, treat backup as part of the same work cycle.
 - Push the backup to GitHub when network/auth permissions allow it.
 - If push is blocked, explicitly report the backup status and what remains local.
 
+## Worklog Rule
+
+- Keep `docs/worklog.md` as a concise chronological ledger with one
+  `## YYYY-MM-DD — title` entry per versioned workday.
+- Before committing substantive code, product, documentation, or tooling work,
+  run `python3 tools/check_worklog_coverage.py`.
+- Enable the repository's guard once per checkout with
+  `sh tools/install-git-hooks.sh`; GitHub Actions also validates coverage on
+  pull requests and pushes to `main`.
+- Keep raw transcripts, secrets, user data, and large generated artifacts out
+  of the worklog. Put unusually long historical material in a dated archive.
+
 ## Local Signing Rule
 
 Keep personal Apple development-team data out of tracked project files.
