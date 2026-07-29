@@ -49,6 +49,61 @@ private struct RemoteOMRCreateJobResponse: Decodable {
     }
 }
 
+private struct RemoteOMRAuthLinkRequest: Encodable {
+    var email: String
+    var deviceLabel: String
+
+    private enum CodingKeys: String, CodingKey {
+        case email
+        case deviceLabel = "device_label"
+    }
+}
+
+private struct RemoteOMRAuthLinkResponse: Decodable {
+    var loginID: String
+    var pollSecret: String
+    var expiresAt: String
+
+    private enum CodingKeys: String, CodingKey {
+        case loginID = "login_id"
+        case pollSecret = "poll_secret"
+        case expiresAt = "expires_at"
+    }
+}
+
+private struct RemoteOMRAuthPollRequest: Encodable {
+    var loginID: String
+    var pollSecret: String
+
+    private enum CodingKeys: String, CodingKey {
+        case loginID = "login_id"
+        case pollSecret = "poll_secret"
+    }
+}
+
+private struct RemoteOMRAuthPollResponse: Decodable {
+    enum State: String, Decodable {
+        case pending
+        case connected
+        case expired
+    }
+
+    var state: State
+    var deviceToken: String?
+
+    private enum CodingKeys: String, CodingKey {
+        case state
+        case deviceToken = "device_token"
+    }
+}
+
+struct RemoteOMREmailLoginSession: Equatable {
+    var loginID: String
+    var pollSecret: String
+    var email: String
+    var expiresAt: Date
+}
+
 struct RemoteOMRCompletedSession {
     var sourceName: String
     var inputKind: OMRInputKind
@@ -67,13 +122,14 @@ enum RemoteOMRServiceError: LocalizedError {
     case invalidResponse
     case server(String)
     case missingResult
+    case emailConnectionExpired
 
     var errorDescription: String? {
         switch self {
         case .notConfigured:
-            return "Private OMR server is not configured."
+            return "VocalDive OMR is not connected."
         case .invalidServerURL:
-            return "The private OMR server address is invalid."
+            return "The VocalDive OMR server address is invalid."
         case .tooManyImages:
             return "A beta scan can contain up to 30 images."
         case .tooManyPDFPages:
@@ -83,11 +139,13 @@ enum RemoteOMRServiceError: LocalizedError {
         case .mixedInputTypes:
             return "Upload one PDF or a batch of images, not both together."
         case .invalidResponse:
-            return "The private OMR server returned an invalid response."
+            return "VocalDive OMR returned an invalid response."
         case .server(let message):
             return message
         case .missingResult:
-            return "The private OMR server no longer has this result. Scan the source again."
+            return "VocalDive OMR no longer has this result. Scan the source again."
+        case .emailConnectionExpired:
+            return "This email connection link expired. Request a new link and try again."
         }
     }
 }
@@ -95,20 +153,25 @@ enum RemoteOMRServiceError: LocalizedError {
 @MainActor
 final class RemoteOMRConfigurationStore: ObservableObject {
     static let shared = RemoteOMRConfigurationStore()
+    static let defaultEndpointString = "https://omr.vocaldive.com"
 
     @Published private(set) var endpointString: String
     @Published private(set) var isConfigured: Bool
+    @Published private(set) var connectedEmail: String?
 
     private let defaults: UserDefaults
     private static let endpointKey = "vocaldive.privateOMR.endpoint"
+    private static let connectedEmailKey = "vocaldive.privateOMR.connected-email"
     private static let keychainService = "com.vocaldive.private-omr"
-    private static let keychainAccount = "beta-token"
+    private static let keychainAccount = "device-token"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        let savedEndpoint = defaults.string(forKey: Self.endpointKey) ?? ""
+        let savedEndpoint = defaults.string(forKey: Self.endpointKey) ?? Self.defaultEndpointString
         endpointString = savedEndpoint
-        isConfigured = (try? Self.readToken())?.isEmpty == false && URL(string: savedEndpoint) != nil
+        let savedEmail = defaults.string(forKey: Self.connectedEmailKey)
+        connectedEmail = savedEmail
+        isConfigured = (try? Self.readToken())?.isEmpty == false && URL(string: savedEndpoint) != nil && savedEmail != nil
     }
 
     func currentConfiguration() throws -> (endpoint: URL, token: String) {
@@ -122,25 +185,82 @@ final class RemoteOMRConfigurationStore: ObservableObject {
         return (endpoint, token)
     }
 
-    func save(endpointString: String, token: String) throws {
+    func updateEndpoint(_ endpointString: String) throws {
         let normalized = endpointString.trimmingCharacters(in: .whitespacesAndNewlines).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         guard let endpoint = URL(string: normalized), endpoint.scheme == "https", endpoint.host != nil else {
             throw RemoteOMRServiceError.invalidServerURL
         }
-        guard token.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else {
-            throw RemoteOMRServiceError.notConfigured
-        }
-        try Self.storeToken(token.trimmingCharacters(in: .whitespacesAndNewlines))
+        let changed = endpoint.absoluteString != self.endpointString
         defaults.set(endpoint.absoluteString, forKey: Self.endpointKey)
         self.endpointString = endpoint.absoluteString
-        self.isConfigured = true
+        if changed {
+            disconnect()
+        }
     }
 
-    func clear() {
-        defaults.removeObject(forKey: Self.endpointKey)
+    func disconnect() {
         Self.deleteToken()
-        endpointString = ""
+        defaults.removeObject(forKey: Self.connectedEmailKey)
+        connectedEmail = nil
         isConfigured = false
+    }
+
+    func requestEmailLink(email: String) async throws -> RemoteOMREmailLoginSession {
+        guard let endpoint = URL(string: endpointString), endpoint.scheme == "https" else {
+            throw RemoteOMRServiceError.invalidServerURL
+        }
+        var request = URLRequest(url: endpoint.appending(path: "v1/auth/request-link"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            RemoteOMRAuthLinkRequest(email: email.trimmingCharacters(in: .whitespacesAndNewlines), deviceLabel: "VocalDive device")
+        )
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try Self.validate(response: response, data: data)
+        let result = try JSONDecoder().decode(RemoteOMRAuthLinkResponse.self, from: data)
+        let formatter = ISO8601DateFormatter()
+        guard let expiresAt = formatter.date(from: result.expiresAt) else {
+            throw RemoteOMRServiceError.invalidResponse
+        }
+        return RemoteOMREmailLoginSession(
+            loginID: result.loginID,
+            pollSecret: result.pollSecret,
+            email: email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            expiresAt: expiresAt
+        )
+    }
+
+    func waitForEmailConnection(_ session: RemoteOMREmailLoginSession) async throws {
+        guard let endpoint = URL(string: endpointString), endpoint.scheme == "https" else {
+            throw RemoteOMRServiceError.invalidServerURL
+        }
+        while Date() < session.expiresAt {
+            var request = URLRequest(url: endpoint.appending(path: "v1/auth/poll"))
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try JSONEncoder().encode(
+                RemoteOMRAuthPollRequest(loginID: session.loginID, pollSecret: session.pollSecret)
+            )
+            let (data, response) = try await URLSession.shared.data(for: request)
+            try Self.validate(response: response, data: data)
+            let result = try JSONDecoder().decode(RemoteOMRAuthPollResponse.self, from: data)
+            switch result.state {
+            case .pending:
+                try await Task.sleep(for: .seconds(2))
+            case .expired:
+                throw RemoteOMRServiceError.emailConnectionExpired
+            case .connected:
+                guard let token = result.deviceToken, token.isEmpty == false else {
+                    throw RemoteOMRServiceError.invalidResponse
+                }
+                try Self.storeToken(token)
+                defaults.set(session.email, forKey: Self.connectedEmailKey)
+                connectedEmail = session.email
+                isConfigured = true
+                return
+            }
+        }
+        throw RemoteOMRServiceError.emailConnectionExpired
     }
 
     private static func readToken() throws -> String {
@@ -183,6 +303,16 @@ final class RemoteOMRConfigurationStore: ObservableObject {
             kSecAttrAccount: keychainAccount
         ]
         SecItemDelete(query as CFDictionary)
+    }
+
+    private static func validate(response: URLResponse, data: Data) throws {
+        guard let http = response as? HTTPURLResponse else {
+            throw RemoteOMRServiceError.invalidResponse
+        }
+        guard (200...299).contains(http.statusCode) else {
+            let detail = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            throw RemoteOMRServiceError.server(detail?["detail"] as? String ?? "VocalDive OMR could not complete that request.")
+        }
     }
 }
 
@@ -461,7 +591,7 @@ final class RemoteOMRService {
         )
         while status.state != .ready {
             if status.state == .failed || status.state == .cancelled {
-                throw RemoteOMRServiceError.server(status.error ?? status.detail ?? "Private OMR did not finish.")
+                throw RemoteOMRServiceError.server(status.error ?? status.detail ?? "VocalDive OMR did not finish.")
             }
             let queueDetail = status.queuePosition.map { L10n.tr("score.scan.queue_position", $0) } ?? ""
             progress?(progressValue(for: status), queueDetail)
@@ -564,7 +694,7 @@ final class RemoteOMRService {
         guard let http = response as? HTTPURLResponse else { throw RemoteOMRServiceError.invalidResponse }
         guard (200..<300).contains(http.statusCode) else {
             let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
-            throw RemoteOMRServiceError.server(message ?? "Private OMR server returned HTTP \(http.statusCode).")
+            throw RemoteOMRServiceError.server(message ?? "VocalDive OMR returned HTTP \(http.statusCode).")
         }
     }
 

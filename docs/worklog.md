@@ -834,3 +834,12 @@ It does not yet perform PDF/image OMR. OMR requires installing or otherwise acce
 - Added all scan/server/queue and settings copy to the 14 shipped app languages. The Score importer now accepts a multi-image batch only for scan flow and keeps direct MusicXML import unchanged.
 - Kept original uploads, oemer checkpoint/runtime assets, server tokens, and all generated recognition artifacts out of Git. The 714 host owner manually removes complete date folders when ready.
 - Verification: `swift build --package-path ios-app/VocalDiveCore --product VocalDiveApp`, `python3 -m py_compile tools/remote_omr_714/server.py`, localization coverage, and patch whitespace checks passed locally. Actual RTX 3090 recognition and secure public-endpoint reachability still require deployment on 714.
+
+# 2026-07-29: Email-link VocalDive OMR beta access
+
+- Replaced ordinary-user beta-token setup with an email-link connection flow. The App now defaults to `https://omr.vocaldive.com`, keeps the server address behind advanced settings, and saves only the returned device credential in Keychain.
+- Added SQLite-backed accounts, device credentials, one-time magic links, short-lived polling sessions, email/IP request limits, account-owned job access, and one-active-job-per-account enforcement to the 714 service. Static `tokens.json` access remains limited to worker-mode and storage-dashboard operator endpoints.
+- Added Resend delivery configuration for `VocalDive <access@auth.vocaldive.com>` with replies routed to `support@vocaldive.com`. The API key remains an environment-only 714 secret.
+- Added a first-scan disclosure before any PDF/image reaches 714. It explains that the selected source is uploaded to the private service and retained in a date/job folder until the host owner manually deletes it.
+- Recorded job queue, phase timings, GPU snapshots, and storage metadata for a later quota decision; public beta intentionally has no daily OMR quota yet.
+- Updated the 714 deployment guide, C4 system boundary, and all 14 shipped localization files. No user source, Resend secret, SQLite database, or device credential is versioned in Git.

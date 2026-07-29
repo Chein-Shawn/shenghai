@@ -15,8 +15,9 @@ struct SupportView: View {
     @State private var isSubmitting = false
     @ObservedObject private var remoteOMR = RemoteOMRConfigurationStore.shared
     @State private var remoteOMREndpoint = ""
-    @State private var remoteOMRToken = ""
+    @State private var remoteOMREmail = ""
     @State private var remoteOMRStatus = ""
+    @State private var isConnectingRemoteOMR = false
 
     private let manualURL = URL(string: "https://chein-shawn.github.io/vocaldive/manual.html")
     private let changelogURL = URL(string: "https://chein-shawn.github.io/vocaldive/changelog.html")
@@ -49,40 +50,59 @@ struct SupportView: View {
 
     private var privateOMRSettings: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionTitle(L10n.tr("settings.private_omr.section"))
+            SectionTitle(L10n.tr("settings.vocaldive_omr.section"))
 
-            Text(L10n.tr("settings.private_omr.description"))
+            Text(L10n.tr("settings.vocaldive_omr.description"))
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            TextField(L10n.tr("settings.private_omr.server"), text: $remoteOMREndpoint)
-                .textFieldStyle(.roundedBorder)
-                .autocorrectionDisabled()
+            if let connectedEmail = remoteOMR.connectedEmail, remoteOMR.isConfigured {
+                Label(L10n.tr("settings.vocaldive_omr.connected", connectedEmail), systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
 
-            SecureField(L10n.tr("settings.private_omr.token"), text: $remoteOMRToken)
-                .textFieldStyle(.roundedBorder)
-
-            HStack(spacing: 10) {
-                Button(L10n.tr("settings.private_omr.save")) {
-                    do {
-                        try remoteOMR.save(endpointString: remoteOMREndpoint, token: remoteOMRToken)
-                        remoteOMRToken = ""
-                        remoteOMRStatus = L10n.tr("settings.private_omr.saved")
-                    } catch {
-                        remoteOMRStatus = L10n.tr("settings.private_omr.failed", error.localizedDescription)
+                HStack(spacing: 10) {
+                    Button(L10n.tr("settings.vocaldive_omr.reconnect")) {
+                        remoteOMR.disconnect()
+                        remoteOMRStatus = ""
                     }
-                }
-                .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
 
-                if remoteOMR.isConfigured {
-                    Button(L10n.tr("settings.private_omr.remove"), role: .destructive) {
-                        remoteOMR.clear()
-                        remoteOMREndpoint = ""
-                        remoteOMRToken = ""
+                    Button(L10n.tr("settings.vocaldive_omr.disconnect"), role: .destructive) {
+                        remoteOMR.disconnect()
                         remoteOMRStatus = ""
                     }
                     .buttonStyle(.bordered)
                 }
+            } else {
+                TextField(L10n.tr("settings.vocaldive_omr.email"), text: $remoteOMREmail)
+                    .textFieldStyle(.roundedBorder)
+                    .autocorrectionDisabled()
+
+                Button(L10n.tr("settings.vocaldive_omr.send_link")) {
+                    beginRemoteOMREmailConnection()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(remoteOMREmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isConnectingRemoteOMR)
+            }
+
+            DisclosureGroup(L10n.tr("settings.vocaldive_omr.advanced")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField(L10n.tr("settings.vocaldive_omr.server"), text: $remoteOMREndpoint)
+                        .textFieldStyle(.roundedBorder)
+                        .autocorrectionDisabled()
+
+                    Button(L10n.tr("settings.vocaldive_omr.save_server")) {
+                        do {
+                            try remoteOMR.updateEndpoint(remoteOMREndpoint)
+                            remoteOMREndpoint = remoteOMR.endpointString
+                            remoteOMRStatus = L10n.tr("settings.vocaldive_omr.updated")
+                        } catch {
+                            remoteOMRStatus = L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .padding(.top, 6)
             }
 
             if remoteOMRStatus.isEmpty == false {
@@ -96,6 +116,23 @@ struct SupportView: View {
         .overlay {
             RoundedRectangle(cornerRadius: 8)
                 .stroke(.quaternary, lineWidth: 1)
+        }
+    }
+
+    private func beginRemoteOMREmailConnection() {
+        let email = remoteOMREmail.trimmingCharacters(in: .whitespacesAndNewlines)
+        isConnectingRemoteOMR = true
+        remoteOMRStatus = ""
+        Task {
+            do {
+                let session = try await remoteOMR.requestEmailLink(email: email)
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.waiting", email)
+                try await remoteOMR.waitForEmailConnection(session)
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.connected", email)
+            } catch {
+                remoteOMRStatus = L10n.tr("settings.vocaldive_omr.failed", error.localizedDescription)
+            }
+            isConnectingRemoteOMR = false
         }
     }
 

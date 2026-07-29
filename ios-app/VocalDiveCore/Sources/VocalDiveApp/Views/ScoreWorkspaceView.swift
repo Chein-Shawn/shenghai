@@ -166,6 +166,26 @@ struct ScoreWorkspaceView: View {
             }
             workspace.importScoreFiles(urls: urls)
         }
+        .alert(
+            L10n.tr("score.scan.upload_disclosure.title"),
+            isPresented: Binding(
+                get: { workspace.remoteOMRUploadDisclosure != nil },
+                set: { presented in
+                    if presented == false {
+                        workspace.cancelRemoteOMRUpload()
+                    }
+                }
+            )
+        ) {
+            Button(L10n.tr("score.scan.upload_disclosure.cancel"), role: .cancel) {
+                workspace.cancelRemoteOMRUpload()
+            }
+            Button(L10n.tr("score.scan.upload_disclosure.confirm")) {
+                workspace.confirmRemoteOMRUpload()
+            }
+        } message: {
+            Text(L10n.tr("score.scan.upload_disclosure.message"))
+        }
     }
 }
 
@@ -397,7 +417,7 @@ private struct ScoreLandingView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
 
-                            Text(L10n.tr("score.scan.model_description"))
+                            Text(L10n.tr("score.scan.model_description_vocaldive"))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                                 .padding(10)

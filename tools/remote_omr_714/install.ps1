@@ -10,7 +10,7 @@ if (-not (Test-Path "$serviceRoot\.env")) {
 }
 if (-not (Test-Path "$stateRoot\tokens.json")) {
     Copy-Item "$serviceRoot\tokens.example.json" "$stateRoot\tokens.json"
-    Write-Warning "Replace the sample token in $stateRoot\tokens.json before accepting beta users."
+    Write-Warning "Replace the sample token in $stateRoot\tokens.json before using operator mode or storage dashboard endpoints."
 }
 
 py -3.11 -m venv $venvRoot
@@ -22,4 +22,4 @@ $taskCommand = "powershell.exe -ExecutionPolicy Bypass -File `"$serviceRoot\run.
 schtasks /Create /TN $taskName /SC ONSTART /RU SYSTEM /RL HIGHEST /TR $taskCommand /F
 
 Write-Host "Installed $taskName. Start it now with: schtasks /Run /TN `"$taskName`""
-Write-Host "Before that, edit $serviceRoot\.env and $stateRoot\tokens.json."
+Write-Host "Before that, add the restricted Resend sending key to $serviceRoot\.env and replace the operator token in $stateRoot\tokens.json."

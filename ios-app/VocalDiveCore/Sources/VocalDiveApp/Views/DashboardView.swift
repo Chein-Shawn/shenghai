@@ -31,7 +31,7 @@ struct DashboardView: View {
                     PipelineRow(title: L10n.tr("MIDI playback/export"), state: .ready)
                     PipelineRow(title: L10n.tr("Experimental Sing-to-Dismiss Alarm"), state: .planned, detail: L10n.tr("Full-song in-app challenge model exists; OS-level alarm behavior depends on platform APIs."))
                     PipelineRow(title: L10n.tr("Experimental Text Rhythm Speech Lab"), state: .planned, detail: L10n.tr("Paragraph rhythm guide and speech-practice scoring model exists."))
-                    PipelineRow(title: L10n.tr("settings.private_omr.section"), state: .ready, detail: L10n.tr("score.scan.model_description"))
+                    PipelineRow(title: L10n.tr("settings.vocaldive_omr.section"), state: .ready, detail: L10n.tr("score.scan.model_description_vocaldive"))
                     PipelineRow(title: L10n.tr("Real microphone pitch tracking"), state: .planned, detail: L10n.tr("Core deviation model exists; live tracker is next."))
                 }
             }

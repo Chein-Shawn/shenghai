@@ -17,6 +17,11 @@ enum ScoreImportFlow {
     case scan
 }
 
+struct RemoteOMRUploadDisclosure: Identifiable {
+    let id = UUID()
+    let sourceCount: Int
+}
+
 @MainActor
 final class VocalDiveWorkspace: ObservableObject {
     @Published var selectedSection: AppSection = .dashboard {
@@ -60,6 +65,10 @@ final class VocalDiveWorkspace: ObservableObject {
     private let importer = MusicXMLImporter()
     private let nativeOMRPrototypeService = NativeOMRPrototypeService()
     private let remoteOMRService = RemoteOMRService()
+    @Published var remoteOMRUploadDisclosure: RemoteOMRUploadDisclosure?
+    private var pendingRemoteOMRURLs: [URL] = []
+    private var pendingRemoteOMRSourceKind: MusicXMLEditorSourceKind?
+    private var pendingRemoteOMRSecurityScopedURLs: [URL] = []
     private let playbackService = MIDIPlaybackService()
     private let persistence: PersistenceCoordinator
     private var annotationPersistenceEnabled = true
@@ -230,7 +239,7 @@ final class VocalDiveWorkspace: ObservableObject {
             return
         }
         if urls.count > 1 {
-            runRemoteOMRImport(urls: urls, sourceKind: .scanCandidate)
+            requestRemoteOMRImport(urls: urls, sourceKind: .scanCandidate)
             return
         }
         let url = firstURL
@@ -242,13 +251,13 @@ final class VocalDiveWorkspace: ObservableObject {
         }
 
         if lowercasedExtension == "pdf" {
-            runRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
+            requestRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
             return
         }
 
         if let type = UTType(filenameExtension: lowercasedExtension),
            type.conforms(to: .image) {
-            runRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
+            requestRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
             return
         }
 
@@ -405,20 +414,63 @@ final class VocalDiveWorkspace: ObservableObject {
     }
 
     func runNativeOMRImport(url: URL) {
-        runRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
+        requestRemoteOMRImport(urls: [url], sourceKind: .scanCandidate)
     }
 
-    private func runRemoteOMRImport(urls: [URL], sourceKind: MusicXMLEditorSourceKind) {
+    func confirmRemoteOMRUpload() {
+        let urls = pendingRemoteOMRURLs
+        let sourceKind = pendingRemoteOMRSourceKind
+        let securityScopedURLs = pendingRemoteOMRSecurityScopedURLs
+        clearPendingRemoteOMRUpload(stopAccessing: false)
+        UserDefaults.standard.set(true, forKey: "vocaldive.remoteOMR.upload-confirmed")
+        guard let sourceKind else { return }
+        runRemoteOMRImport(urls: urls, sourceKind: sourceKind, alreadyAccessedURLs: securityScopedURLs)
+    }
+
+    func cancelRemoteOMRUpload() {
+        clearPendingRemoteOMRUpload(stopAccessing: true)
+    }
+
+    private func requestRemoteOMRImport(urls: [URL], sourceKind: MusicXMLEditorSourceKind) {
+        guard urls.isEmpty == false else { return }
+        guard UserDefaults.standard.bool(forKey: "vocaldive.remoteOMR.upload-confirmed") == false else {
+            runRemoteOMRImport(urls: urls, sourceKind: sourceKind)
+            return
+        }
+        clearPendingRemoteOMRUpload(stopAccessing: true)
+        pendingRemoteOMRURLs = urls
+        pendingRemoteOMRSourceKind = sourceKind
+        pendingRemoteOMRSecurityScopedURLs = urls.filter { $0.startAccessingSecurityScopedResource() }
+        remoteOMRUploadDisclosure = RemoteOMRUploadDisclosure(sourceCount: urls.count)
+    }
+
+    private func clearPendingRemoteOMRUpload(stopAccessing: Bool) {
+        if stopAccessing {
+            pendingRemoteOMRSecurityScopedURLs.forEach { $0.stopAccessingSecurityScopedResource() }
+        }
+        pendingRemoteOMRURLs = []
+        pendingRemoteOMRSourceKind = nil
+        pendingRemoteOMRSecurityScopedURLs = []
+        remoteOMRUploadDisclosure = nil
+    }
+
+    private func runRemoteOMRImport(
+        urls: [URL],
+        sourceKind: MusicXMLEditorSourceKind,
+        alreadyAccessedURLs: [URL] = []
+    ) {
         guard urls.isEmpty == false else {
             return
         }
         let sourceName = urls.count == 1 ? urls[0].lastPathComponent : L10n.tr("score.scan.image_batch", urls.count)
-        statusMessage = L10n.tr("score.scan.connecting", sourceName)
+        statusMessage = L10n.tr("score.scan.remote_connecting", sourceName)
         errorMessage = nil
         scanProgress = .make(.connectingToServer, fraction: 0.01)
 
         Task { [weak self] in
-            let accessedURLs = urls.filter { $0.startAccessingSecurityScopedResource() }
+            let accessedURLs = alreadyAccessedURLs.isEmpty
+                ? urls.filter { $0.startAccessingSecurityScopedResource() }
+                : alreadyAccessedURLs
             defer {
                 accessedURLs.forEach { $0.stopAccessingSecurityScopedResource() }
             }
@@ -437,7 +489,7 @@ final class VocalDiveWorkspace: ObservableObject {
                 self?.scanProgress = nil
                 self?.latestNativeOMRSession = nil
                 self?.scannedMusicXMLCandidate = nil
-                self?.errorMessage = L10n.tr("score.scan.remote_failed", error.localizedDescription)
+                self?.errorMessage = L10n.tr("score.scan.remote_failed_vocaldive", error.localizedDescription)
             }
         }
     }
@@ -477,7 +529,7 @@ final class VocalDiveWorkspace: ObservableObject {
         )
         currentSampleBenchmarkResult = nil
         scanProgress = .make(.finished, fraction: 1, completedPages: reviewPages.count, totalPages: reviewPages.count)
-        statusMessage = L10n.tr("score.scan.remote_completed", reviewPages.count)
+        statusMessage = L10n.tr("score.scan.remote_completed_vocaldive", reviewPages.count)
         errorMessage = nil
         compactScoreMode = .editor
         scoreLandingMode = .scan

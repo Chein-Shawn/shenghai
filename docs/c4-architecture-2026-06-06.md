@@ -179,8 +179,9 @@ Pasted or imported MusicXML
 ```text
 PDF/image import
   -> VocalDiveWorkspace + RemoteOMRService
-  -> durable local staged source copy + Cloudflare Tunnel HTTPS
-  -> 714 FastAPI + SQLite queue + single oemer GPU worker
+  -> one-time upload disclosure + durable local staged source copy
+  -> Cloudflare Tunnel HTTPS + email-link device authentication
+  -> 714 FastAPI + SQLite accounts/devices/queue + single oemer GPU worker
   -> page images + page-aware geometry metadata + MusicXML candidate
   -> MusicXMLImporter
   -> ScoreDocument
@@ -423,8 +424,9 @@ VocalDive app
   -> original pages at left / OSMD editor at right
 ```
 
-`RemoteOMRConfigurationStore` saves only the private HTTPS endpoint in user
-defaults and the beta token in Keychain. It validates a 50 MiB total job, one
+`RemoteOMRConfigurationStore` defaults to `https://omr.vocaldive.com`, saves the
+editable HTTPS endpoint in user defaults, and stores an email-link device credential
+in Keychain. It validates a 50 MiB total job, one
 PDF of at most 30 pages, or a batch of at most 30 images before upload; the
 714 API repeats these checks. The app copies selected sources into its private
 application-support queue before network work begins. A finished result clears
@@ -441,6 +443,21 @@ date/job folder. It never automatically deletes those folders; the host owner
 removes completed date folders manually. `Available`, `Quiet`, and `Paused`
 are persisted worker modes. Quiet inspects NVIDIA utilization and VRAM before
 starting the next queued job; one GPU recognition job runs at a time.
+
+Email-link authentication separates public beta access from host operation:
+
+```text
+VocalDive App email entry
+  -> POST /v1/auth/request-link
+  -> Resend from access@auth.vocaldive.com
+  -> one-time verification link
+  -> account hash + separate hashed device credential in 714 SQLite
+  -> Keychain on the originating Apple device
+  -> account-owned OMR jobs and results
+```
+
+`tokens.json` remains strictly operator-only for worker mode and storage dashboard
+endpoints. It is not entered into VocalDive and cannot access ordinary user jobs.
 
 This is the only product-visible OMR route for the private beta. The Core ML,
 DeepScores, CPDL, and Swift reconstruction work remains a separate future
