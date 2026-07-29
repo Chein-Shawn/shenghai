@@ -503,7 +503,7 @@
 "score.scan.upload_disclosure.title" = "上传乐谱到 VocalDive 乐谱识别？";
 "score.scan.upload_disclosure.message" = "所选乐谱将上传到 VocalDive 云端服务器，并保留在按日期分类的文件夹中，直到手动删除。";
 "score.scan.upload_disclosure.confirm" = "上传并扫描";
-"score.scan.upload_disclosure.cancel" = "暂不";
+"score.scan.upload_disclosure.cancel" = "拒绝并离开";
 "score.scan.model_description_vocaldive" = "将乐谱上传至 VocalDive 乐谱识别，再校对 MusicXML 结果。";
 "score.scan.remote_completed_vocaldive" = "VocalDive 乐谱识别已从 %d 页生成 MusicXML 候选。";
 "settings.vocaldive_omr.consent_title" = "要使用 VocalDive 乐谱识别吗？";

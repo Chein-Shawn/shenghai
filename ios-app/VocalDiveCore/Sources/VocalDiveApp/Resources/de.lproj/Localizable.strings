@@ -504,7 +504,7 @@
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
 "score.scan.upload_disclosure.message" = "Ausgewählte Partituren werden auf den Cloud-Server von VocalDive hochgeladen und in datierten Ordnern gespeichert, bis sie manuell gelöscht werden.";
 "score.scan.upload_disclosure.confirm" = "Upload and scan";
-"score.scan.upload_disclosure.cancel" = "Not now";
+"score.scan.upload_disclosure.cancel" = "Ablehnen und verlassen";
 "score.scan.model_description_vocaldive" = "Upload a score to VocalDive OMR, then review the MusicXML result.";
 "score.scan.remote_completed_vocaldive" = "VocalDive OMR generated a MusicXML candidate from %d pages.";
 "settings.vocaldive_omr.consent_title" = "VocalDive OMR verwenden?";

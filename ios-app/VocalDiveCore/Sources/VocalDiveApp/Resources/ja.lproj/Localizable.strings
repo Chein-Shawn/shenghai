@@ -504,7 +504,7 @@
 "score.scan.upload_disclosure.title" = "楽譜を VocalDive 楽譜認識にアップロードしますか？";
 "score.scan.upload_disclosure.message" = "選択した楽譜は VocalDive のクラウドサーバーにアップロードされ、手動で削除されるまで日付別フォルダに保存されます。";
 "score.scan.upload_disclosure.confirm" = "アップロードしてスキャン";
-"score.scan.upload_disclosure.cancel" = "今はしない";
+"score.scan.upload_disclosure.cancel" = "拒否して終了";
 "score.scan.model_description_vocaldive" = "楽譜を VocalDive 楽譜認識にアップロードし、MusicXML の結果を確認します。";
 "score.scan.remote_completed_vocaldive" = "VocalDive 楽譜認識が %d ページから MusicXML 候補を生成しました。";
 "settings.vocaldive_omr.consent_title" = "VocalDive 楽譜認識を使用しますか？";

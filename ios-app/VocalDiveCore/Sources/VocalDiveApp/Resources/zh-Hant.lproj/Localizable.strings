@@ -501,7 +501,7 @@
 "score.scan.upload_disclosure.title" = "要上傳樂譜至 VocalDive 樂譜辨識嗎？";
 "score.scan.upload_disclosure.message" = "選取的樂譜會上傳到 VocalDive 雲端伺服器，並保留在日期資料夾中，直到手動刪除。";
 "score.scan.upload_disclosure.confirm" = "上傳並掃描";
-"score.scan.upload_disclosure.cancel" = "暫時不要";
+"score.scan.upload_disclosure.cancel" = "拒絕並離開";
 "score.scan.model_description_vocaldive" = "將樂譜上傳至 VocalDive 樂譜辨識，再校對 MusicXML 結果。";
 "score.scan.remote_completed_vocaldive" = "VocalDive 樂譜辨識已從 %d 頁產生 MusicXML 候選。";
 "settings.vocaldive_omr.consent_title" = "要使用 VocalDive 樂譜辨識嗎？";

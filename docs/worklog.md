@@ -191,3 +191,5 @@ important decisions live. The former free-form log is preserved unchanged in
 - Kept deployment topology out of the product UI: the first-scan disclosure now
   tells users that a selected score is uploaded to VocalDive's cloud server and
   retained in date-based folders until manual deletion, in every shipped language.
+- Clarified the disclosure's cancel action as an explicit refusal to upload and
+  leave the scan, rather than an ambiguous deferral.
