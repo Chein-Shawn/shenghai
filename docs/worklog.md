@@ -226,3 +226,6 @@ important decisions live. The former free-form log is preserved unchanged in
 - Extended one-use email-link lifetime from fifteen minutes to a configurable twenty-four-hour
   default. This supports longer beta and development sessions without changing the separate
   fifteen-minute email-request rate-limit window; existing links retain their issued expiry.
+- Moved remote PDF/image preparation and multipart upload-file construction off the main actor.
+  The Score UI remains responsive while preserving the same background upload, server queue, and
+  local review-image workflow.

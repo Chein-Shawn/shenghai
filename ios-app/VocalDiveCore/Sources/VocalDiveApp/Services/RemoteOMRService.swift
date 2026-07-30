@@ -713,6 +713,54 @@ private final class RemoteOMRUploadCoordinator: NSObject, URLSessionDataDelegate
     }
 }
 
+/// Rasterization and multipart construction can be expensive for a multi-page PDF.
+/// Keep those synchronous Core Graphics and file operations off the Score workspace's main actor.
+private enum RemoteOMRSourcePreparer {
+    static func renderedPages(from sourceURLs: [URL]) async throws -> [NativeOMRRenderedPage] {
+        try await Task.detached(priority: .userInitiated) {
+            let renderer = NativeOMRPrototypeService()
+            var pages: [NativeOMRRenderedPage] = []
+            for sourceURL in sourceURLs {
+                for renderedPage in try renderer.renderedPages(from: sourceURL) {
+                    pages.append(
+                        NativeOMRRenderedPage(
+                            pageIndex: pages.count,
+                            pixelWidth: renderedPage.pixelWidth,
+                            pixelHeight: renderedPage.pixelHeight,
+                            imageData: renderedPage.imageData
+                        )
+                    )
+                }
+            }
+            return pages
+        }.value
+    }
+
+    static func multipartBodyFile(sourceURLs: [URL], clientJobID: String) async throws -> URL {
+        try await Task.detached(priority: .userInitiated) {
+            guard let firstSource = sourceURLs.first else {
+                throw RemoteOMRServiceError.mixedInputTypes
+            }
+            let boundary = "VocalDive-\(clientJobID)"
+            var data = Data()
+            for url in sourceURLs {
+                let filename = url.lastPathComponent.replacingOccurrences(of: "\"", with: "")
+                let mimeType = url.pathExtension.lowercased() == "pdf" ? "application/pdf" : "image/*"
+                data.append("--\(boundary)\r\n".data(using: .utf8)!)
+                data.append("Content-Disposition: form-data; name=\"files\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+                data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+                data.append(try Data(contentsOf: url))
+                data.append("\r\n".data(using: .utf8)!)
+            }
+            data.append("--\(boundary)--\r\n".data(using: .utf8)!)
+
+            let file = firstSource.deletingLastPathComponent().appending(path: "upload-\(clientJobID).multipart")
+            try data.write(to: file, options: .atomic)
+            return file
+        }.value
+    }
+}
+
 enum RemoteOMRBackgroundTransfer {
     static func handleEvents(identifier: String, completionHandler: @escaping () -> Void) {
         guard identifier == RemoteOMRUploadCoordinator.sessionIdentifier else {
@@ -806,26 +854,17 @@ final class RemoteOMRService {
         guard let inputKind = initialJob.inputKind else { throw RemoteOMRServiceError.mixedInputTypes }
         var job = initialJob
         let sourceURLs = job.stagedPaths.map(URL.init(fileURLWithPath:))
-        var renderedPages: [NativeOMRRenderedPage] = []
-        for sourceURL in sourceURLs {
-            for renderedPage in try renderer.renderedPages(from: sourceURL) {
-                renderedPages.append(
-                    NativeOMRRenderedPage(
-                        pageIndex: renderedPages.count,
-                        pixelWidth: renderedPage.pixelWidth,
-                        pixelHeight: renderedPage.pixelHeight,
-                        imageData: renderedPage.imageData
-                    )
-                )
-            }
-        }
+        let renderedPages = try await RemoteOMRSourcePreparer.renderedPages(from: sourceURLs)
         let serverJobID: String
         if let existing = job.serverJobID {
             serverJobID = existing
         } else {
             progress?(.make(.connectingToServer, fraction: 0.03), "")
             let request = try makeUploadRequest(configuration: configuration, sourceURLs: sourceURLs, clientJobID: job.clientJobID)
-            let bodyFile = try multipartBodyFile(sourceURLs: sourceURLs, clientJobID: job.clientJobID)
+            let bodyFile = try await RemoteOMRSourcePreparer.multipartBodyFile(
+                sourceURLs: sourceURLs,
+                clientJobID: job.clientJobID
+            )
             defer { try? fileManager.removeItem(at: bodyFile) }
             progress?(.make(.uploadingToServer, fraction: 0.15, totalPages: renderedPages.count), "")
             let (data, response) = try await uploader.upload(request: request, bodyFile: bodyFile)
@@ -902,30 +941,6 @@ final class RemoteOMRService {
         request.setValue(clientJobID, forHTTPHeaderField: "Idempotency-Key")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         return request
-    }
-
-    private func multipartBodyFile(sourceURLs: [URL], clientJobID: String) throws -> URL {
-        let directory = sourceURLs[0].deletingLastPathComponent()
-        let boundary = "VocalDive-\(clientJobID)"
-        let data = try multipartBody(sourceURLs: sourceURLs, boundary: boundary)
-        let file = directory.appending(path: "upload-\(clientJobID).multipart")
-        try data.write(to: file, options: .atomic)
-        return file
-    }
-
-    private func multipartBody(sourceURLs: [URL], boundary: String) throws -> Data {
-        var data = Data()
-        for url in sourceURLs {
-            let filename = url.lastPathComponent.replacingOccurrences(of: "\"", with: "")
-            let mimeType = url.pathExtension.lowercased() == "pdf" ? "application/pdf" : "image/*"
-            data.append("--\(boundary)\r\n".data(using: .utf8)!)
-            data.append("Content-Disposition: form-data; name=\"files\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
-            data.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
-            data.append(try Data(contentsOf: url))
-            data.append("\r\n".data(using: .utf8)!)
-        }
-        data.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        return data
     }
 
     private func fetchStatus(jobID: String, configuration: (endpoint: URL, token: String)) async throws -> RemoteOMRJobStatus {

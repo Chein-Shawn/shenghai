@@ -55,7 +55,7 @@ struct NativeOMRScanProgress: Equatable {
     }
 }
 
-struct NativeOMRRenderedPage {
+struct NativeOMRRenderedPage: Sendable {
     var pageIndex: Int
     var pixelWidth: Int
     var pixelHeight: Int

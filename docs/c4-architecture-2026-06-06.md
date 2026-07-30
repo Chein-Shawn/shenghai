@@ -543,3 +543,10 @@ that starts FastAPI, rather than inheriting a fragile Windows `PATH` lookup. `/v
 If the executable disappears during a job, the queue records the stable `engine_unavailable`
 code while the host-only log retains the operating-system diagnosis. `RemoteOMRService` maps that
 code to localized recovery copy before the Score workspace displays it.
+
+### 2026-07-30 update - responsive remote source preparation
+
+The Score workspace remains on the main actor for SwiftUI state, but remote source preparation
+does not: local PDF/image rasterization and multipart body-file creation run in a detached
+user-initiated task before the background upload begins. This preserves the local review image
+handoff while keeping a multi-page scan responsive during preparation and upload.
