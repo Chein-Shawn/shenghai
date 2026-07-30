@@ -505,6 +505,7 @@
 "settings.vocaldive_omr.rate_limited" = "มีคำขอลิงก์ยืนยันมากเกินไป โปรดลองอีกครั้งใน %@";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.engine_unavailable" = "บริการรู้จำโน้ตเพลงไม่พร้อมใช้งานชั่วคราว โปรดลองอีกครั้งในอีกสักครู่";
 "score.scan.remote_connection_required" = "เชื่อมต่อ VocalDive OMR ในการตั้งค่าก่อนสแกน";
 "score.scan.remote_connection_action" = "เปิดการตั้งค่า";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";

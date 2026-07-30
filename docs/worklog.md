@@ -219,3 +219,7 @@ important decisions live. The former free-form log is preserved unchanged in
   regression tests, and all shipped localizations were updated in the same cycle.
 - Added the shared timestamp parser to the explicit Xcode source membership as well as SwiftPM,
   preventing the iOS app target from missing it during a normal Xcode build.
+- Repaired the 714 worker's oemer launch boundary after a real simulator upload reached
+  recognition but Windows could not locate the bare `oemer` command. The worker now resolves the
+  venv-owned CLI deterministically, exposes engine readiness, rejects unavailable scans before
+  upload, and reports a stable localized recovery state instead of leaking a Windows exception.

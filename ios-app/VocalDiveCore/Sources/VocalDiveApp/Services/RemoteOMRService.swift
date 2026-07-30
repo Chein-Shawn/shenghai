@@ -28,6 +28,7 @@ struct RemoteOMRJobStatus: Codable, Equatable {
     var completedPages: Int
     var detail: String?
     var error: String?
+    var errorCode: String?
     var queuePosition: Int?
 
     private enum CodingKeys: String, CodingKey {
@@ -38,6 +39,7 @@ struct RemoteOMRJobStatus: Codable, Equatable {
         case completedPages = "completed_pages"
         case detail
         case error
+        case errorCode = "error_code"
         case queuePosition = "queue_position"
     }
 }
@@ -190,6 +192,7 @@ enum RemoteOMRServiceError: LocalizedError {
     case emailConnectionExpired
     case emailLinkRateLimited(Int)
     case sourceNoLongerRetained
+    case engineUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -221,6 +224,8 @@ enum RemoteOMRServiceError: LocalizedError {
             return "Too many verification-link requests."
         case .sourceNoLongerRetained:
             return "The original score is no longer retained on VocalDive OMR. Upload it again before completing correction."
+        case .engineUnavailable:
+            return "Recognition is temporarily unavailable. Please try again shortly."
         }
     }
 }
@@ -840,6 +845,9 @@ final class RemoteOMRService {
         )
         while status.state != .ready {
             if status.state == .failed || status.state == .cancelled {
+                if status.errorCode == "engine_unavailable" {
+                    throw RemoteOMRServiceError.engineUnavailable
+                }
                 throw RemoteOMRServiceError.server(status.error ?? status.detail ?? "VocalDive OMR did not finish.")
             }
             let queueDetail = status.queuePosition.map { L10n.tr("score.scan.queue_position", $0) } ?? ""
@@ -942,7 +950,12 @@ final class RemoteOMRService {
     private func validate(response: URLResponse, data: Data) throws {
         guard let http = response as? HTTPURLResponse else { throw RemoteOMRServiceError.invalidResponse }
         guard (200..<300).contains(http.statusCode) else {
-            let message = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["detail"] as? String
+            let payload = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+            let detail = payload?["detail"]
+            if let detail = detail as? [String: Any], detail["code"] as? String == "engine_unavailable" {
+                throw RemoteOMRServiceError.engineUnavailable
+            }
+            let message = detail as? String
             throw RemoteOMRServiceError.server(message ?? "VocalDive OMR returned HTTP \(http.statusCode).")
         }
     }

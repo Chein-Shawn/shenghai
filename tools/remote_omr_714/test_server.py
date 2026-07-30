@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,6 +14,38 @@ from fastapi import HTTPException
 from starlette.requests import Request
 
 import server
+
+
+class OemerExecutableTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.previous_setting = server.OEMER_EXECUTABLE_SETTING
+
+    def tearDown(self) -> None:
+        server.OEMER_EXECUTABLE_SETTING = self.previous_setting
+
+    def test_legacy_setting_resolves_the_console_script_beside_worker_python(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            python = Path(directory) / "python.exe"
+            expected = Path(directory) / ("oemer.exe" if os.name == "nt" else "oemer")
+            expected.touch()
+            server.OEMER_EXECUTABLE_SETTING = "oemer"
+            with patch.object(server.sys, "executable", str(python)):
+                self.assertEqual(server.resolved_oemer_executable(), expected)
+                self.assertEqual(server.available_oemer_executable(), expected)
+
+    def test_absolute_override_is_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            executable = Path(directory) / "custom-oemer.exe"
+            executable.touch()
+            server.OEMER_EXECUTABLE_SETTING = str(executable)
+            self.assertEqual(server.available_oemer_executable(), executable)
+
+    def test_missing_cli_is_reported_as_unavailable_without_a_windows_error(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            server.OEMER_EXECUTABLE_SETTING = str(Path(directory) / "missing-oemer.exe")
+            self.assertFalse(server.engine_ready())
+            with self.assertRaises(server.OemerEngineUnavailableError):
+                server.available_oemer_executable()
 
 
 class EmailLinkRateLimitTests(unittest.TestCase):

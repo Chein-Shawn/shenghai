@@ -505,6 +505,7 @@
 "settings.vocaldive_omr.rate_limited" = "確認リンクのリクエストが多すぎます。%@ 後にもう一度お試しください。";
 "score.scan.remote_connecting" = "%@ を VocalDive 楽譜認識に接続しています。";
 "score.scan.remote_failed_vocaldive" = "VocalDive 楽譜認識のスキャンに失敗しました: %@";
+"score.scan.engine_unavailable" = "楽譜認識サービスは一時的に利用できません。しばらくしてからもう一度お試しください。";
 "score.scan.remote_connection_required" = "スキャンする前に、設定で VocalDive OMR に接続してください。";
 "score.scan.remote_connection_action" = "設定を開く";
 "score.scan.upload_disclosure.title" = "楽譜を VocalDive 楽譜認識にアップロードしますか？";

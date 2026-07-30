@@ -505,6 +505,7 @@
 "settings.vocaldive_omr.rate_limited" = "驗證連結請求太頻密，請喺 %@ 後再試。";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.engine_unavailable" = "樂譜辨識服務暫時未能使用，請稍後再試。";
 "score.scan.remote_connection_required" = "請先喺「設定」連線到 VocalDive 樂譜辨識，然後先開始掃描。";
 "score.scan.remote_connection_action" = "開啟設定";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";

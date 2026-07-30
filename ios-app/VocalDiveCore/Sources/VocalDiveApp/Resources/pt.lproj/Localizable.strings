@@ -505,6 +505,7 @@
 "settings.vocaldive_omr.rate_limited" = "Muitos pedidos de link de verificação. Tente novamente em %@.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.engine_unavailable" = "O reconhecimento de partituras está temporariamente indisponível. Tente novamente em instantes.";
 "score.scan.remote_connection_required" = "Conecte o VocalDive OMR em Definições antes de digitalizar.";
 "score.scan.remote_connection_action" = "Abrir definições";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";

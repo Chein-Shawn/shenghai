@@ -529,3 +529,12 @@ checksum manifest can be copied to Google Drive through rclone. Raw scores and
 OMR job folders are excluded and remain manually managed by date. Cloudflare
 Tunnel remains only the protected public route; a managed database such as
 Cloudflare D1 is a future scaling migration target, not the current source of truth.
+
+### 2026-07-30 update - remote engine readiness boundary
+
+The 714 worker resolves the `oemer` console program from the same Python virtual environment
+that starts FastAPI, rather than inheriting a fragile Windows `PATH` lookup. `/v1/health` reports
+`engine_ready`; if the engine is unavailable, `POST /v1/jobs` fails before accepting an upload.
+If the executable disappears during a job, the queue records the stable `engine_unavailable`
+code while the host-only log retains the operating-system diagnosis. `RemoteOMRService` maps that
+code to localized recovery copy before the Score workspace displays it.

@@ -498,6 +498,7 @@
 "settings.vocaldive_omr.rate_limited" = "طلبات رابط التحقق كثيرة جداً. حاول مرة أخرى بعد %@.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.engine_unavailable" = "خدمة التعرّف على النوتة غير متاحة مؤقتًا. يرجى المحاولة مجددًا قريبًا.";
 "score.scan.remote_connection_required" = "اتصل بـ VocalDive OMR من الإعدادات قبل المسح.";
 "score.scan.remote_connection_action" = "فتح الإعدادات";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";

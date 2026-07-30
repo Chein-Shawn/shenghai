@@ -504,6 +504,7 @@
 "settings.vocaldive_omr.rate_limited" = "验证链接请求过于频繁，请在 %@ 后重试。";
 "score.scan.remote_connecting" = "正在将 %@ 连接到 VocalDive 乐谱识别。";
 "score.scan.remote_failed_vocaldive" = "VocalDive 乐谱识别扫描失败：%@";
+"score.scan.engine_unavailable" = "乐谱识别服务暂时不可用，请稍后再试。";
 "score.scan.remote_connection_required" = "请先在“设置”中连接 VocalDive 乐谱识别，再开始扫描。";
 "score.scan.remote_connection_action" = "打开设置";
 "score.scan.upload_disclosure.title" = "上传乐谱到 VocalDive 乐谱识别？";

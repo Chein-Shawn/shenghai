@@ -18,7 +18,8 @@ host owner manually removes completed date folders.
 5. Copy `tokens.example.json` to `D:\VocalDiveOMR\state\tokens.json` and replace the sample
    value with one long random **operator** token. It is only for the host's mode and storage-dashboard APIs.
 6. Run `powershell -ExecutionPolicy Bypass -File .\run.ps1` once. Open
-   `http://127.0.0.1:8787/v1/health` on 714 and confirm `ready: true`.
+   `http://127.0.0.1:8787/v1/health` on 714 and confirm both `ready: true` and
+   `engine_ready: true`. Then run `powershell -ExecutionPolicy Bypass -File .\verify.ps1`.
 7. Create a Cloudflare Tunnel public hostname `omr.vocaldive.com` that forwards to
    `http://127.0.0.1:8787`. Keep FastAPI bound to loopback and do not expose port 8787 through
    the router or Windows firewall.
@@ -163,6 +164,17 @@ header with error code `1010`, even when the API key and domain are correct.
 
 The worker stores filenames, logs, diagnostics, and results locally. Never put the data root,
 the generated `.env`, or `tokens.json` in Git.
+
+## oemer executable readiness
+
+`VOCALDIVE_OMR_EXECUTABLE=oemer` is the compatible default. The worker resolves that value to
+the `oemer.exe` console script beside its own venv Python, rather than relying on the Windows
+process `PATH`. An absolute executable path remains available as an advanced `.env` override.
+
+`verify.ps1` checks both the resolved CLI and `oemer.exe --help`. When the engine is missing,
+health returns `engine_ready: false` and new jobs are rejected before uploads are accepted. A
+running job that loses the executable returns the stable `engine_unavailable` code; detailed
+Windows paths remain only in the local worker log.
 
 ## Correction lifecycle
 

@@ -13,6 +13,7 @@ import shutil
 import sqlite3
 import ssl
 import subprocess
+import sys
 import threading
 import time
 import urllib.error
@@ -54,7 +55,7 @@ def _positive_int_env(name: str, fallback: int) -> int:
 DATA_ROOT = _path_env("VOCALDIVE_OMR_DATA_ROOT", r"D:\VocalDiveOMR\data")
 STATE_ROOT = _path_env("VOCALDIVE_OMR_STATE_ROOT", r"D:\VocalDiveOMR\state")
 TOKENS_FILE = _path_env("VOCALDIVE_OMR_TOKENS_FILE", str(STATE_ROOT / "tokens.json"))
-OEMER_EXECUTABLE = os.environ.get("VOCALDIVE_OMR_EXECUTABLE", "oemer")
+OEMER_EXECUTABLE_SETTING = os.environ.get("VOCALDIVE_OMR_EXECUTABLE", "oemer")
 GPU_BUSY_PERCENT = int(os.environ.get("VOCALDIVE_OMR_GPU_BUSY_PERCENT", "35"))
 GPU_BUSY_VRAM_PERCENT = int(os.environ.get("VOCALDIVE_OMR_GPU_BUSY_VRAM_PERCENT", "30"))
 DATABASE_PATH = STATE_ROOT / "jobs.sqlite3"
@@ -88,6 +89,7 @@ class JobStatusResponse(BaseModel):
     completed_pages: int
     detail: str | None = None
     error: str | None = None
+    error_code: str | None = None
     queue_position: int | None = None
 
 
@@ -165,6 +167,38 @@ class AppPaths:
     result_root: Path
 
 
+class OemerEngineUnavailableError(RuntimeError):
+    """Raised when the worker cannot start the locally installed oemer CLI."""
+
+
+def resolved_oemer_executable(setting: str | None = None) -> Path:
+    """Use this Python environment's console script unless an absolute override is supplied."""
+    configured = (OEMER_EXECUTABLE_SETTING if setting is None else setting).strip()
+    if not configured or configured.lower() == "oemer":
+        executable_name = "oemer.exe" if os.name == "nt" else "oemer"
+        return Path(sys.executable).with_name(executable_name)
+    return Path(configured).expanduser()
+
+
+def available_oemer_executable() -> Path:
+    executable = resolved_oemer_executable()
+    if not executable.is_file():
+        raise OemerEngineUnavailableError(f"oemer executable is unavailable at {executable}")
+    return executable
+
+
+def engine_ready() -> bool:
+    try:
+        available_oemer_executable()
+    except OemerEngineUnavailableError:
+        return False
+    return True
+
+
+def engine_unavailable_response() -> HTTPException:
+    return HTTPException(status_code=503, detail={"code": "engine_unavailable"})
+
+
 class JobStore:
     def __init__(self, path: Path) -> None:
         self.path = path
@@ -237,6 +271,7 @@ class JobStore:
             self._ensure_column(connection, "jobs", "started_at", "TEXT")
             self._ensure_column(connection, "jobs", "finished_at", "TEXT")
             self._ensure_column(connection, "jobs", "telemetry_json", "TEXT")
+            self._ensure_column(connection, "jobs", "error_code", "TEXT")
 
     @staticmethod
     def _ensure_column(connection: sqlite3.Connection, table: str, column: str, definition: str) -> None:
@@ -313,10 +348,11 @@ class JobStore:
         return int(ahead) + 1
 
     def update(self, job_id: str, *, state: JobState | None = None, completed_pages: int | None = None,
-               detail: str | None = None, error: str | None = None) -> None:
+               detail: str | None = None, error: str | None = None, error_code: str | None = None) -> None:
         fields = ["updated_at = ?"]
         values: list[object] = [utc_now()]
-        for field, value in (("state", state), ("completed_pages", completed_pages), ("detail", detail), ("error", error)):
+        for field, value in (("state", state), ("completed_pages", completed_pages), ("detail", detail),
+                             ("error", error), ("error_code", error_code)):
             if value is not None:
                 fields.append(f"{field} = ?")
                 values.append(value)
@@ -1015,10 +1051,14 @@ def rasterize_job(paths: AppPaths) -> list[Path]:
 def run_oemer(page: Path, diagnostics_root: Path, index: int) -> Path:
     output_dir = diagnostics_root / f"page-{index + 1:02d}"
     output_dir.mkdir(parents=True, exist_ok=True)
-    completed = subprocess.run(
-        [OEMER_EXECUTABLE, str(page), "--output-path", str(output_dir)],
-        capture_output=True, text=True, timeout=20 * 60,
-    )
+    executable = available_oemer_executable()
+    try:
+        completed = subprocess.run(
+            [str(executable), str(page), "--output-path", str(output_dir)],
+            capture_output=True, text=True, timeout=20 * 60,
+        )
+    except FileNotFoundError as error:
+        raise OemerEngineUnavailableError(f"oemer executable disappeared at {executable}") from error
     (output_dir / "oemer.stdout.log").write_text(completed.stdout, encoding="utf-8")
     (output_dir / "oemer.stderr.log").write_text(completed.stderr, encoding="utf-8")
     if completed.returncode != 0:
@@ -1119,7 +1159,17 @@ class JobWorker:
             merge_musicxml(page_results, paths.result_root / "candidate.musicxml")
             timings["assembling_seconds"] = round(time.monotonic() - assembling_started_at, 3)
             self.store.update(job_id, state="ready", detail="MusicXML candidate is ready")
+        except OemerEngineUnavailableError:
+            LOGGER.exception("oemer is unavailable while recognizing job %s", job_id)
+            self.store.update(
+                job_id,
+                state="failed",
+                detail="Recognition service is temporarily unavailable",
+                error="Recognition service is temporarily unavailable",
+                error_code="engine_unavailable",
+            )
         except Exception as error:
+            LOGGER.exception("OMR job %s did not complete", job_id)
             self.store.update(job_id, state="failed", detail="OMR did not complete", error=str(error))
         finally:
             telemetry["gpu_after"] = gpu_snapshot()
@@ -1143,15 +1193,18 @@ def startup() -> None:
     DATA_ROOT.mkdir(parents=True, exist_ok=True)
     STATE_ROOT.mkdir(parents=True, exist_ok=True)
     load_tokens()
+    if not engine_ready():
+        LOGGER.error("oemer is unavailable; new OMR jobs will be rejected until the worker is repaired")
     worker.start()
 
 
 @app.get("/v1/health")
 def health() -> dict[str, object]:
     return {
-        "ready": True,
+        "ready": engine_ready(),
         "mode": store.mode(),
         "engine": "oemer",
+        "engine_ready": engine_ready(),
         "email_sign_in_ready": bool(RESEND_API_KEY),
         "limits": {"total_bytes": MAX_TOTAL_BYTES, "pages": MAX_PAGES},
     }
@@ -1271,6 +1324,8 @@ def create_job(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     identity: DeviceIdentity = Depends(require_device),
 ) -> CreateJobResponse:
+    if not engine_ready():
+        raise engine_unavailable_response()
     key = idempotency_key or uuid.uuid4().hex
     if existing := store.existing_for(key, identity.account_id):
         return CreateJobResponse(job_id=existing["job_id"], state=existing["state"], total_pages=existing["total_pages"])
@@ -1305,6 +1360,7 @@ def get_job(job_id: str, identity: DeviceIdentity = Depends(require_device)) -> 
     return JobStatusResponse(
         job_id=row["job_id"], state=row["state"], source_name=row["source_name"],
         total_pages=row["total_pages"], completed_pages=row["completed_pages"], detail=row["detail"], error=row["error"],
+        error_code=row["error_code"],
         queue_position=store.queue_position(row),
     )
 

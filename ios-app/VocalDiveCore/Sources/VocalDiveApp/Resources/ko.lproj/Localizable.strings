@@ -505,6 +505,7 @@
 "settings.vocaldive_omr.rate_limited" = "인증 링크 요청이 너무 많습니다. %@ 후에 다시 시도하세요.";
 "score.scan.remote_connecting" = "Connecting %@ to VocalDive OMR.";
 "score.scan.remote_failed_vocaldive" = "VocalDive OMR scan failed: %@";
+"score.scan.engine_unavailable" = "악보 인식 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.";
 "score.scan.remote_connection_required" = "스캔하기 전에 설정에서 VocalDive OMR에 연결하세요.";
 "score.scan.remote_connection_action" = "설정 열기";
 "score.scan.upload_disclosure.title" = "Upload score to VocalDive OMR?";
