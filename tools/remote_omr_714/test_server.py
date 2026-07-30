@@ -6,6 +6,7 @@ import io
 import os
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
@@ -55,6 +56,7 @@ class EmailLinkRateLimitTests(unittest.TestCase):
         self.previous_crm_store = server.crm_store
         self.previous_sender = server.send_verification_email
         self.previous_window = server.EMAIL_REQUEST_WINDOW_SECONDS
+        self.previous_auth_link_ttl_hours = server.AUTH_LINK_TTL_HOURS
         self.previous_email_limit = server.EMAIL_REQUEST_LIMIT
         self.previous_ip_limit = server.IP_REQUEST_LIMIT
         server.store = server.JobStore(Path(self.temporary_directory.name) / "jobs.sqlite3")
@@ -63,6 +65,7 @@ class EmailLinkRateLimitTests(unittest.TestCase):
             legacy_jobs_path=Path(self.temporary_directory.name) / "jobs.sqlite3",
         )
         server.EMAIL_REQUEST_WINDOW_SECONDS = 15 * 60
+        server.AUTH_LINK_TTL_HOURS = 24
         server.EMAIL_REQUEST_LIMIT = 10
         server.IP_REQUEST_LIMIT = 40
         server.send_verification_email = lambda _email, _url: None
@@ -72,6 +75,7 @@ class EmailLinkRateLimitTests(unittest.TestCase):
         server.crm_store = self.previous_crm_store
         server.send_verification_email = self.previous_sender
         server.EMAIL_REQUEST_WINDOW_SECONDS = self.previous_window
+        server.AUTH_LINK_TTL_HOURS = self.previous_auth_link_ttl_hours
         server.EMAIL_REQUEST_LIMIT = self.previous_email_limit
         server.IP_REQUEST_LIMIT = self.previous_ip_limit
         self.temporary_directory.cleanup()
@@ -163,6 +167,9 @@ class EmailLinkRateLimitTests(unittest.TestCase):
         link = self.request_link("singer@example.com")
         self.assertTrue(link.expires_at.endswith("Z"))
         self.assertNotIn(".", link.expires_at)
+        expires_at = datetime.fromisoformat(link.expires_at.replace("Z", "+00:00"))
+        self.assertGreaterEqual(expires_at, datetime.now(timezone.utc) + timedelta(hours=23, minutes=59))
+        self.assertLessEqual(expires_at, datetime.now(timezone.utc) + timedelta(hours=24, minutes=1))
         magic_secret = parse_qs(urlparse(captured_urls[0]).query)["token"][0]
 
         verified_page = server.verify_auth_link(magic_secret)

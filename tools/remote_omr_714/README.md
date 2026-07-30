@@ -43,7 +43,7 @@ store jobs or accounts.
   database, a log, or Git.
 - Each account/installation pair is unique. Reconnecting the same app installation revokes
   its prior credential and issues one replacement; another device receives a different,
-  revocable credential. A verification link is one-use and expires after fifteen minutes.
+  revocable credential. A verification link is one-use and expires after twenty-four hours by default.
 - Deleting an account revokes every device credential and removes CRM profile data.
   Completed correction records remain without the personal profile so previously accepted
   training material remains traceable by checksum.
@@ -133,7 +133,7 @@ restore remains straightforward.
 
 The App pre-fills `https://omr.vocaldive.com`. A user enters an email address and opens the
 one-time link sent as `VocalDive <access@auth.vocaldive.com>` with reply-to
-`support@vocaldive.com`. The link expires after fifteen minutes and can only be used once.
+`support@vocaldive.com`. The link expires after twenty-four hours by default and can only be used once.
 `POST /v1/auth/request-link` returns its expiry as RFC 3339 UTC in the form
 `2026-07-30T12:34:56Z`; the App also accepts earlier fractional-second values while a server
 update is rolling out. The App saves the pending poll secret in Keychain and only its non-secret
@@ -141,7 +141,8 @@ login metadata in app storage, so returning from the email or reopening VocalDiv
 same pending connection. The verification page deliberately tells the user to return to the
 device that requested the link: it may be opened on another phone, iPad, Mac, or browser, so a
 deep link cannot safely identify the requesting installation.
-The public beta permits ten accepted requests per email and forty per IP address in each
+Set `VOCALDIVE_OMR_AUTH_LINK_TTL_HOURS` to change the default twenty-four-hour link lifetime;
+links that have already been issued keep their original expiry. The public beta permits ten accepted requests per email and forty per IP address in each
 fifteen-minute window. Set `VOCALDIVE_OMR_EMAIL_REQUEST_WINDOW_SECONDS`,
 `VOCALDIVE_OMR_EMAIL_REQUEST_LIMIT`, and `VOCALDIVE_OMR_IP_REQUEST_LIMIT` in `.env` to
 adjust that policy. A limit response is HTTP `429` with `Retry-After`; a Resend delivery failure

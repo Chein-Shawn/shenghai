@@ -65,7 +65,8 @@ PUBLIC_BASE_URL = os.environ.get("VOCALDIVE_OMR_PUBLIC_BASE_URL", "https://omr.v
 RESEND_API_KEY = os.environ.get("VOCALDIVE_OMR_RESEND_API_KEY", "")
 AUTH_FROM = os.environ.get("VOCALDIVE_OMR_AUTH_FROM", "VocalDive <access@auth.vocaldive.com>")
 AUTH_REPLY_TO = os.environ.get("VOCALDIVE_OMR_AUTH_REPLY_TO", "support@vocaldive.com")
-AUTH_LINK_TTL_MINUTES = 15
+# A long-lived link is practical for beta setup and remains safe because it is single-use.
+AUTH_LINK_TTL_HOURS = _positive_int_env("VOCALDIVE_OMR_AUTH_LINK_TTL_HOURS", 24)
 EMAIL_REQUEST_WINDOW_SECONDS = _positive_int_env("VOCALDIVE_OMR_EMAIL_REQUEST_WINDOW_SECONDS", 15 * 60)
 EMAIL_REQUEST_LIMIT = _positive_int_env("VOCALDIVE_OMR_EMAIL_REQUEST_LIMIT", 10)
 IP_REQUEST_LIMIT = _positive_int_env("VOCALDIVE_OMR_IP_REQUEST_LIMIT", 40)
@@ -874,11 +875,15 @@ def send_verification_email(email: str, verification_url: str) -> None:
         "to": [email],
         "reply_to": AUTH_REPLY_TO,
         "subject": "Connect VocalDive to OMR",
-        "text": f"Open this link to connect VocalDive to OMR: {verification_url}\n\nThis link expires in 15 minutes.",
+        "text": (
+            f"Open this link to connect VocalDive to OMR: {verification_url}\n\n"
+            f"This link expires in {AUTH_LINK_TTL_HOURS} hours."
+        ),
         "html": (
             "<p>Open this link to connect VocalDive to OMR.</p>"
             f'<p><a href="{safe_url}">Connect VocalDive</a></p>'
-            "<p>This link expires in 15 minutes. If you did not request it, you can ignore this email.</p>"
+            f"<p>This link expires in {AUTH_LINK_TTL_HOURS} hours. "
+            "If you did not request it, you can ignore this email.</p>"
         ),
     }
     request = urllib.request.Request(
@@ -1231,7 +1236,7 @@ def request_auth_link(payload: AuthLinkRequest, request: Request) -> AuthLinkRes
         login_id = uuid.uuid4().hex
         poll_secret = secrets.token_urlsafe(32)
         magic_secret = secrets.token_urlsafe(32)
-        expires_at = utc_after(AUTH_LINK_TTL_MINUTES)
+        expires_at = utc_after(AUTH_LINK_TTL_HOURS * 60)
         crm_store.create_auth_session(
             login_id=login_id,
             email_hash=email_hash,

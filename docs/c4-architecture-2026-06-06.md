@@ -478,6 +478,11 @@ App or reopening Settings resumes polling until the link is consumed, expired, d
 the server address changes. Development diagnostics record only the connection stage and HTTP
 status; they never record emails, device credentials, poll secrets, or verification URLs.
 
+Email links are one-use and default to a twenty-four-hour lifetime, configured by
+`VOCALDIVE_OMR_AUTH_LINK_TTL_HOURS`. The longer beta lifetime supports a user or developer
+returning later, while one-use consumption and hashed secrets preserve the device-connection
+boundary. Links already issued retain the expiry stored when they were created.
+
 Email-link delivery limits are configurable in the 714 `.env`. The public beta defaults to
 ten accepted link requests per email and forty per source IP in a fifteen-minute window.
 The service returns HTTP `429` with a retry duration before creating a login session; a Resend

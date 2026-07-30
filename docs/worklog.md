@@ -223,3 +223,6 @@ important decisions live. The former free-form log is preserved unchanged in
   recognition but Windows could not locate the bare `oemer` command. The worker now resolves the
   venv-owned CLI deterministically, exposes engine readiness, rejects unavailable scans before
   upload, and reports a stable localized recovery state instead of leaking a Windows exception.
+- Extended one-use email-link lifetime from fifteen minutes to a configurable twenty-four-hour
+  default. This supports longer beta and development sessions without changing the separate
+  fifteen-minute email-request rate-limit window; existing links retain their issued expiry.
