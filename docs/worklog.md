@@ -217,3 +217,5 @@ important decisions live. The former free-form log is preserved unchanged in
 - Improved the lowercased email field, cross-device verification-page instruction, localized
   connection states, and redacted stage/status diagnostics. C4, the 714 deployment guide,
   regression tests, and all shipped localizations were updated in the same cycle.
+- Added the shared timestamp parser to the explicit Xcode source membership as well as SwiftPM,
+  preventing the iOS app target from missing it during a normal Xcode build.
