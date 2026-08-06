@@ -680,7 +680,19 @@ final class VocalDiveWorkspace: ObservableObject {
     private func localizedScanProgress(_ progress: NativeOMRScanProgress, sourceName: String) -> String {
         let percent = Int((progress.fraction * 100).rounded())
         let phase = L10n.tr(progress.phase.localizationKey)
+        let elapsed = String(format: "%d:%02d", progress.elapsedSeconds / 60, progress.elapsedSeconds % 60)
         if progress.totalPages > 0 {
+            if progress.elapsedSeconds > 0 {
+                return L10n.tr(
+                    "score.scan.progress.with_pages_elapsed",
+                    percent,
+                    phase,
+                    progress.completedPages,
+                    progress.totalPages,
+                    elapsed,
+                    sourceName
+                )
+            }
             return L10n.tr(
                 "score.scan.progress.with_pages",
                 percent,

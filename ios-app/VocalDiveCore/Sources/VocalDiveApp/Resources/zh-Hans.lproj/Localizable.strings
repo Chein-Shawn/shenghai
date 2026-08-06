@@ -467,6 +467,11 @@
 "score.scan.progress.finished" = "完成";
 "score.scan.progress.simple" = "%d%% - %@：%@";
 "score.scan.progress.with_pages" = "%d%% - %@（第 %d/%d 页）：%@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@（第 %d/%d 页，已用 %@）：%@";
+"score.scan.progress.analyzingNotation" = "正在分析乐谱";
+"score.scan.progress.readingNoteheads" = "正在读取音符";
+"score.scan.progress.buildingEditableScore" = "正在建立可编辑乐谱";
+"score.scan.progress.takingLonger" = "处理时间比平常久";
 "score.scan.image_batch" = "%d 张乐谱图片";
 "score.scan.connecting" = "正在将 %@ 连接到你的私人 OMR 服务器。";
 "score.scan.remote_failed" = "私人 OMR 扫描失败：%@";
@@ -535,3 +540,12 @@
 "score.review.complete_correction_unavailable" = "识别服务已不再保留原始乐谱。请重新上传后再完成此校正。";
 "score.review.correction_completed" = "已记录完成的校正，以改善识别。";
 "score.review.complete_correction_failed" = "无法完成校正：%@";
+"settings.vocaldive_omr.debug_diagnostics" = "远程 OMR 诊断";
+"settings.vocaldive_omr.debug_no_job" = "当前没有远程任务诊断数据。";
+"settings.vocaldive_omr.debug_stage" = "阶段：%@";
+"settings.vocaldive_omr.debug_elapsed" = "已用时：%@";
+"settings.vocaldive_omr.debug_heartbeat" = "最近心跳：%@";
+"settings.vocaldive_omr.debug_gpu" = "GPU：%@";
+"settings.vocaldive_omr.debug_process" = "识别进程：%@";
+"settings.vocaldive_omr.debug_error_code" = "错误代码：%@";
+"settings.vocaldive_omr.debug_copy" = "复制已隐藏的诊断数据";

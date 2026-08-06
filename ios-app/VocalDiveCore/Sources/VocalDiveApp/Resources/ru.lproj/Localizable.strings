@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "Готово";
 "score.scan.progress.simple" = "%d%% - %@ для %@";
 "score.scan.progress.with_pages" = "%d%% - %@ (%d/%d стр.) для %@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@ (%d/%d стр., прошло %@) для %@";
+"score.scan.progress.analyzingNotation" = "Анализ нотной записи";
+"score.scan.progress.readingNoteheads" = "Чтение нотных головок";
+"score.scan.progress.buildingEditableScore" = "Создание редактируемой партитуры";
+"score.scan.progress.takingLonger" = "Обработка занимает больше времени, чем обычно";
 "score.scan.image_batch" = "%d изображений нот";
 "score.scan.connecting" = "Подключение %@ к вашему частному серверу OMR.";
 "score.scan.remote_failed" = "Частное OMR-сканирование не удалось: %@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "Исходные ноты больше не хранятся в сервисе OMR. Загрузите их снова, прежде чем завершать исправление.";
 "score.review.correction_completed" = "Завершенное исправление записано для улучшения распознавания.";
 "score.review.complete_correction_failed" = "Не удалось завершить исправление: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

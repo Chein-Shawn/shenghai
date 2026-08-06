@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "完成";
 "score.scan.progress.simple" = "%d%% - %@：%@";
 "score.scan.progress.with_pages" = "%d%% - %@（第 %d/%d 頁）：%@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@（第 %d/%d 頁，已用 %@）：%@";
+"score.scan.progress.analyzingNotation" = "分析緊樂譜";
+"score.scan.progress.readingNoteheads" = "讀取緊音符";
+"score.scan.progress.buildingEditableScore" = "建立緊可編輯樂譜";
+"score.scan.progress.takingLonger" = "處理時間比平時耐";
 "score.scan.image_batch" = "%d 張樂譜圖片";
 "score.scan.connecting" = "正將 %@ 連線去你嘅私人 OMR 伺服器。";
 "score.scan.remote_failed" = "私人 OMR 掃描失敗：%@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "辨識服務已經冇保留原始樂譜。請重新上傳後再完成呢次校正。";
 "score.review.correction_completed" = "完成校正已記錄，用嚟改善辨識。";
 "score.review.complete_correction_failed" = "無法完成校正：%@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

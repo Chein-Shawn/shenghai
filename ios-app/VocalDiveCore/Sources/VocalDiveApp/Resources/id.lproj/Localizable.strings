@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "Selesai";
 "score.scan.progress.simple" = "%d%% - %@ untuk %@";
 "score.scan.progress.with_pages" = "%d%% - %@ (%d/%d halaman) untuk %@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@ (%d/%d halaman, %@ berlalu) untuk %@";
+"score.scan.progress.analyzingNotation" = "Menganalisis notasi";
+"score.scan.progress.readingNoteheads" = "Membaca kepala not";
+"score.scan.progress.buildingEditableScore" = "Membuat partitur yang dapat diedit";
+"score.scan.progress.takingLonger" = "Proses memakan waktu lebih lama dari biasanya";
 "score.scan.image_batch" = "%d gambar partitur";
 "score.scan.connecting" = "Menghubungkan %@ ke server OMR pribadi Anda.";
 "score.scan.remote_failed" = "Pemindaian OMR pribadi gagal: %@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "Partitur sumber tidak lagi disimpan oleh layanan OMR. Unggah lagi sebelum menyelesaikan koreksi ini.";
 "score.review.correction_completed" = "Koreksi selesai dicatat untuk meningkatkan pengenalan.";
 "score.review.complete_correction_failed" = "Tidak dapat menyelesaikan koreksi: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

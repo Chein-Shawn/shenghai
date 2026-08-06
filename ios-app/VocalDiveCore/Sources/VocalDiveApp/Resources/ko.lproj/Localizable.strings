@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "완료";
 "score.scan.progress.simple" = "%d%% - %@: %@";
 "score.scan.progress.with_pages" = "%d%% - %@ (%d/%d페이지): %@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@ (%d/%d페이지, %@ 경과): %@";
+"score.scan.progress.analyzingNotation" = "악보를 분석하는 중";
+"score.scan.progress.readingNoteheads" = "음표를 읽는 중";
+"score.scan.progress.buildingEditableScore" = "편집 가능한 악보를 만드는 중";
+"score.scan.progress.takingLonger" = "평소보다 오래 걸리고 있습니다";
 "score.scan.image_batch" = "%d장의 악보 이미지";
 "score.scan.connecting" = "%@을(를) 개인 OMR 서버에 연결하는 중입니다.";
 "score.scan.remote_failed" = "개인 OMR 스캔에 실패했습니다: %@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "OMR 서비스에 원본 악보가 더 이상 보관되지 않습니다. 이 교정을 완료하려면 다시 업로드하세요.";
 "score.review.correction_completed" = "완료된 교정이 인식 개선을 위해 기록되었습니다.";
 "score.review.complete_correction_failed" = "교정을 완료할 수 없습니다: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

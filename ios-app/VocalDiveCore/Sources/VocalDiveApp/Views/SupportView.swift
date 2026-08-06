@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 #if canImport(VocalDiveCore)
 import VocalDiveCore
 #endif
@@ -15,6 +20,9 @@ struct SupportView: View {
     @State private var feedbackStatus: FeedbackSubmissionStatus = .idle
     @State private var isSubmitting = false
     @ObservedObject private var remoteOMR = RemoteOMRConfigurationStore.shared
+    #if DEBUG
+    @ObservedObject private var remoteOMRDiagnostics = RemoteOMRDiagnosticsStore.shared
+    #endif
     @State private var remoteOMREndpoint = ""
     @State private var remoteOMREmail = ""
     @State private var remoteOMRStatus = ""
@@ -178,6 +186,10 @@ struct SupportView: View {
                     .font(.caption)
                     .foregroundStyle(remoteOMR.isConfigured ? Color.secondary : Color.red)
             }
+
+            #if DEBUG
+            remoteOMRDiagnosticsPanel
+            #endif
         }
         .padding(12)
         .background(.background, in: RoundedRectangle(cornerRadius: 8))
@@ -186,6 +198,75 @@ struct SupportView: View {
                 .stroke(.quaternary, lineWidth: 1)
         }
     }
+
+    #if DEBUG
+    private var remoteOMRDiagnosticsPanel: some View {
+        DisclosureGroup(L10n.tr("settings.vocaldive_omr.debug_diagnostics")) {
+            if let status = remoteOMRDiagnostics.latestStatus {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L10n.tr("settings.vocaldive_omr.debug_stage", status.engineStage ?? "-"))
+                    Text(L10n.tr("settings.vocaldive_omr.debug_elapsed", elapsedText(status.elapsedSeconds)))
+                    Text(L10n.tr("settings.vocaldive_omr.debug_heartbeat", status.heartbeatAt ?? "-"))
+                    Text(L10n.tr("settings.vocaldive_omr.debug_gpu", gpuText(status.resourceSnapshot?.gpu)))
+                    Text(L10n.tr("settings.vocaldive_omr.debug_process", processText(status.resourceSnapshot?.oemer)))
+                    Text(L10n.tr("settings.vocaldive_omr.debug_error_code", status.errorCode ?? "-"))
+
+                    Button(L10n.tr("settings.vocaldive_omr.debug_copy")) {
+                        copyDiagnostics(status)
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .font(.caption.monospaced())
+                .textSelection(.enabled)
+                .padding(.top, 6)
+            } else {
+                Text(L10n.tr("settings.vocaldive_omr.debug_no_job"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 6)
+            }
+        }
+    }
+
+    private func elapsedText(_ seconds: Int?) -> String {
+        let value = max(0, seconds ?? 0)
+        return String(format: "%d:%02d", value / 60, value % 60)
+    }
+
+    private func gpuText(_ gpu: RemoteOMRGPUResourceSnapshot?) -> String {
+        guard let gpu else { return "-" }
+        let used = gpu.memoryUsedMiB.map(String.init) ?? "-"
+        let total = gpu.memoryTotalMiB.map(String.init) ?? "-"
+        let utilization = gpu.utilizationPercent.map(String.init) ?? "-"
+        return "\(utilization)% | \(used)/\(total) MiB"
+    }
+
+    private func processText(_ process: RemoteOMRProcessResourceSnapshot?) -> String {
+        guard let process else { return "-" }
+        let alive = process.alive == true ? "alive" : "stopped"
+        let cpu = process.cpuPercent.map { String(format: "%.1f%%", $0) } ?? "-"
+        let memory = process.memoryRSSMiB.map { String(format: "%.1f MiB", $0) } ?? "-"
+        return "\(alive) | \(cpu) | \(memory)"
+    }
+
+    private func copyDiagnostics(_ status: RemoteOMRJobStatus) {
+        let report = [
+            "state=\(status.state.rawValue)",
+            "stage=\(status.engineStage ?? "-")",
+            "elapsed=\(elapsedText(status.elapsedSeconds))",
+            "heartbeat=\(status.heartbeatAt ?? "-")",
+            "gpu=\(gpuText(status.resourceSnapshot?.gpu))",
+            "process=\(processText(status.resourceSnapshot?.oemer))",
+            "error_code=\(status.errorCode ?? "-")",
+        ].joined(separator: "\n")
+        #if os(iOS)
+        UIPasteboard.general.string = report
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(report, forType: .string)
+        #endif
+    }
+    #endif
 
     private func beginRemoteOMREmailConnection() {
         showRemoteOMRConsent = true

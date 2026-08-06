@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "เสร็จแล้ว";
 "score.scan.progress.simple" = "%d%% - %@ สำหรับ %@";
 "score.scan.progress.with_pages" = "%d%% - %@ (%d/%d หน้า) สำหรับ %@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@ (%d/%d หน้า ใช้เวลา %@) สำหรับ %@";
+"score.scan.progress.analyzingNotation" = "กำลังวิเคราะห์โน้ตเพลง";
+"score.scan.progress.readingNoteheads" = "กำลังอ่านหัวโน้ต";
+"score.scan.progress.buildingEditableScore" = "กำลังสร้างโน้ตเพลงที่แก้ไขได้";
+"score.scan.progress.takingLonger" = "กำลังใช้เวลานานกว่าปกติ";
 "score.scan.image_batch" = "ภาพโน้ตเพลง %d ภาพ";
 "score.scan.connecting" = "กำลังเชื่อมต่อ %@ กับเซิร์ฟเวอร์ OMR ส่วนตัวของคุณ";
 "score.scan.remote_failed" = "การสแกน OMR ส่วนตัวล้มเหลว: %@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "บริการ OMR ไม่ได้เก็บโน้ตต้นฉบับนี้แล้ว โปรดอัปโหลดอีกครั้งก่อนเสร็จสิ้นการแก้ไข";
 "score.review.correction_completed" = "บันทึกการแก้ไขที่เสร็จแล้วเพื่อปรับปรุงการรู้จำแล้ว";
 "score.review.complete_correction_failed" = "ไม่สามารถเสร็จสิ้นการแก้ไขได้: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

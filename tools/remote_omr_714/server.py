@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import json
 import logging
+import logging.handlers
 import os
 import hashlib
 import html
+import queue
 import re
 import secrets
 import shutil
@@ -24,10 +26,11 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Callable, Iterator, Literal
 
 import certifi
 import fitz
+import psutil
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
@@ -70,6 +73,10 @@ AUTH_LINK_TTL_HOURS = _positive_int_env("VOCALDIVE_OMR_AUTH_LINK_TTL_HOURS", 24)
 EMAIL_REQUEST_WINDOW_SECONDS = _positive_int_env("VOCALDIVE_OMR_EMAIL_REQUEST_WINDOW_SECONDS", 15 * 60)
 EMAIL_REQUEST_LIMIT = _positive_int_env("VOCALDIVE_OMR_EMAIL_REQUEST_LIMIT", 10)
 IP_REQUEST_LIMIT = _positive_int_env("VOCALDIVE_OMR_IP_REQUEST_LIMIT", 40)
+OEMER_PAGE_TIMEOUT_SECONDS = _positive_int_env("VOCALDIVE_OMR_PAGE_TIMEOUT_SECONDS", 20 * 60)
+OEMER_SLOW_STAGE_SECONDS = _positive_int_env("VOCALDIVE_OMR_SLOW_STAGE_SECONDS", 7 * 60)
+OEMER_TELEMETRY_INTERVAL_SECONDS = _positive_int_env("VOCALDIVE_OMR_TELEMETRY_INTERVAL_SECONDS", 10)
+WORKER_LOG_RETENTION_DAYS = _positive_int_env("VOCALDIVE_OMR_WORKER_LOG_RETENTION_DAYS", 14)
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 LOGGER = logging.getLogger("vocaldive.omr")
 RESEND_TLS_CONTEXT = ssl.create_default_context(cafile=certifi.where())
@@ -92,6 +99,12 @@ class JobStatusResponse(BaseModel):
     error: str | None = None
     error_code: str | None = None
     queue_position: int | None = None
+    current_page: int | None = None
+    engine_stage: str | None = None
+    elapsed_seconds: int | None = None
+    heartbeat_at: str | None = None
+    attention_needed: bool = False
+    resource_snapshot: dict[str, object] | None = None
 
 
 class ModeRequest(BaseModel):
@@ -172,6 +185,39 @@ class OemerEngineUnavailableError(RuntimeError):
     """Raised when the worker cannot start the locally installed oemer CLI."""
 
 
+class OemerRecognitionTimeoutError(RuntimeError):
+    """Raised after the per-page recognition deadline expires."""
+
+
+class OemerRecognitionProcessError(RuntimeError):
+    """Raised when oemer exits without successfully completing a page."""
+
+
+class OemerNoMusicXMLError(RuntimeError):
+    """Raised when oemer exits but does not leave a MusicXML result."""
+
+
+class OemerMusicXMLInvalidError(RuntimeError):
+    """Raised when an oemer result is not valid XML."""
+
+
+class OemerMusicXMLMergeIncompatibleError(RuntimeError):
+    """Raised when valid page results cannot form one score-partwise document."""
+
+
+OEMER_STAGE_PATTERNS: tuple[tuple[str, str], ...] = (
+    ("Extracting staffline and symbols", "model_stafflines"),
+    ("Extracting layers of different symbols", "model_symbols"),
+    ("Dewarping", "dewarping"),
+    ("Extracting stafflines", "stafflines"),
+    ("Extracting noteheads", "noteheads"),
+    ("Grouping noteheads", "noteheads"),
+    ("Extracting symbols", "symbols"),
+    ("Extracting rhythm types", "rhythm"),
+    ("Building MusicXML document", "building_musicxml"),
+)
+
+
 WORKER_FAILURE_CODES = {
     "rasterizing": "source_processing_failed",
     "recognizing": "recognition_failed",
@@ -234,7 +280,8 @@ class JobStore:
                     error TEXT,
                     started_at TEXT,
                     finished_at TEXT,
-                    telemetry_json TEXT
+                    telemetry_json TEXT,
+                    runtime_json TEXT
                 );
                 CREATE TABLE IF NOT EXISTS accounts (
                     account_id TEXT PRIMARY KEY,
@@ -285,6 +332,7 @@ class JobStore:
             self._ensure_column(connection, "jobs", "finished_at", "TEXT")
             self._ensure_column(connection, "jobs", "telemetry_json", "TEXT")
             self._ensure_column(connection, "jobs", "error_code", "TEXT")
+            self._ensure_column(connection, "jobs", "runtime_json", "TEXT")
 
     @staticmethod
     def _ensure_column(connection: sqlite3.Connection, table: str, column: str, definition: str) -> None:
@@ -378,6 +426,27 @@ class JobStore:
             connection.execute(
                 "UPDATE jobs SET telemetry_json = ?, updated_at = ? WHERE job_id = ?",
                 (json.dumps(telemetry), utc_now(), job_id),
+            )
+
+    def update_runtime(self, job_id: str, runtime: dict[str, object]) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE jobs SET runtime_json = ?, updated_at = ? WHERE job_id = ?",
+                (json.dumps(runtime), utc_now(), job_id),
+            )
+
+    def mark_started(self, job_id: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE jobs SET started_at = COALESCE(started_at, ?), updated_at = ? WHERE job_id = ?",
+                (utc_now(), utc_now(), job_id),
+            )
+
+    def mark_finished(self, job_id: str) -> None:
+        with self._connect() as connection:
+            connection.execute(
+                "UPDATE jobs SET finished_at = ?, updated_at = ? WHERE job_id = ?",
+                (utc_now(), utc_now(), job_id),
             )
 
     def create_auth_session(
@@ -1045,6 +1114,50 @@ def gpu_snapshot() -> dict[str, int] | None:
         return None
 
 
+def process_snapshot(process: subprocess.Popen[str]) -> dict[str, object]:
+    """Return safe runtime facts without exposing a host PID or command line."""
+    snapshot: dict[str, object] = {"alive": process.poll() is None}
+    try:
+        monitored = psutil.Process(process.pid)
+        snapshot["cpu_percent"] = round(monitored.cpu_percent(interval=None), 1)
+        snapshot["memory_rss_mib"] = round(monitored.memory_info().rss / (1024 * 1024), 1)
+    except (psutil.Error, OSError):
+        snapshot["cpu_percent"] = None
+        snapshot["memory_rss_mib"] = None
+    return snapshot
+
+
+def oemer_stage_for_line(line: str) -> str | None:
+    for message, stage in OEMER_STAGE_PATTERNS:
+        if message.lower() in line.lower():
+            return stage
+    return None
+
+
+def append_job_event(paths: AppPaths, event: str, **details: object) -> None:
+    """Append only normalized worker facts; raw tool output stays in page diagnostics."""
+    paths.diagnostics_root.mkdir(parents=True, exist_ok=True)
+    payload = {"at": utc_now(), "event": event, **details}
+    with (paths.diagnostics_root / "events.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+
+
+def oemer_artifacts_snapshot(output_dir: Path) -> dict[str, object]:
+    candidates = sorted(output_dir.rglob("*.musicxml")) if output_dir.exists() else []
+    xml_parseable: bool | None = None
+    if candidates:
+        try:
+            ET.parse(candidates[0])
+            xml_parseable = True
+        except ET.ParseError:
+            xml_parseable = False
+    return {
+        "log_written": (output_dir / "oemer.log").exists(),
+        "musicxml_count": len(candidates),
+        "musicxml_parseable": xml_parseable,
+    }
+
+
 def rasterize_job(paths: AppPaths) -> list[Path]:
     paths.pages_root.mkdir(parents=True, exist_ok=True)
     inputs = sorted(paths.input_root.iterdir())
@@ -1065,45 +1178,137 @@ def rasterize_job(paths: AppPaths) -> list[Path]:
     return rendered
 
 
-def run_oemer(page: Path, diagnostics_root: Path, index: int) -> Path:
+def run_oemer(
+    page: Path,
+    diagnostics_root: Path,
+    index: int,
+    runtime_update: Callable[[dict[str, object]], None],
+) -> Path:
     output_dir = diagnostics_root / f"page-{index + 1:02d}"
     output_dir.mkdir(parents=True, exist_ok=True)
     executable = available_oemer_executable()
+    command = [str(executable), str(page), "--output-path", str(output_dir)]
+    output_log = output_dir / "oemer.log"
+    output_lines: queue.Queue[str] = queue.Queue()
+    environment = os.environ.copy()
+    environment.setdefault("PYTHONUNBUFFERED", "1")
     try:
-        completed = subprocess.run(
-            [str(executable), str(page), "--output-path", str(output_dir)],
-            capture_output=True, text=True, timeout=20 * 60,
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+            env=environment,
         )
     except FileNotFoundError as error:
         raise OemerEngineUnavailableError(f"oemer executable disappeared at {executable}") from error
-    (output_dir / "oemer.stdout.log").write_text(completed.stdout, encoding="utf-8")
-    (output_dir / "oemer.stderr.log").write_text(completed.stderr, encoding="utf-8")
-    if completed.returncode != 0:
-        raise RuntimeError(f"oemer exited with code {completed.returncode} on page {index + 1}")
+
+    def stream_output() -> None:
+        assert process.stdout is not None
+        with output_log.open("w", encoding="utf-8", buffering=1) as handle:
+            for line in process.stdout:
+                handle.write(line)
+                output_lines.put(line.rstrip())
+
+    reader = threading.Thread(target=stream_output, name=f"oemer-page-{index + 1}-output", daemon=True)
+    reader.start()
+    started_at = time.monotonic()
+    last_stage_change = started_at
+    last_sample_at = 0.0
+    stage = "model_stafflines"
+    runtime_update({
+        "engine_stage": stage,
+        "elapsed_seconds": 0,
+        "heartbeat_at": utc_now(),
+        "attention_needed": False,
+        "process_alive": True,
+        "resources": {"gpu": gpu_snapshot(), "oemer": process_snapshot(process)},
+        "artifacts": oemer_artifacts_snapshot(output_dir),
+    })
+
+    timed_out = False
+    while process.poll() is None:
+        try:
+            line = output_lines.get(timeout=0.25)
+        except queue.Empty:
+            line = ""
+        if line:
+            next_stage = oemer_stage_for_line(line)
+            if next_stage and next_stage != stage:
+                stage = next_stage
+                last_stage_change = time.monotonic()
+
+        now = time.monotonic()
+        if now - started_at >= OEMER_PAGE_TIMEOUT_SECONDS:
+            timed_out = True
+            process.kill()
+            break
+        if now - last_sample_at >= OEMER_TELEMETRY_INTERVAL_SECONDS:
+            elapsed = int(now - started_at)
+            runtime_update({
+                "engine_stage": stage,
+                "elapsed_seconds": elapsed,
+                "heartbeat_at": utc_now(),
+                "attention_needed": now - last_stage_change >= OEMER_SLOW_STAGE_SECONDS,
+                "process_alive": True,
+                "resources": {"gpu": gpu_snapshot(), "oemer": process_snapshot(process)},
+                "artifacts": oemer_artifacts_snapshot(output_dir),
+            })
+            last_sample_at = now
+
+    return_code = process.wait()
+    reader.join(timeout=2)
+    final_runtime = {
+        "engine_stage": stage,
+        "elapsed_seconds": int(time.monotonic() - started_at),
+        "heartbeat_at": utc_now(),
+        "attention_needed": timed_out,
+        "process_alive": False,
+        "resources": {"gpu": gpu_snapshot(), "oemer": process_snapshot(process)},
+        "artifacts": oemer_artifacts_snapshot(output_dir),
+    }
+    runtime_update(final_runtime)
+    if timed_out:
+        raise OemerRecognitionTimeoutError(f"oemer exceeded its page deadline on page {index + 1}")
+    if return_code != 0:
+        raise OemerRecognitionProcessError(f"oemer exited with code {return_code} on page {index + 1}")
     candidates = sorted(output_dir.rglob("*.musicxml"))
     if not candidates:
-        raise RuntimeError(f"oemer did not produce MusicXML for page {index + 1}")
+        raise OemerNoMusicXMLError(f"oemer did not produce MusicXML for page {index + 1}")
+    try:
+        ET.parse(candidates[0])
+    except ET.ParseError as error:
+        raise OemerMusicXMLInvalidError(f"oemer returned invalid MusicXML on page {index + 1}") from error
     return candidates[0]
 
 
 def merge_musicxml(page_results: list[Path], output_path: Path) -> None:
-    roots = [ET.parse(path).getroot() for path in page_results]
+    try:
+        roots = [ET.parse(path).getroot() for path in page_results]
+    except ET.ParseError as error:
+        raise OemerMusicXMLInvalidError("A page MusicXML result is invalid") from error
     if any(root.tag != "score-partwise" for root in roots):
-        raise RuntimeError("oemer returned a MusicXML root that VocalDive cannot merge")
+        raise OemerMusicXMLMergeIncompatibleError("oemer returned a MusicXML root that VocalDive cannot merge")
     primary = roots[0]
     primary_parts = primary.findall("part")
     for page_root in roots[1:]:
         page_parts = page_root.findall("part")
         if len(page_parts) != len(primary_parts):
-            raise RuntimeError("Page MusicXML part layouts differ; manual review is required")
+            raise OemerMusicXMLMergeIncompatibleError("Page MusicXML part layouts differ")
         for destination_part, source_part in zip(primary_parts, page_parts, strict=True):
             if destination_part.get("id") != source_part.get("id"):
-                raise RuntimeError("Page MusicXML part identifiers differ; manual review is required")
+                raise OemerMusicXMLMergeIncompatibleError("Page MusicXML part identifiers differ")
             for measure in source_part.findall("measure"):
                 destination_part.append(measure)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     ET.ElementTree(primary).write(output_path, encoding="utf-8", xml_declaration=True)
-    ET.parse(output_path)
+    try:
+        ET.parse(output_path)
+    except ET.ParseError as error:
+        raise OemerMusicXMLInvalidError("The merged MusicXML result is invalid") from error
 
 
 def write_metadata(paths: AppPaths, row: sqlite3.Row) -> None:
@@ -1113,9 +1318,42 @@ def write_metadata(paths: AppPaths, row: sqlite3.Row) -> None:
         "detail": row["detail"], "error": row["error"], "error_code": row["error_code"],
         "updated_at": row["updated_at"],
         "telemetry": json.loads(row["telemetry_json"]) if row["telemetry_json"] else None,
+        "runtime": json.loads(row["runtime_json"]) if row["runtime_json"] else None,
     }
     paths.job_root.mkdir(parents=True, exist_ok=True)
     (paths.job_root / "job.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+
+def runtime_data(row: sqlite3.Row) -> dict[str, object]:
+    if not row["runtime_json"]:
+        return {}
+    try:
+        value = json.loads(row["runtime_json"])
+    except json.JSONDecodeError:
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def configure_worker_logging() -> None:
+    """Persist worker and Uvicorn events when the service runs without a console."""
+    logs_root = STATE_ROOT / "logs"
+    logs_root.mkdir(parents=True, exist_ok=True)
+    log_path = logs_root / "worker.log"
+
+    resolved_log_path = str(log_path.resolve())
+    for logger_name in ("vocaldive.omr", "uvicorn.error", "uvicorn.access"):
+        target = logging.getLogger(logger_name)
+        if any(getattr(handler, "baseFilename", None) == resolved_log_path for handler in target.handlers):
+            continue
+        handler = logging.handlers.TimedRotatingFileHandler(
+            log_path,
+            when="midnight",
+            backupCount=WORKER_LOG_RETENTION_DAYS,
+            encoding="utf-8",
+        )
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+        target.addHandler(handler)
+        target.setLevel(logging.INFO)
 
 
 class JobWorker:
@@ -1131,7 +1369,7 @@ class JobWorker:
     def _recover_interrupted_jobs(self) -> None:
         with self.store._connect() as connection:
             connection.execute(
-                "UPDATE jobs SET state = 'queued', detail = 'Recovered after worker restart', updated_at = ? "
+                "UPDATE jobs SET state = 'queued', detail = 'Recovered after worker restart', runtime_json = NULL, updated_at = ? "
                 "WHERE state IN ('rasterizing', 'recognizing', 'assembling')", (utc_now(),)
             )
 
@@ -1144,6 +1382,19 @@ class JobWorker:
             row = self.store.next_queued()
             if row:
                 self._process(row)
+
+    def _write_row(self, paths: AppPaths, job_id: str) -> None:
+        row = self.store.get(job_id)
+        if row:
+            write_metadata(paths, row)
+
+    def _update_job(self, paths: AppPaths, job_id: str, **changes: object) -> None:
+        self.store.update(job_id, **changes)
+        self._write_row(paths, job_id)
+
+    def _update_runtime(self, paths: AppPaths, job_id: str, runtime: dict[str, object]) -> None:
+        self.store.update_runtime(job_id, runtime)
+        self._write_row(paths, job_id)
 
     def _process(self, row: sqlite3.Row) -> None:
         job_id = row["job_id"]
@@ -1160,40 +1411,96 @@ class JobWorker:
         started_at = time.monotonic()
         phase = "rasterizing"
         try:
-            self.store.update(job_id, state="rasterizing", detail="Rasterizing source pages")
+            self.store.mark_started(job_id)
+            append_job_event(paths, "job_started")
+            self._update_job(paths, job_id, state="rasterizing", detail="Rasterizing source pages")
             pages = rasterize_job(paths)
             timings["rasterizing_seconds"] = round(time.monotonic() - started_at, 3)
             phase = "recognizing"
             recognizing_started_at = time.monotonic()
-            self.store.update(job_id, state="recognizing", completed_pages=0, detail="Recognizing page 1")
+            self._update_job(paths, job_id, state="recognizing", completed_pages=0, detail="Analyzing notation")
             page_results: list[Path] = []
             for index, page in enumerate(pages):
                 current = self.store.get(job_id)
                 if current is None or current["state"] == "cancelled":
                     return
-                page_results.append(run_oemer(page, paths.diagnostics_root, index))
-                self.store.update(job_id, completed_pages=index + 1, detail=f"Recognized page {index + 1} of {len(pages)}")
+                append_job_event(paths, "page_recognition_started", page=index + 1, total_pages=len(pages))
+                slow_warning_recorded = False
+
+                def runtime_update(runtime: dict[str, object]) -> None:
+                    nonlocal slow_warning_recorded
+                    payload = {**runtime, "current_page": index + 1, "total_pages": len(pages), "completed_pages": index}
+                    self._update_runtime(paths, job_id, payload)
+                    if runtime.get("attention_needed") and not slow_warning_recorded:
+                        append_job_event(paths, "slow_stage_warning", page=index + 1, stage=runtime.get("engine_stage"))
+                        slow_warning_recorded = True
+
+                page_results.append(run_oemer(page, paths.diagnostics_root, index, runtime_update))
+                append_job_event(paths, "page_recognition_finished", page=index + 1, total_pages=len(pages))
+                self._update_job(
+                    paths, job_id, completed_pages=index + 1,
+                    detail=f"Recognized page {index + 1} of {len(pages)}",
+                )
             timings["recognizing_seconds"] = round(time.monotonic() - recognizing_started_at, 3)
             phase = "assembling"
             assembling_started_at = time.monotonic()
-            self.store.update(job_id, state="assembling", detail="Validating and combining MusicXML")
+            append_job_event(paths, "musicxml_assembly_started")
+            self._update_job(paths, job_id, state="assembling", detail="Building editable score")
             merge_musicxml(page_results, paths.result_root / "candidate.musicxml")
             timings["assembling_seconds"] = round(time.monotonic() - assembling_started_at, 3)
-            self.store.update(job_id, state="ready", detail="MusicXML candidate is ready")
+            append_job_event(paths, "musicxml_ready")
+            self._update_job(paths, job_id, state="ready", detail="MusicXML candidate is ready")
         except OemerEngineUnavailableError:
             LOGGER.exception("oemer is unavailable while recognizing job %s", job_id)
-            self.store.update(
-                job_id,
+            append_job_event(paths, "job_failed", error_code="engine_unavailable")
+            self._update_job(
+                paths, job_id,
                 state="failed",
                 detail="Recognition service is temporarily unavailable",
                 error="Recognition service is temporarily unavailable",
                 error_code="engine_unavailable",
             )
+        except OemerRecognitionTimeoutError:
+            LOGGER.warning("OMR job %s exceeded its recognition deadline", job_id)
+            append_job_event(paths, "job_failed", error_code="recognition_timeout")
+            self._update_job(
+                paths, job_id, state="failed", detail="Recognition did not finish in time",
+                error="Recognition service is temporarily unavailable", error_code="recognition_timeout",
+            )
+        except OemerRecognitionProcessError:
+            LOGGER.exception("oemer process failed for job %s", job_id)
+            append_job_event(paths, "job_failed", error_code="recognition_process_failed")
+            self._update_job(
+                paths, job_id, state="failed", detail="Recognition did not complete",
+                error="Recognition service is temporarily unavailable", error_code="recognition_process_failed",
+            )
+        except OemerNoMusicXMLError:
+            LOGGER.exception("oemer left no MusicXML result for job %s", job_id)
+            append_job_event(paths, "job_failed", error_code="no_musicxml_output")
+            self._update_job(
+                paths, job_id, state="failed", detail="Recognition did not produce an editable score",
+                error="Recognition service is temporarily unavailable", error_code="no_musicxml_output",
+            )
+        except OemerMusicXMLInvalidError:
+            LOGGER.exception("oemer produced invalid MusicXML for job %s", job_id)
+            append_job_event(paths, "job_failed", error_code="musicxml_invalid")
+            self._update_job(
+                paths, job_id, state="failed", detail="Recognition produced an invalid editable score",
+                error="Recognition service is temporarily unavailable", error_code="musicxml_invalid",
+            )
+        except OemerMusicXMLMergeIncompatibleError:
+            LOGGER.exception("oemer page results cannot be merged for job %s", job_id)
+            append_job_event(paths, "job_failed", error_code="musicxml_merge_incompatible")
+            self._update_job(
+                paths, job_id, state="failed", detail="Pages could not form one editable score",
+                error="Recognition service is temporarily unavailable", error_code="musicxml_merge_incompatible",
+            )
         except Exception as error:
             error_code = worker_failure_code(phase)
             LOGGER.exception("OMR job %s failed during %s with code %s", job_id, phase, error_code)
-            self.store.update(
-                job_id,
+            append_job_event(paths, "job_failed", error_code=error_code)
+            self._update_job(
+                paths, job_id,
                 state="failed",
                 detail="Recognition service did not complete",
                 error="Recognition service is temporarily unavailable",
@@ -1205,9 +1512,8 @@ class JobWorker:
             telemetry["total_seconds"] = round(time.monotonic() - started_at, 3)
             telemetry["finished_at"] = utc_now()
             self.store.update_telemetry(job_id, telemetry)
-            updated = self.store.get(job_id)
-            if updated:
-                write_metadata(paths, updated)
+            self.store.mark_finished(job_id)
+            self._write_row(paths, job_id)
 
 
 store = JobStore(DATABASE_PATH)
@@ -1220,6 +1526,7 @@ app = FastAPI(title="VocalDive 714 OMR", version="0.1.0")
 def startup() -> None:
     DATA_ROOT.mkdir(parents=True, exist_ok=True)
     STATE_ROOT.mkdir(parents=True, exist_ok=True)
+    configure_worker_logging()
     load_tokens()
     if not engine_ready():
         LOGGER.error("oemer is unavailable; new OMR jobs will be rejected until the worker is repaired")
@@ -1385,11 +1692,19 @@ def get_job(job_id: str, identity: DeviceIdentity = Depends(require_device)) -> 
     row = store.get_for_account(job_id, identity.account_id)
     if not row:
         raise HTTPException(status_code=404, detail="Unknown OMR job")
+    runtime = runtime_data(row)
+    resources = runtime.get("resources")
     return JobStatusResponse(
         job_id=row["job_id"], state=row["state"], source_name=row["source_name"],
         total_pages=row["total_pages"], completed_pages=row["completed_pages"], detail=row["detail"], error=row["error"],
         error_code=row["error_code"],
         queue_position=store.queue_position(row),
+        current_page=runtime.get("current_page") if isinstance(runtime.get("current_page"), int) else None,
+        engine_stage=runtime.get("engine_stage") if isinstance(runtime.get("engine_stage"), str) else None,
+        elapsed_seconds=runtime.get("elapsed_seconds") if isinstance(runtime.get("elapsed_seconds"), int) else None,
+        heartbeat_at=runtime.get("heartbeat_at") if isinstance(runtime.get("heartbeat_at"), str) else None,
+        attention_needed=bool(runtime.get("attention_needed", False)),
+        resource_snapshot=resources if isinstance(resources, dict) else None,
     )
 
 

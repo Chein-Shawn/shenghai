@@ -461,6 +461,11 @@
 "score.scan.progress.finished" = "اكتمل";
 "score.scan.progress.simple" = "%d%% - %@ لـ %@";
 "score.scan.progress.with_pages" = "%d%% - %@ (%d/%d صفحات) لـ %@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@ (%d/%d صفحات، مضى %@) لـ %@";
+"score.scan.progress.analyzingNotation" = "جارٍ تحليل التدوين الموسيقي";
+"score.scan.progress.readingNoteheads" = "جارٍ قراءة رؤوس النوتات";
+"score.scan.progress.buildingEditableScore" = "جارٍ إنشاء نوتة قابلة للتحرير";
+"score.scan.progress.takingLonger" = "تستغرق المعالجة وقتًا أطول من المعتاد";
 "score.scan.image_batch" = "%d صور نوتة موسيقية";
 "score.scan.connecting" = "جارٍ توصيل %@ بخادم OMR الخاص بك.";
 "score.scan.remote_failed" = "فشل مسح OMR الخاص: %@";
@@ -529,3 +534,12 @@
 "score.review.complete_correction_unavailable" = "لم تعد النوتة المصدر محفوظة لدى خدمة OMR. أعد رفعها قبل إكمال هذا التصحيح.";
 "score.review.correction_completed" = "تم تسجيل التصحيح المكتمل لتحسين التعرف.";
 "score.review.complete_correction_failed" = "تعذر إكمال التصحيح: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

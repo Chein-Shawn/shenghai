@@ -195,7 +195,37 @@ actual product uploads from the Apple client.
 ## Failure diagnostics
 
 The app never displays raw Windows, Python, or oemer errors. A failed job instead exposes one
-stable code: `engine_unavailable`, `source_processing_failed`, `recognition_failed`,
-`result_assembly_failed`, or `worker_failed`. Use the job's date folder and the worker log on the
-host to investigate the detailed cause. This keeps user-facing recovery copy safe while preserving
-enough host evidence to distinguish upload, rasterization, recognition, and MusicXML assembly.
+stable code: `engine_unavailable`, `source_processing_failed`, `recognition_timeout`,
+`recognition_process_failed`, `no_musicxml_output`, `musicxml_invalid`,
+`musicxml_merge_incompatible`, `result_assembly_failed`, or `worker_failed`. This keeps
+user-facing recovery copy safe while preserving enough host evidence to distinguish upload,
+rasterization, recognition, and MusicXML assembly.
+
+### Runtime observability
+
+oemer emits several useful progress messages while it works. The worker streams combined output
+to `data/YYYY-MM-DD/<job-id>/diagnostics/page-*/oemer.log`, normalizes the visible stages, and
+updates both `job.json` and SQLite every ten seconds. The public job status returns only safe
+facts to the owning app installation: page, normalized stage, elapsed time, heartbeat, slow-job
+warning, GPU/VRAM snapshot, and recognition-process CPU/RAM snapshot. It does not return command
+lines, paths, raw stdout, credentials, or Windows exceptions.
+
+- The expected stages are `model_stafflines`, `model_symbols`, `dewarping`, `stafflines`,
+  `noteheads`, `symbols`, `rhythm`, and `building_musicxml`.
+- A page remains eligible to run for `VOCALDIVE_OMR_PAGE_TIMEOUT_SECONDS` (default: 20 minutes).
+  A stage unchanged for `VOCALDIVE_OMR_SLOW_STAGE_SECONDS` (default: 7 minutes) produces a
+  warning but does not cancel the job.
+- Host logs rotate daily at `D:\VocalDiveOMR\state\logs\worker.log`; keep the last
+  `VOCALDIVE_OMR_WORKER_LOG_RETENTION_DAYS` files (default: 14).
+
+When a run needs investigation, open an elevated PowerShell on the host and run:
+
+```powershell
+cd D:\Shawn2\VocalDiveOMR\service\remote_omr_714
+powershell -ExecutionPolicy Bypass -File .\diagnose_active_job.ps1
+```
+
+The script finds the newest active job, or accepts `-JobId <id>`, then prints its sanitized queue
+record, GPU snapshot, active recognition processes, current artifacts, normalized events, and the
+tail of the persistent worker log. It is the first place to distinguish an active GPU run, a
+checkpoint wait, a process exit, an output-format failure, or an expired timeout.

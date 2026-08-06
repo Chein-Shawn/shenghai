@@ -556,3 +556,29 @@ The Score workspace remains on the main actor for SwiftUI state, but remote sour
 does not: local PDF/image rasterization and multipart body-file creation run in a detached
 user-initiated task before the background upload begins. This preserves the local review image
 handoff while keeping a multi-page scan responsive during preparation and upload.
+
+### 2026-08-06 update - monitored remote recognition runtime
+
+The remote worker no longer waits silently for an entire page-level `oemer` process to exit.
+It streams combined standard output and error into each page diagnostics folder, then normalizes
+known output into a deliberately small runtime vocabulary:
+
+```text
+model_stafflines -> model_symbols -> dewarping -> stafflines
+-> noteheads -> symbols -> rhythm -> building_musicxml
+```
+
+Every ten seconds, the worker persists current page, normalized stage, elapsed time, heartbeat,
+process liveness, GPU/VRAM, recognition-process CPU/RAM, and currently observable output artifacts
+to `jobs.sqlite3` and the date/job `job.json`. `events.jsonl` records normalized state transitions;
+raw stdout/stderr remains only in the host diagnostics folder. A seven-minute unchanged-stage warning
+is surfaced as clear nontechnical App copy and does not cancel the job. The page deadline remains
+twenty minutes, after which the worker terminates the subprocess and records `recognition_timeout`.
+
+The owner-scoped job API exposes only sanitized fields (`engine_stage`, `elapsed_seconds`,
+`heartbeat_at`, `attention_needed`, and resource snapshots). Debug builds of VocalDive can display a
+copyable redacted diagnostic report; production builds show only localized progress such as
+preparing, analyzing notation, reading noteheads, and building an editable score. Stable recognition
+failure codes distinguish process exit, timeout, missing output, invalid MusicXML, and incompatible
+page merging. Daily rotating host logs live under `D:\VocalDiveOMR\state\logs`, allowing the
+scheduled worker to remain diagnosable with no PowerShell window open.

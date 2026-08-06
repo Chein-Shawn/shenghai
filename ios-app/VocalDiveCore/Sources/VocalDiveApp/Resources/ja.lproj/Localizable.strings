@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "完了";
 "score.scan.progress.simple" = "%d%% - %@：%@";
 "score.scan.progress.with_pages" = "%d%% - %@（%d/%d ページ）：%@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@（%d/%d ページ、経過 %@）：%@";
+"score.scan.progress.analyzingNotation" = "楽譜を解析中";
+"score.scan.progress.readingNoteheads" = "音符を読み取り中";
+"score.scan.progress.buildingEditableScore" = "編集可能な楽譜を作成中";
+"score.scan.progress.takingLonger" = "通常より時間がかかっています";
 "score.scan.image_batch" = "%d 枚の楽譜画像";
 "score.scan.connecting" = "%@ をプライベート OMR サーバーに接続しています。";
 "score.scan.remote_failed" = "プライベート OMR スキャンに失敗しました: %@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "認識サービスには原稿が残っていません。この校正を完了する前に再アップロードしてください。";
 "score.review.correction_completed" = "完了した校正を認識改善のために記録しました。";
 "score.review.complete_correction_failed" = "校正を完了できませんでした: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "リモート OMR 診断";
+"settings.vocaldive_omr.debug_no_job" = "有効なリモートジョブの診断情報はありません。";
+"settings.vocaldive_omr.debug_stage" = "段階: %@";
+"settings.vocaldive_omr.debug_elapsed" = "経過: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "最終ハートビート: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU 使用量: %@";
+"settings.vocaldive_omr.debug_process" = "認識プロセス: %@";
+"settings.vocaldive_omr.debug_error_code" = "エラーコード: %@";
+"settings.vocaldive_omr.debug_copy" = "非公開化した診断情報をコピー";

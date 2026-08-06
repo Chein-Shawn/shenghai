@@ -23,6 +23,10 @@ enum NativeOMRScanProgressPhase: String {
     case waitingForServer
     case rasterizingPages
     case runningModel
+    case analyzingNotation
+    case readingNoteheads
+    case buildingEditableScore
+    case takingLonger
     case reconstructingScore
     case generatingMusicXML
     case downloadingResult
@@ -39,18 +43,21 @@ struct NativeOMRScanProgress: Equatable {
     var fraction: Double
     var completedPages: Int
     var totalPages: Int
+    var elapsedSeconds: Int
 
     static func make(
         _ phase: NativeOMRScanProgressPhase,
         fraction: Double,
         completedPages: Int = 0,
-        totalPages: Int = 0
+        totalPages: Int = 0,
+        elapsedSeconds: Int = 0
     ) -> NativeOMRScanProgress {
         NativeOMRScanProgress(
             phase: phase,
             fraction: min(1, max(0, fraction)),
             completedPages: completedPages,
-            totalPages: totalPages
+            totalPages: totalPages,
+            elapsedSeconds: max(0, elapsedSeconds)
         )
     }
 }

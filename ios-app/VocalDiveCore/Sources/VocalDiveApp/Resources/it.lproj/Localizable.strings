@@ -468,6 +468,11 @@
 "score.scan.progress.finished" = "Completato";
 "score.scan.progress.simple" = "%d%% - %@ per %@";
 "score.scan.progress.with_pages" = "%d%% - %@ (%d/%d pagine) per %@";
+"score.scan.progress.with_pages_elapsed" = "%d%% - %@ (%d/%d pagine, %@ trascorsi) per %@";
+"score.scan.progress.analyzingNotation" = "Analisi della notazione";
+"score.scan.progress.readingNoteheads" = "Lettura delle teste delle note";
+"score.scan.progress.buildingEditableScore" = "Creazione della partitura modificabile";
+"score.scan.progress.takingLonger" = "L'operazione richiede più tempo del solito";
 "score.scan.image_batch" = "%d immagini di spartiti";
 "score.scan.connecting" = "Connessione di %@ al tuo server OMR privato.";
 "score.scan.remote_failed" = "Scansione OMR privata non riuscita: %@";
@@ -536,3 +541,12 @@
 "score.review.complete_correction_unavailable" = "La partitura sorgente non e piu conservata dal servizio OMR. Caricala di nuovo prima di completare la correzione.";
 "score.review.correction_completed" = "La correzione completata e stata registrata per migliorare il riconoscimento.";
 "score.review.complete_correction_failed" = "Impossibile completare la correzione: %@";
+"settings.vocaldive_omr.debug_diagnostics" = "Remote OMR diagnostics";
+"settings.vocaldive_omr.debug_no_job" = "No active remote job diagnostics.";
+"settings.vocaldive_omr.debug_stage" = "Stage: %@";
+"settings.vocaldive_omr.debug_elapsed" = "Elapsed: %@";
+"settings.vocaldive_omr.debug_heartbeat" = "Heartbeat: %@";
+"settings.vocaldive_omr.debug_gpu" = "GPU: %@";
+"settings.vocaldive_omr.debug_process" = "Recognition process: %@";
+"settings.vocaldive_omr.debug_error_code" = "Error code: %@";
+"settings.vocaldive_omr.debug_copy" = "Copy redacted diagnostics";

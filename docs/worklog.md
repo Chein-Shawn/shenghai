@@ -239,3 +239,12 @@ important decisions live. The former free-form log is preserved unchanged in
   the app presents the existing localized retry guidance.
 - Corrected the C4 record to the implemented one-use, 24-hour email-link lifetime and verified
   that `暫存進度` remains local while `完成校正` remains an idempotent training submission.
+- Replaced the opaque recognition wait with page-level runtime observability: streamed oemer output,
+  normalized stages, ten-second SQLite and `job.json` heartbeats, GPU/VRAM and process snapshots,
+  per-job event logs, a seven-minute slow-job warning, and the existing twenty-minute deadline.
+- Added stable runtime error codes for recognition timeout, failed recognition process, missing or
+  invalid MusicXML, and incompatible page merges. The App maps those codes to localized recovery
+  copy instead of exposing host paths or Windows exceptions.
+- Added a Debug-only redacted diagnostics panel and localized nontechnical scan progress across all
+  14 shipped languages. Added the 714 `diagnose_active_job.ps1` operator tool and daily rotating
+  worker logs so scheduled-task failures can be investigated after the fact.

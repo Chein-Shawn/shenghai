@@ -30,6 +30,12 @@ struct RemoteOMRJobStatus: Codable, Equatable {
     var error: String?
     var errorCode: String?
     var queuePosition: Int?
+    var currentPage: Int?
+    var engineStage: String?
+    var elapsedSeconds: Int?
+    var heartbeatAt: String?
+    var attentionNeeded: Bool?
+    var resourceSnapshot: RemoteOMRResourceSnapshot?
 
     private enum CodingKeys: String, CodingKey {
         case jobID = "job_id"
@@ -41,6 +47,56 @@ struct RemoteOMRJobStatus: Codable, Equatable {
         case error
         case errorCode = "error_code"
         case queuePosition = "queue_position"
+        case currentPage = "current_page"
+        case engineStage = "engine_stage"
+        case elapsedSeconds = "elapsed_seconds"
+        case heartbeatAt = "heartbeat_at"
+        case attentionNeeded = "attention_needed"
+        case resourceSnapshot = "resource_snapshot"
+    }
+}
+
+struct RemoteOMRResourceSnapshot: Codable, Equatable {
+    var gpu: RemoteOMRGPUResourceSnapshot?
+    var oemer: RemoteOMRProcessResourceSnapshot?
+}
+
+struct RemoteOMRGPUResourceSnapshot: Codable, Equatable {
+    var utilizationPercent: Int?
+    var memoryUsedMiB: Int?
+    var memoryTotalMiB: Int?
+
+    private enum CodingKeys: String, CodingKey {
+        case utilizationPercent = "utilization_percent"
+        case memoryUsedMiB = "memory_used_mib"
+        case memoryTotalMiB = "memory_total_mib"
+    }
+}
+
+struct RemoteOMRProcessResourceSnapshot: Codable, Equatable {
+    var alive: Bool?
+    var cpuPercent: Double?
+    var memoryRSSMiB: Double?
+
+    private enum CodingKeys: String, CodingKey {
+        case alive
+        case cpuPercent = "cpu_percent"
+        case memoryRSSMiB = "memory_rss_mib"
+    }
+}
+
+@MainActor
+final class RemoteOMRDiagnosticsStore: ObservableObject {
+    static let shared = RemoteOMRDiagnosticsStore()
+
+    @Published private(set) var latestStatus: RemoteOMRJobStatus?
+
+    func record(_ status: RemoteOMRJobStatus) {
+        latestStatus = status
+    }
+
+    func clear() {
+        latestStatus = nil
     }
 }
 
@@ -890,7 +946,11 @@ final class RemoteOMRService {
                 if status.errorCode == "engine_unavailable" {
                     throw RemoteOMRServiceError.engineUnavailable
                 }
-                if ["source_processing_failed", "recognition_failed", "result_assembly_failed", "worker_failed"].contains(status.errorCode) {
+                if [
+                    "source_processing_failed", "recognition_failed", "result_assembly_failed", "worker_failed",
+                    "recognition_timeout", "recognition_process_failed", "no_musicxml_output",
+                    "musicxml_invalid", "musicxml_merge_incompatible",
+                ].contains(status.errorCode) {
                     throw RemoteOMRServiceError.processingUnavailable
                 }
                 throw RemoteOMRServiceError.server(status.error ?? status.detail ?? "VocalDive OMR did not finish.")
@@ -899,6 +959,11 @@ final class RemoteOMRService {
             progress?(progressValue(for: status), queueDetail)
             try await Task.sleep(for: .seconds(2))
             status = try await fetchStatus(jobID: status.jobID, configuration: configuration)
+            #if DEBUG
+            await MainActor.run {
+                RemoteOMRDiagnosticsStore.shared.record(status)
+            }
+            #endif
         }
 
         progress?(.make(.downloadingResult, fraction: 0.94, completedPages: status.totalPages, totalPages: status.totalPages), "")
@@ -992,7 +1057,30 @@ final class RemoteOMRService {
         case .rasterizing: return .make(.rasterizingPages, fraction: 0.35, totalPages: status.totalPages)
         case .recognizing:
             let pageFraction = Double(status.completedPages) / Double(max(status.totalPages, 1))
-            return .make(.runningModel, fraction: 0.38 + pageFraction * 0.48, completedPages: status.completedPages, totalPages: status.totalPages)
+            let displayedPage = min(
+                status.totalPages,
+                max(status.completedPages, status.currentPage ?? status.completedPages)
+            )
+            let phase: NativeOMRScanProgressPhase
+            if status.attentionNeeded == true {
+                phase = .takingLonger
+            } else {
+                switch status.engineStage {
+                case "noteheads":
+                    phase = .readingNoteheads
+                case "rhythm", "building_musicxml":
+                    phase = .buildingEditableScore
+                default:
+                    phase = .analyzingNotation
+                }
+            }
+            return .make(
+                phase,
+                fraction: 0.38 + pageFraction * 0.48,
+                completedPages: displayedPage,
+                totalPages: status.totalPages,
+                elapsedSeconds: status.elapsedSeconds ?? 0
+            )
         case .assembling: return .make(.generatingMusicXML, fraction: 0.89, completedPages: status.totalPages, totalPages: status.totalPages)
         case .ready: return .make(.downloadingResult, fraction: 0.94, completedPages: status.totalPages, totalPages: status.totalPages)
         case .failed, .cancelled: return .make(.finished, fraction: 1)

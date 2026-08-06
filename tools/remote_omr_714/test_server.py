@@ -55,6 +55,117 @@ class OemerExecutableTests(unittest.TestCase):
         self.assertEqual(server.worker_failure_code("unexpected"), "worker_failed")
 
 
+class RuntimeDiagnosticsTests(unittest.TestCase):
+    class FakeProcess:
+        def __init__(self, return_code: int | None, lines: str = "") -> None:
+            self.return_code = return_code
+            self.stdout = io.StringIO(lines)
+            self.pid = 999999
+            self.killed = False
+
+        def poll(self) -> int | None:
+            return self.return_code
+
+        def wait(self) -> int:
+            return -9 if self.killed else int(self.return_code or 0)
+
+        def kill(self) -> None:
+            self.killed = True
+            self.return_code = -9
+
+    def test_stage_parser_normalizes_oemer_readme_messages(self) -> None:
+        self.assertEqual(server.oemer_stage_for_line("INFO Extracting staffline and symbols"), "model_stafflines")
+        self.assertEqual(server.oemer_stage_for_line("Extracting layers of different symbols"), "model_symbols")
+        self.assertEqual(server.oemer_stage_for_line("Dewarping"), "dewarping")
+        self.assertEqual(server.oemer_stage_for_line("Extracting stafflines"), "stafflines")
+        self.assertEqual(server.oemer_stage_for_line("Extracting noteheads"), "noteheads")
+        self.assertEqual(server.oemer_stage_for_line("Extracting symbols"), "symbols")
+        self.assertEqual(server.oemer_stage_for_line("Extracting rhythm types"), "rhythm")
+        self.assertEqual(server.oemer_stage_for_line("Building MusicXML document"), "building_musicxml")
+        self.assertIsNone(server.oemer_stage_for_line("unrelated output"))
+
+    def test_runtime_data_handles_missing_and_malformed_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = server.JobStore(Path(directory) / "jobs.sqlite3")
+            store.create(
+                job_id="job", account_id="account", idempotency_key="key", source_name="score.png",
+                job_root=Path(directory) / "job", total_pages=1,
+            )
+            row = store.get("job")
+            self.assertEqual(server.runtime_data(row), {})
+            with store._connect() as connection:
+                connection.execute("UPDATE jobs SET runtime_json = 'not json' WHERE job_id = 'job'")
+            self.assertEqual(server.runtime_data(store.get("job")), {})
+
+    def test_runtime_snapshot_is_persisted_for_live_status(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = server.JobStore(Path(directory) / "jobs.sqlite3")
+            store.create(
+                job_id="job", account_id="account", idempotency_key="key", source_name="score.png",
+                job_root=Path(directory) / "job", total_pages=1,
+            )
+            store.update_runtime(
+                "job",
+                {
+                    "engine_stage": "noteheads",
+                    "elapsed_seconds": 12,
+                    "heartbeat_at": "2026-08-06T12:00:00Z",
+                    "attention_needed": False,
+                    "resources": {"gpu": {"utilization_percent": 60}},
+                },
+            )
+            runtime = server.runtime_data(store.get("job"))
+            self.assertEqual(runtime["engine_stage"], "noteheads")
+            self.assertEqual(runtime["resources"]["gpu"]["utilization_percent"], 60)
+
+    def test_nonzero_process_and_missing_output_have_stable_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            page = root / "page.png"
+            page.write_bytes(b"image")
+            updates: list[dict[str, object]] = []
+            with patch("server.available_oemer_executable", return_value=root / "oemer.exe"):
+                with patch("server.subprocess.Popen", return_value=self.FakeProcess(3)):
+                    with self.assertRaises(server.OemerRecognitionProcessError):
+                        server.run_oemer(page, root / "diagnostics", 0, updates.append)
+                with patch("server.subprocess.Popen", return_value=self.FakeProcess(0)):
+                    with self.assertRaises(server.OemerNoMusicXMLError):
+                        server.run_oemer(page, root / "diagnostics", 1, updates.append)
+            self.assertTrue(updates)
+
+    def test_timeout_terminates_the_process(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            page = root / "page.png"
+            page.write_bytes(b"image")
+            process = self.FakeProcess(None)
+            previous_timeout = server.OEMER_PAGE_TIMEOUT_SECONDS
+            server.OEMER_PAGE_TIMEOUT_SECONDS = 0
+            try:
+                with patch("server.available_oemer_executable", return_value=root / "oemer.exe"):
+                    with patch("server.subprocess.Popen", return_value=process):
+                        with self.assertRaises(server.OemerRecognitionTimeoutError):
+                            server.run_oemer(page, root / "diagnostics", 0, lambda _value: None)
+            finally:
+                server.OEMER_PAGE_TIMEOUT_SECONDS = previous_timeout
+            self.assertTrue(process.killed)
+
+    def test_invalid_and_incompatible_musicxml_are_distinguished(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            invalid = root / "invalid.musicxml"
+            invalid.write_text("<score-partwise>", encoding="utf-8")
+            with self.assertRaises(server.OemerMusicXMLInvalidError):
+                server.merge_musicxml([invalid], root / "candidate.musicxml")
+
+            left = root / "left.musicxml"
+            right = root / "right.musicxml"
+            left.write_text('<score-partwise><part id="P1" /></score-partwise>', encoding="utf-8")
+            right.write_text('<score-partwise><part id="P2" /></score-partwise>', encoding="utf-8")
+            with self.assertRaises(server.OemerMusicXMLMergeIncompatibleError):
+                server.merge_musicxml([left, right], root / "candidate.musicxml")
+
+
 class EmailLinkRateLimitTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary_directory = tempfile.TemporaryDirectory()
