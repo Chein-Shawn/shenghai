@@ -172,6 +172,18 @@ class OemerEngineUnavailableError(RuntimeError):
     """Raised when the worker cannot start the locally installed oemer CLI."""
 
 
+WORKER_FAILURE_CODES = {
+    "rasterizing": "source_processing_failed",
+    "recognizing": "recognition_failed",
+    "assembling": "result_assembly_failed",
+}
+
+
+def worker_failure_code(phase: str) -> str:
+    """Return a stable public code while the detailed cause remains in host logs."""
+    return WORKER_FAILURE_CODES.get(phase, "worker_failed")
+
+
 def resolved_oemer_executable(setting: str | None = None) -> Path:
     """Use this Python environment's console script unless an absolute override is supplied."""
     configured = (OEMER_EXECUTABLE_SETTING if setting is None else setting).strip()
@@ -1098,7 +1110,8 @@ def write_metadata(paths: AppPaths, row: sqlite3.Row) -> None:
     metadata = {
         "job_id": row["job_id"], "state": row["state"], "source_name": row["source_name"],
         "total_pages": row["total_pages"], "completed_pages": row["completed_pages"],
-        "detail": row["detail"], "error": row["error"], "updated_at": row["updated_at"],
+        "detail": row["detail"], "error": row["error"], "error_code": row["error_code"],
+        "updated_at": row["updated_at"],
         "telemetry": json.loads(row["telemetry_json"]) if row["telemetry_json"] else None,
     }
     paths.job_root.mkdir(parents=True, exist_ok=True)
@@ -1145,10 +1158,12 @@ class JobWorker:
         timings: dict[str, float] = {}
         telemetry: dict[str, object] = {"queued_at": row["created_at"], "gpu_before": gpu_snapshot()}
         started_at = time.monotonic()
+        phase = "rasterizing"
         try:
             self.store.update(job_id, state="rasterizing", detail="Rasterizing source pages")
             pages = rasterize_job(paths)
             timings["rasterizing_seconds"] = round(time.monotonic() - started_at, 3)
+            phase = "recognizing"
             recognizing_started_at = time.monotonic()
             self.store.update(job_id, state="recognizing", completed_pages=0, detail="Recognizing page 1")
             page_results: list[Path] = []
@@ -1159,6 +1174,7 @@ class JobWorker:
                 page_results.append(run_oemer(page, paths.diagnostics_root, index))
                 self.store.update(job_id, completed_pages=index + 1, detail=f"Recognized page {index + 1} of {len(pages)}")
             timings["recognizing_seconds"] = round(time.monotonic() - recognizing_started_at, 3)
+            phase = "assembling"
             assembling_started_at = time.monotonic()
             self.store.update(job_id, state="assembling", detail="Validating and combining MusicXML")
             merge_musicxml(page_results, paths.result_root / "candidate.musicxml")
@@ -1174,8 +1190,15 @@ class JobWorker:
                 error_code="engine_unavailable",
             )
         except Exception as error:
-            LOGGER.exception("OMR job %s did not complete", job_id)
-            self.store.update(job_id, state="failed", detail="OMR did not complete", error=str(error))
+            error_code = worker_failure_code(phase)
+            LOGGER.exception("OMR job %s failed during %s with code %s", job_id, phase, error_code)
+            self.store.update(
+                job_id,
+                state="failed",
+                detail="Recognition service did not complete",
+                error="Recognition service is temporarily unavailable",
+                error_code=error_code,
+            )
         finally:
             telemetry["gpu_after"] = gpu_snapshot()
             telemetry["timings"] = timings

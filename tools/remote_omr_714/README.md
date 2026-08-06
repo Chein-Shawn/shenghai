@@ -191,3 +191,11 @@ Use direct 714 smoke tests with one small image and one small PDF before testing
 confirm the job reaches `ready`, download valid MusicXML, and then verify the correction route
 after editing it in VocalDive. Keep the original test files outside this source folder; the
 actual product uploads from the Apple client.
+
+## Failure diagnostics
+
+The app never displays raw Windows, Python, or oemer errors. A failed job instead exposes one
+stable code: `engine_unavailable`, `source_processing_failed`, `recognition_failed`,
+`result_assembly_failed`, or `worker_failed`. Use the job's date folder and the worker log on the
+host to investigate the detailed cause. This keeps user-facing recovery copy safe while preserving
+enough host evidence to distinguish upload, rasterization, recognition, and MusicXML assembly.

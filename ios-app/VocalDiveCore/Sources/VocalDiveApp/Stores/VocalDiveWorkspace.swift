@@ -507,9 +507,13 @@ final class VocalDiveWorkspace: ObservableObject {
                 self?.latestNativeOMRSession = nil
                 self?.scannedMusicXMLCandidate = nil
                 self?.remoteOMRConnectionRequired = false
-                if let remoteError = error as? RemoteOMRServiceError,
-                   case .engineUnavailable = remoteError {
-                    self?.errorMessage = L10n.tr("score.scan.engine_unavailable")
+                if let remoteError = error as? RemoteOMRServiceError {
+                    switch remoteError {
+                    case .engineUnavailable, .processingUnavailable:
+                        self?.errorMessage = L10n.tr("score.scan.engine_unavailable")
+                    default:
+                        self?.errorMessage = L10n.tr("score.scan.remote_failed_vocaldive", error.localizedDescription)
+                    }
                 } else {
                     self?.errorMessage = L10n.tr("score.scan.remote_failed_vocaldive", error.localizedDescription)
                 }

@@ -516,7 +516,7 @@ so the server cannot recover their raw values from the database.
 There is exactly one current credential per `(account_id, installation_id)` pair:
 reconnecting the same installation rotates and revokes its prior credential,
 while a second device receives an independent credential. The magic link remains
-single-use and 15-minute-lived; it authorizes the pending login created by the
+single-use and defaults to a 24-hour lifetime; it authorizes the pending login created by the
 originating app even when the email is opened on another device. Deleting an
 account revokes every credential and removes profile data; completed correction
 records remain without profile data so already-consented training material has
@@ -543,6 +543,12 @@ that starts FastAPI, rather than inheriting a fragile Windows `PATH` lookup. `/v
 If the executable disappears during a job, the queue records the stable `engine_unavailable`
 code while the host-only log retains the operating-system diagnosis. `RemoteOMRService` maps that
 code to localized recovery copy before the Score workspace displays it.
+
+Any later worker failure is also represented by a stable phase code:
+`source_processing_failed`, `recognition_failed`, `result_assembly_failed`, or `worker_failed`.
+The API retains the phase and host diagnostics in the date/job folder and worker log, while the
+app presents the same localized retry guidance without exposing Windows paths, subprocess output,
+or internal model details.
 
 ### 2026-07-30 update - responsive remote source preparation
 

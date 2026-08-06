@@ -48,6 +48,12 @@ class OemerExecutableTests(unittest.TestCase):
             with self.assertRaises(server.OemerEngineUnavailableError):
                 server.available_oemer_executable()
 
+    def test_worker_failure_codes_are_stable_and_do_not_include_host_error_text(self) -> None:
+        self.assertEqual(server.worker_failure_code("rasterizing"), "source_processing_failed")
+        self.assertEqual(server.worker_failure_code("recognizing"), "recognition_failed")
+        self.assertEqual(server.worker_failure_code("assembling"), "result_assembly_failed")
+        self.assertEqual(server.worker_failure_code("unexpected"), "worker_failed")
+
 
 class EmailLinkRateLimitTests(unittest.TestCase):
     def setUp(self) -> None:

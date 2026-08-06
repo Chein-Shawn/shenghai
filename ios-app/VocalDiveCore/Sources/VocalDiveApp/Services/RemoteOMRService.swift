@@ -193,6 +193,7 @@ enum RemoteOMRServiceError: LocalizedError {
     case emailLinkRateLimited(Int)
     case sourceNoLongerRetained
     case engineUnavailable
+    case processingUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -225,6 +226,8 @@ enum RemoteOMRServiceError: LocalizedError {
         case .sourceNoLongerRetained:
             return "The original score is no longer retained on VocalDive OMR. Upload it again before completing correction."
         case .engineUnavailable:
+            return "Recognition is temporarily unavailable. Please try again shortly."
+        case .processingUnavailable:
             return "Recognition is temporarily unavailable. Please try again shortly."
         }
     }
@@ -886,6 +889,9 @@ final class RemoteOMRService {
             if status.state == .failed || status.state == .cancelled {
                 if status.errorCode == "engine_unavailable" {
                     throw RemoteOMRServiceError.engineUnavailable
+                }
+                if ["source_processing_failed", "recognition_failed", "result_assembly_failed", "worker_failed"].contains(status.errorCode) {
+                    throw RemoteOMRServiceError.processingUnavailable
                 }
                 throw RemoteOMRServiceError.server(status.error ?? status.detail ?? "VocalDive OMR did not finish.")
             }

@@ -229,3 +229,13 @@ important decisions live. The former free-form log is preserved unchanged in
 - Moved remote PDF/image preparation and multipart upload-file construction off the main actor.
   The Score UI remains responsive while preserving the same background upload, server queue, and
   local review-image workflow.
+
+## 2026-08-06 — Remote OMR beta failure boundary
+
+- Confirmed the public health contract reports an available, email-ready worker with the oemer
+  engine ready before resuming the Simulator-to-editor beta loop.
+- Replaced raw worker exception propagation with stable source-processing, recognition,
+  MusicXML-assembly, and fallback failure codes. Detailed diagnostics remain only on the host;
+  the app presents the existing localized retry guidance.
+- Corrected the C4 record to the implemented one-use, 24-hour email-link lifetime and verified
+  that `暫存進度` remains local while `完成校正` remains an idempotent training submission.
